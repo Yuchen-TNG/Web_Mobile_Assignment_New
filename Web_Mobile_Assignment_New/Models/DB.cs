@@ -1,0 +1,52 @@
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
+
+namespace Web_Mobile_Assignment_New.Models;
+
+public class DB : DbContext
+{
+    public DB(DbContextOptions options) : base(options) { }
+
+    public DbSet<User> Users { get; set; }
+    public DbSet<Tenant> Tenants { get; set; }
+    public DbSet<Owner> Owners { get; set; }
+    public DbSet<Admin> Admins { get; set; }
+
+
+}
+
+#nullable disable warnings
+
+public class User
+{
+    [Key, MaxLength(4)]
+    public string Id { get; set; }
+    [MaxLength(50)]
+    public string Name { get; set; }
+    [MaxLength(50)]
+    public string Email { get; set; }
+    [MaxLength(100)]
+    public string Hash { get; set; }
+    [MaxLength(20)]
+    public string PhoneNo { get; set; }
+
+    public string Role => GetType().Name;
+
+}
+
+public class Tenant : User
+{
+    [MaxLength(100)]
+    public string PhotoURL { get; set; }
+}
+
+public class Owner : User
+{
+    [MaxLength(100)]
+    public string PhotoURL { get; set; }
+}
+
+public class Admin : User
+{
+    
+}

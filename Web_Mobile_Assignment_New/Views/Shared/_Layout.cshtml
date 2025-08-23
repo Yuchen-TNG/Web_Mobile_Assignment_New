@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿@inject DB db
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -19,8 +21,21 @@
         </form>
 
         <div>
+        @if (User.Identity!.IsAuthenticated)
+        {
+            <a href="/Account/Logout">Logout</a>
+            <a href="/Account/UpdatePassword">Update Password</a>
+        }
+        else
+        {
             <a href="/Account/Login" class="btn btn-outline-primary me-2">Login</a>
             <a href="/Account/Register" class="btn btn-primary">Register</a>
+            <a href="/Account/ResetPassword" class="btn btn-primary">Reset Password</a>
+        }
+        @if (User.IsInRole("User"))
+        {
+            <a href="/Account/UpdateProfile">Update Profile</a>
+        }
         </div>
     </nav>
 

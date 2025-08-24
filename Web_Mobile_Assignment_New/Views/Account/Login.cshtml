@@ -4,30 +4,113 @@
     ViewBag.Title = "Account | Login";
 }
 
-<form class="form" method="post">
-    <div asp-validation-summary="ModelOnly"></div>
+@section head {
+    <style>
+        body {
+            background: linear-gradient(135deg, #4e73df, #6f42c1);
+        }
 
-    <label asp-for="Email"></label>
-    <input asp-for="Email" autofocus>
-    <span asp-validation-for="Email"></span>
+        .login-container {
+            max-width: 400px;
+            margin: 80px auto;
+            padding: 40px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
 
-    <label asp-for="Password"></label>
-    <input asp-for="Password">
-    <span asp-validation-for="Password"></span>
+            .login-container h2 {
+                text-align: center;
+                margin-bottom: 30px;
+                color: #4e73df;
+            }
 
-    <br>
-    <label>
-        <input asp-for="RememberMe">Remember Me
-    </label>
-    <br>
+            .login-container label {
+                display: block;
+                margin-top: 15px;
+                font-weight: 500;
+                color: #5a5c69;
+            }
 
-    <section>
-        <button>Login</button>
-        <button type="reset">Reset</button>
-    </section>
-</form>
+            .login-container input[type="text"],
+            .login-container input[type="email"],
+            .login-container input[type="password"] {
+                width: 100%;
+                padding: 10px 12px;
+                margin-top: 5px;
+                border: 1px solid #ccc;
+                border-radius: 6px;
+                font-size: 1rem;
+            }
 
-<p>
-    [ <a href="/Account/Register">Register</a> |
-      <a href="/Account/ResetPassword">Reset Password</a> ]
-</p>
+            .login-container input[type="checkbox"] {
+                margin-right: 5px;
+            }
+
+            .login-container button {
+                width: 100%;
+                padding: 12px;
+                margin-top: 20px;
+                background: #4e73df;
+                color: white;
+                font-size: 1rem;
+                font-weight: 500;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                transition: background 0.3s;
+            }
+
+                .login-container button:hover {
+                    background: #3b5bdb;
+                }
+
+            .login-container .links {
+                text-align: center;
+                margin-top: 15px;
+            }
+
+                .login-container .links a {
+                    color: #4e73df;
+                    text-decoration: none;
+                    margin: 0 10px;
+                }
+
+                    .login-container .links a:hover {
+                        text-decoration: underline;
+                    }
+
+        span.field-validation-valid, span.text-danger {
+            color: #e74a3b;
+            font-size: 0.9rem;
+        }
+    </style>
+}
+
+<div class="login-container">
+    <h2>Login</h2>
+
+    <form method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <label asp-for="Email">Email</label>
+        <input asp-for="Email" type="email" autofocus />
+        <span asp-validation-for="Email"></span>
+
+        <label asp-for="Password">Password</label>
+        <input asp-for="Password" type="password" />
+        <span asp-validation-for="Password"></span>
+
+        <label>
+            <input asp-for="RememberMe" /> Remember Me
+        </label>
+
+        <button type="submit">Login</button>
+        <button type="reset" style="margin-top:10px; background:#6f42c1;">Reset</button>
+    </form>
+
+    <div class="links">
+        [ <a href="/Account/Register">Register</a> |
+        <a href="/Account/ResetPassword">Reset Password</a> ]
+    </div>
+</div>

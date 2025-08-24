@@ -1,4 +1,4 @@
-global using Microsoft.EntityFrameworkCore;
+﻿global using Microsoft.EntityFrameworkCore;
 global using Web_Mobile_Assignment_New.Models;
 using Web_Mobile_Assignment_New;
 
@@ -15,12 +15,9 @@ builder.Services.AddAuthentication().AddCookie();
 builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UseRouting();
-
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapDefaultControllerRoute();
 
 app.Run();

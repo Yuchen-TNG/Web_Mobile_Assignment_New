@@ -3,96 +3,484 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>@ViewData["Title"] - My App</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - MySystem</title>
+    <link rel="shortcut icon" href="/images/favicon.png">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/pager.css">
+    <link rel="stylesheet" href="/css/app.css" asp-append-version="true">
+    @RenderSection("head", false)
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #6f42c1;
+            --light-bg: #f8f9fc;
+            --dark-text: #5a5c69;
+            --success-color: #1cc88a;
+            --info-color: #36b9cc;
+            --warning-color: #f6c23e;
+            --danger-color: #e74a3b;
+        }
 
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8f9fc;
+            color: #5a5c69;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .alert-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1050;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .alert-message {
+            width: 100%;
+            max-width: 800px;
+            padding: 12px 20px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.5s ease-out;
+            opacity: 1;
+            transition: opacity 0.5s ease-out;
+        }
+
+            .alert-message.hiding {
+                opacity: 0;
+            }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .alert-close {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0;
+            margin-left: 15px;
+            color: inherit;
+        }
+
+        .top-bar {
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 8px 20px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 15px;
+            margin-top: 0;
+            transition: margin-top 0.5s ease;
+        }
+
+            .top-bar.with-alert {
+                margin-top: 70px;
+            }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-photo {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+            .nav-link i {
+                font-size: 1.1rem;
+            }
+
+            .nav-link:hover {
+                background-color: rgba(255, 255, 255, 0.1);
+                transform: translateY(-1px);
+            }
+
+        .btn-nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+            .btn-nav:hover {
+                transform: translateY(-1px);
+            }
+
+        .search-form {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .main-container {
+            flex: 1;
+            padding: 20px 0;
+        }
+
+        .footer {
+            background-color: white;
+            border-top: 1px solid #e3e6f0;
+            padding: 15px 0;
+            text-align: center;
+            margin-top: auto;
+        }
+
+        .role-badge {
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            margin-left: 5px;
+        }
+
+        /* 修复的关键帧动画 - 使用@@字符转义 */
+        @@keyframes slideIn {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* 修复的响应式设计 */
+        @@media (max-width: 992px) {
+            .navbar-collapse {
+                padding: 15px 0;
+            }
+
+            .search-form {
+                margin: 15px 0;
+                max-width: 100%;
+            }
+
+            .top-bar {
+                justify-content: center;
+                flex-direction: column;
+                gap: 10px;
+                padding: 10px;
+            }
+
+                .top-bar.with-alert {
+                    margin-top: 100px;
+                }
+
+            .nav-link {
+                justify-content: center;
+            }
+
+            .btn-nav {
+                width: 100%;
+                justify-content: center;
+                margin: 5px 0;
+            }
+
+            .alert-message {
+                max-width: 95%;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .navbar-brand {
+                font-size: 1.2rem;
+            }
+
+            .user-info {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .role-badge {
+                margin: 5px 0;
+            }
+
+            .alert-message {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
 </head>
 <body>
-
-    <header>
-
-        @* User email and role *@
-        @if (User.Identity!.IsAuthenticated)
-        {
-            <div>
-                @User.Identity.Name |
-                @(User.IsInRole("Admin") ? "Admin" : "")
-                @(User.IsInRole("Owner") ? "Owner" : "")
-                @(User.IsInRole("Tenant") ? "Tenant" : "")
-            </div>
-        }
-
-        @* Member photo *@
-        @if (User.IsInRole("Tenant"))
-        {
-            var photoURL = db.Tenants.Find(User.Identity!.Name)!.PhotoURL;
-            <img src="/photos/@photoURL">
-        }
-        @if (User.IsInRole("Owner"))
-        {
-            var photoURL = db.Owners.Find(User.Identity!.Name)!.PhotoURL;
-            <img src="/photos/@photoURL">
-        }
-    </header>
-
-    <!-- 导航栏 (全局公用) -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary px-3">
-        <a class="navbar-brand text-white" href="/">MySystem</a>
-
-        <form class="d-flex mx-auto" style="width: 400px;">
-            <input class="form-control me-2" type="search" placeholder="Search..." />
-            <button class="btn btn-outline-light" type="submit">Search</button>
-        </form>
-
-        <div></div>
-
-        @* Menu trimming *@
-        @if (User.IsInRole("Tenant"))
-        {
-            <a href="/Home/Tenant">Tenant</a>
-        }
-        @if (User.IsInRole("Owner"))
-        {
-            <a href="/Home/Owner">Owner</a>
-        }
-        @if (User.IsInRole("Admin"))
-        {
-            <a href="/Home/Admin">Admin</a>
-        }
-
-        <div></div>
-        @if (User.Identity!.IsAuthenticated)
-        {
-            <a href="/Account/Logout">Logout</a>
-            <a href="/Account/UpdatePassword">Update Password</a>
-        }
-        else
-        {
-            <a href="/Account/Login" class="btn btn-primary">Login</a>
-            <a href="/Account/Register" class="btn btn-primary">Register</a>
-            <a href="/Account/ResetPassword" class="btn btn-primary">Reset Password</a>
-        }
-        @if (User.IsInRole("Tenant") || User.IsInRole("Owner"))
-        {
-            <a href="/Account/UpdateProfile">Update Profile</a>
-        }
-    </nav>
-
-    <!-- 页面内容 (每个页面都会插到这里) -->
-    <div class="container mt-4">
-        @RenderBody()
+    <div class="alert-container" id="alertContainer">
+        <!-- 警报消息将通过JavaScript动态添加 -->
     </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="top-bar" id="topBar">
+        @if (User.Identity!.IsAuthenticated)
+        {
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i>
+                <span>@User.Identity.Name</span>
+                @if (User.IsInRole("Admin"))
+                {
+                    <span class="role-badge">Admin</span>
+                }
+                @if (User.IsInRole("Owner"))
+                {
+                    <span class="role-badge">Owner</span>
+                }
+                @if (User.IsInRole("Tenant"))
+                {
+                    <span class="role-badge">Tenant</span>
+                }
+            </div>
+
+            @if (User.IsInRole("Tenant"))
+            {
+                var photoURL = db.Tenants.Find(User.Identity!.Name)!.PhotoURL;
+                <img class="user-photo" src="/photos/@photoURL" alt="Profile Photo">
+            }
+            @if (User.IsInRole("Owner"))
+            {
+                var photoURL = db.Owners.Find(User.Identity!.Name)!.PhotoURL;
+                <img class="user-photo" src="/photos/@photoURL" alt="Profile Photo">
+            }
+        }
+    </div>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-building me-2"></i>MySystem
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <form class="d-flex search-form me-auto">
+                    <div class="input-group">
+                        <input class="form-control" type="search" placeholder="Search..." aria-label="Search">
+                        <button class="btn btn-light" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </form>
+
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    <!-- 导航菜单保持不变 -->
+                    @if (User.IsInRole("Tenant"))
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link text-light" href="/Home/Tenant">
+                                <i class="fas fa-home"></i>Tenant
+                            </a>
+                        </li>
+                    }
+                    @if (User.IsInRole("Owner"))
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link text-light" href="/Home/Owner">
+                                <i class="fas fa-key"></i>Owner
+                            </a>
+                        </li>
+                    }
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link text-light" href="/Home/Admin">
+                                <i class="fas fa-cog"></i>Admin
+                            </a>
+                        </li>
+                    }
+
+                    @if (User.Identity!.IsAuthenticated)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link text-light" href="/Account/Logout">
+                                <i class="fas fa-sign-out-alt"></i>Logout
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-light" href="/Account/UpdatePassword">
+                                <i class="fas fa-lock"></i>Update Password
+                            </a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item">
+                            <a class="btn btn-outline-light btn-nav me-2" href="/Account/Login">
+                                <i class="fas fa-sign-in-alt"></i>Login
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-outline-light btn-nav me-2" href="/Account/Register">
+                                <i class="fas fa-user-plus"></i>Register
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-outline-light btn-nav" href="/Account/ResetPassword">
+                                <i class="fas fa-key"></i>Reset Password
+                            </a>
+                        </li>
+                    }
+
+                    @if (User.IsInRole("Tenant") || User.IsInRole("Owner"))
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link text-light" href="/Account/UpdateProfile">
+                                <i class="fas fa-user-edit"></i>Update Profile
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-container">
+        <div class="container">
+            @RenderBody()
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p class="mb-0">&copy; 2023 MySystem - Property Management System</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/js/jquery.min.js"></script>
     <script src="/js/jquery.unobtrusive-ajax.min.js"></script>
     <script src="/js/jquery.validate.min.js"></script>
     <script src="/js/jquery.validate.unobtrusive.min.js"></script>
     <script src="/js/app.js" asp-append-version="true"></script>
+
+    <script>
+        // 处理TempData消息显示
+        document.addEventListener('DOMContentLoaded', function() {
+            // 从服务器获取TempData消息
+            const tempDataMessage = "@Html.Raw(TempData["Info"])";
+
+            if (tempDataMessage && tempDataMessage.trim() !== "") {
+                showAlert(tempDataMessage, 'success');
+
+                // 添加顶部边距以容纳警报
+                document.getElementById('topBar').classList.add('with-alert');
+            }
+
+            // 显示警报函数
+            function showAlert(message, type = 'success') {
+                const alertContainer = document.getElementById('alertContainer');
+
+                // 创建警报元素
+                const alertElement = document.createElement('div');
+                alertElement.className = `alert-message alert-${type}`;
+
+                // 设置内容
+                alertElement.innerHTML = `
+                    <div>${message}</div>
+                    <button class="alert-close" onclick="closeAlert(this)">&times;</button>
+                `;
+
+                // 添加到容器
+                alertContainer.appendChild(alertElement);
+
+                // 5秒后自动关闭
+                setTimeout(() => {
+                    if (alertElement.parentNode) {
+                        closeAlert(alertElement.querySelector('.alert-close'));
+                    }
+                }, 5000);
+            }
+
+            // 全局函数用于关闭警报
+            window.closeAlert = function(closeButton) {
+                const alertElement = closeButton.closest('.alert-message');
+                alertElement.classList.add('hiding');
+
+                setTimeout(() => {
+                    if (alertElement.parentNode) {
+                        alertElement.parentNode.removeChild(alertElement);
+
+                        // 如果没有更多警报，移除顶部边距
+                        if (document.getElementById('alertContainer').children.length === 0) {
+                            document.getElementById('topBar').classList.remove('with-alert');
+                        }
+                    }
+                }, 500);
+            };
+
+            // 添加响应式菜单交互
+            const navLinks = document.querySelectorAll('.nav-link');
+            const navbarCollapse = document.getElementById('navbarContent');
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth < 992) {
+                        const bsCollapse = new bootstrap.Collapse(navbarCollapse, {
+                            toggle: true
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+
     @RenderSection("foot", false)
 </body>
 </html>

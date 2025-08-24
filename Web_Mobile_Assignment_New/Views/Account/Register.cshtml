@@ -4,53 +4,223 @@
     ViewBag.Title = "Account | Register";
 }
 
+@section head {
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #4e73df, #6f42c1);
+            margin: 0;
+            padding: 0;
+        }
 
-<form class="form" method="post" enctype="multipart/form-data">
-    <div asp-validation-summary="ModelOnly"></div>
+        .register-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 25px;
+            max-width: 650px;
+            margin: 50px auto;
+            padding: 30px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            position: relative;
+        }
 
-    <label asp-for="Email"></label>
-    <input asp-for="Email" autofocus>
-    <span asp-validation-for="Email"></span>
+        /* 左侧表单 */
+        .register-form {
+            flex: 1 1 350px;
+            display: flex;
+            flex-direction: column;
+        }
 
-    <label asp-for="Password"></label>
-    <input asp-for="Password">
-    <span asp-validation-for="Password"></span>
+            .register-form h2 {
+                text-align: center;
+                margin-bottom: 25px;
+                color: #4e73df;
+            }
 
-    <label asp-for="Confirm"></label>
-    <input asp-for="Confirm">
-    <span asp-validation-for="Confirm"></span>
+            .register-form label {
+                margin-top: 12px;
+                font-weight: 500;
+                color: #5a5c69;
+            }
 
-    <label asp-for="Name"></label>
-    <input asp-for="Name">
-    <span asp-validation-for="Name"></span>
+            .register-form input,
+            .register-form select {
+                width: 100%;
+                padding: 10px 12px;
+                margin-top: 4px;
+                border: 1px solid #ccc;
+                border-radius: 6px;
+                font-size: 0.95rem;
+                transition: border 0.2s, box-shadow 0.2s;
+            }
 
-    <label asp-for="Photo"></label>
-    <label class="upload">
-        <small>Select Photo...</small>
-        <input asp-for="Photo" accept="image/jpeg,image/png" hidden>
-        <img src="/images/photo.jpg">
-    </label>
-    <span asp-validation-for="Photo"></span>
+                .register-form input:focus,
+                .register-form select:focus {
+                    border-color: #4e73df;
+                    box-shadow: 0 0 4px rgba(78,115,223,0.4);
+                    outline: none;
+                }
 
-    <div class="form-group">
+            .register-form button {
+                margin-top: 18px;
+                padding: 12px;
+                border-radius: 6px;
+                cursor: pointer;
+                background: #4e73df;
+                color: #fff;
+                font-weight: 500;
+                border: none;
+                transition: background 0.3s, transform 0.1s;
+            }
+
+                .register-form button:hover {
+                    background: #3b5bdb;
+                    transform: translateY(-1px);
+                }
+
+        /* 右侧图片上传 */
+        .photo-upload {
+            flex: 0 0 140px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .photo-upload label {
+                font-weight: 500;
+                color: #5a5c69;
+                margin-bottom: 10px;
+                font-size: 0.95rem;
+            }
+
+            .photo-upload input[type="file"] {
+                display: none;
+            }
+
+            .photo-upload .upload {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 6px;
+                cursor: pointer;
+                border: 2px dashed #ccc;
+                padding: 8px;
+                border-radius: 8px;
+                transition: border-color 0.2s, box-shadow 0.2s;
+            }
+
+                .photo-upload .upload:hover {
+                    border-color: #4e73df;
+                    box-shadow: 0 0 6px rgba(78,115,223,0.3);
+                }
+
+                .photo-upload .upload img {
+                    width: 80px;
+                    height: 80px;
+                    border-radius: 8px;
+                    object-fit: cover;
+                    border: 1px solid #ccc;
+                }
+
+        span.field-validation-valid, span.text-danger {
+            color: #e74a3b;
+            font-size: 0.85rem;
+            margin-top: 2px;
+        }
+
+        /* 底部居中链接 */
+        .register-links {
+            width: 100%;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+            .register-links a {
+                color: #4e73df;
+                text-decoration: none;
+                margin: 0 8px;
+                transition: color 0.2s;
+            }
+
+                .register-links a:hover {
+                    text-decoration: underline;
+                    color: #2e59d9;
+                }
+
+    </style>
+}
+
+<div class="register-container">
+    <!-- 左侧表单 -->
+    <form method="post" enctype="multipart/form-data" class="register-form">
+        <h2>Register</h2>
+
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <label asp-for="Email">Email</label>
+        <input asp-for="Email" type="email" autofocus />
+        <span asp-validation-for="Email"></span>
+
+        <label asp-for="Password">Password</label>
+        <input asp-for="Password" type="password" />
+        <span asp-validation-for="Password"></span>
+
+        <label asp-for="Confirm">Confirm Password</label>
+        <input asp-for="Confirm" type="password" />
+        <span asp-validation-for="Confirm"></span>
+
+        <label asp-for="Name">Name</label>
+        <input asp-for="Name" type="text" />
+        <span asp-validation-for="Name"></span>
+
         <label asp-for="Category">Choose Category</label>
-        <select asp-for="Category" class="form-control">
+        <select asp-for="Category">
             <option value="">-- Select Category --</option>
             <option value="Tenant">Tenant</option>
             <option value="Owner">Owner</option>
         </select>
         <span asp-validation-for="Category" class="text-danger"></span>
+
+        <button type="submit">Register</button>
+        <button type="reset" style="margin-top:8px; background:#6f42c1;">Reset</button>
+    </form>
+
+    <!-- 右侧图片上传 -->
+    <div class="photo-upload">
+        <label>Photo</label>
+        <label class="upload">
+            <img src="/images/photo.jpg" alt="Preview">
+            <small>Select Photo...</small>
+            <input asp-for="Photo" accept="image/jpeg,image/png" />
+        </label>
+        <span asp-validation-for="Photo"></span>
     </div>
 
-
-    <section>
-        <button>Register</button>
-        <button type="reset">Reset</button>
-    </section>
-</form>
+    <!-- 底部居中链接 -->
+    <div class="register-links">
+        [ <a href="/Account/Login">Login</a> |
+        <a href="/Account/ResetPassword">Reset Password</a> ]
+    </div>
+</div>
 
 @section foot {
     <script>
         $.validator.setDefaults({ ignore: '' });
+
+        const photoInput = document.querySelector('input[type="file"]');
+        const photoPreview = document.querySelector('.photo-upload img');
+
+        photoInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if(file){
+                const reader = new FileReader();
+                reader.onload = e => photoPreview.src = e.target.result;
+                reader.readAsDataURL(file);
+            }
+        });
     </script>
 }

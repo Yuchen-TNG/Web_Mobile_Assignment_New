@@ -282,7 +282,6 @@ public class AccountController : Controller
             db.SaveChanges();
 
             // Send reset password email
-
             TempData["Info"] = $"Password reset to <b>{password}</b>.";
             return RedirectToAction();
         }

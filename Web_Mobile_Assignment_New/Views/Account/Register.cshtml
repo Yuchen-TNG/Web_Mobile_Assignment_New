@@ -4,6 +4,7 @@
     ViewBag.Title = "Account | Register";
 }
 
+
 <form class="form" method="post" enctype="multipart/form-data">
     <div asp-validation-summary="ModelOnly"></div>
 
@@ -30,6 +31,17 @@
         <img src="/images/photo.jpg">
     </label>
     <span asp-validation-for="Photo"></span>
+
+    <div class="form-group">
+        <label asp-for="Category">Choose Category</label>
+        <select asp-for="Category" class="form-control">
+            <option value="">-- Select Category --</option>
+            <option value="Tenant">Tenant</option>
+            <option value="Owner">Owner</option>
+        </select>
+        <span asp-validation-for="Category" class="text-danger"></span>
+    </div>
+
 
     <section>
         <button>Register</button>

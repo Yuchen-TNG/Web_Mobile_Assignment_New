@@ -19,16 +19,12 @@ public class DB : DbContext
 
 public class User
 {
-    [Key, MaxLength(4)]
-    public string Id { get; set; }
-    [MaxLength(50)]
-    public string Name { get; set; }
-    [MaxLength(50)]
+    [Key, MaxLength(100)]
     public string Email { get; set; }
     [MaxLength(100)]
+    public string Name { get; set; }
+    [MaxLength(100)]
     public string Hash { get; set; }
-    [MaxLength(20)]
-    public string PhoneNo { get; set; }
 
     public string Role => GetType().Name;
 

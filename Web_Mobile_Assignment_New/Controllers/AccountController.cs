@@ -56,7 +56,6 @@ public class AccountController : Controller
         TempData["Info"] = "Logout successfully.";
 
         // Sign out
-        // TODO
         hp.SignOut();
 
         return RedirectToAction("Index", "Home");
@@ -65,7 +64,7 @@ public class AccountController : Controller
     // GET: Account/AccessDenied
     public IActionResult AccessDenied(string? returnURL)
     {
-        return View();
+        return View("AccessDenied", "Home");
     }
 
 
@@ -101,17 +100,33 @@ public class AccountController : Controller
             var err = hp.ValidatePhoto(vm.Photo);
             if (err != "") ModelState.AddModelError("Photo", err);
         }
-        
+
         if (ModelState.IsValid)
         {
-            // Insert Owners
-            db.Owners.Add(new()
+            User user;
+
+            if (vm.Category == "Owner")
             {
-                Email = vm.Email,
-                Hash = hp.HashPassword(vm.Password),
-                Name = vm.Name,
-                PhotoURL = hp.SavePhoto(vm.Photo, "Photos"),
-            });
+                user = new Owner()
+                {           
+                    Email = vm.Email,
+                    Hash = hp.HashPassword(vm.Password),
+                    Name = vm.Name,
+                    PhotoURL = hp.SavePhoto(vm.Photo, "Photos")
+                };
+            }
+            else // Tenant
+            {
+                user = new Tenant()
+                {
+                    Email = vm.Email,
+                    Hash = hp.HashPassword(vm.Password),
+                    Name = vm.Name,
+                    PhotoURL = hp.SavePhoto(vm.Photo, "Photos")
+                };
+            }
+
+            db.Users.Add(user);
             db.SaveChanges();
 
             TempData["Info"] = "Register successfully. Please login.";
@@ -129,18 +144,15 @@ public class AccountController : Controller
     }
 
     // POST: Account/UpdatePassword
-    // TODO
     [Authorize]
     [HttpPost]
     public IActionResult UpdatePassword(UpdatePasswordVM vm)
     {
         // Get user (admin or member) record based on email (PK)
-        // TODO
-        var u = db.Users.Find("User.Identity!.Name");
+        var u = db.Users.Find(User.Identity!.Name);
         if (u == null) return RedirectToAction("Index", "Home");
 
         // If current password not matched
-        // TODO
         if (!hp.VerifyPassword(u.Hash, vm.Current))
         {
             ModelState.AddModelError("Current", "Current Password not matched.");
@@ -160,36 +172,61 @@ public class AccountController : Controller
     }
 
     // GET: Account/UpdateProfile
-    // TODO
-    [Authorize(Roles = "Member")]
+    [Authorize(Roles = "Owner, Tenant")]
     public IActionResult UpdateProfile()
     {
-        // Get member record based on email (PK)
-        // TODO
-        var m = db.Owners.Find(User.Identity!.Name);
-        if (m == null) return RedirectToAction("Index", "Home");
 
-        var vm = new UpdateProfileVM
+        if (User.IsInRole("Owner"))
         {
-            // TODO
-            Email = m.Email,
-            Name = m.Name,
-            PhotoURL = m.PhotoURL,
-        };
+            // Get Owner record based on email (PK)
+            var m = db.Owners.Find(User.Identity!.Name);
+            if (m == null) return RedirectToAction("Index", "Home");
 
-        return View(vm);
+            var vm = new UpdateProfileVM
+            {
+                Email = m.Email,
+                Name = m.Name,
+                PhotoURL = m.PhotoURL,
+            };
+
+            return View(vm);
+        }
+        else if (User.IsInRole("Tenant"))
+        {
+            // Get Tenant record based on email (PK)
+            var m = db.Tenants.Find(User.Identity!.Name);
+            if (m == null) return RedirectToAction("Index", "Home");
+
+            var vm = new UpdateProfileVM
+            {
+                Email = m.Email,
+                Name = m.Name,
+                PhotoURL = m.PhotoURL,
+            };
+            return View(vm);
+        }
+
+        // fallback
+        return RedirectToAction("Index", "Home");
     }
 
+#nullable disable warnings
     // POST: Account/UpdateProfile
-    // TODO
-    [Authorize(Roles = "Member")]
+    [Authorize(Roles = "Owner, Tenant")]
     [HttpPost]
     public IActionResult UpdateProfile(UpdateProfileVM vm)
     {
-        // Get member record based on email (PK)
-        // TODO
-        var m = db.Owners.Find(User.Identity!.Name);
+        object m = null;
+
+        // Get Owner or Tenant record based on email (PK)
+        if (User.IsInRole("Owner"))
+            m = db.Owners.Find(User.Identity!.Name);
+        else if (User.IsInRole("Tenant"))
+            m = db.Tenants.Find(User.Identity!.Name);
+
         if (m == null) return RedirectToAction("Index", "Home");
+
+        dynamic user = m; // allows accessing Email, Name, PhotoURL
 
         if (vm.Photo != null)
         {
@@ -199,13 +236,12 @@ public class AccountController : Controller
 
         if (ModelState.IsValid)
         {
-            // TODO
             var Name = vm.Name;
 
             if (vm.Photo != null)
             {
-                hp.DeletePhoto(m.PhotoURL, "photos");
-                m.PhotoURL = hp.SavePhoto(vm.Photo, "photos");
+                hp.DeletePhoto(user.PhotoURL, "photos");
+                user.PhotoURL = hp.SavePhoto(vm.Photo, "photos");
             }
 
             db.SaveChanges();
@@ -214,9 +250,8 @@ public class AccountController : Controller
             return RedirectToAction();
         }
 
-        // TODO
-        vm.Email = m.Email;
-        vm.PhotoURL = m.PhotoURL;
+        vm.Email = user.Email;
+        vm.PhotoURL = user.PhotoURL;
         return View(vm);
     }
 

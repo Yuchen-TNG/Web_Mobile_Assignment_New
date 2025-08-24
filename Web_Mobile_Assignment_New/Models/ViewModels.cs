@@ -41,6 +41,8 @@ public class RegisterVM
     public string Name { get; set; }
 
     public IFormFile Photo { get; set; }
+
+    public string Category { get; set; }
 }
 
 public class UpdatePasswordVM

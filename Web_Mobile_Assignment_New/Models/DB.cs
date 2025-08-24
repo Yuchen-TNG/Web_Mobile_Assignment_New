@@ -33,16 +33,20 @@ public class User
 
 }
 
-public class Tenant : User
+public class Photo : User
 {
     [MaxLength(100)]
     public string PhotoURL { get; set; }
 }
 
-public class Owner : User
+public class Tenant : Photo
 {
-    [MaxLength(100)]
-    public string PhotoURL { get; set; }
+ 
+}
+
+public class Owner : Photo
+{
+   
 }
 
 public class Admin : User

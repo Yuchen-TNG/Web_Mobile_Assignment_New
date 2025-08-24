@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic;
+
 
 namespace Web_Mobile_Assignment_New.Models;
 
@@ -11,6 +13,8 @@ public class DB : DbContext
     public DbSet<Tenant> Tenants { get; set; }
     public DbSet<Owner> Owners { get; set; }
     public DbSet<Admin> Admins { get; set; }
+
+    public DbSet<House> Houses { get; set; }
 
 
 }

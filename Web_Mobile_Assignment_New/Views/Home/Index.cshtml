@@ -1,6 +1,25 @@
-﻿@{
-    ViewData["Title"] = "主界面";
+﻿@model List<Web_Mobile_Assignment_New.Models.House>
+
+@{
+    ViewData["Title"] = "Available Houses";
 }
 
-<h1 style="color: red;">这是 Index 页面</h1>
-<p>欢迎来到系统主界面 ✅</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Available Houses</h2>
+    <a class="btn btn-success" href="@Url.Action("AddHouse", "Home")">+ Add House</a>
+</div>
+
+<div class="row">
+    @foreach (var house in Model)
+    {
+        <div class="col-md-3 mb-4">
+            <!-- 一排四个 -->
+            <div class="card shadow-sm" style="width: 100%; aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center;">
+                <div class="card-body text-center">
+                    <h5 class="card-title">@house.Price.ToString("C")</h5>
+                    <a href="@Url.Action("Details", "Home", new { id = house.Id })" class="btn btn-primary mt-3">View Details</a>
+                </div>
+            </div>
+        </div>
+    }
+</div>

@@ -1,0 +1,15 @@
+﻿@model Web_Mobile_Assignment_New.Models.House
+
+@{
+    ViewData["Title"] = "House Details";
+}
+
+<h2>House Details</h2>
+
+<div class="card p-3">
+    <p><strong>Price:</strong> @Model.Price.ToString("C")</p>
+    <p><strong>Location:</strong> @Model.Address</p>
+    <p><strong>Description:</strong> @Model.Description</p>
+</div>
+
+<a class="btn btn-secondary mt-3" href="@Url.Action("Index", "Home")">Back to List</a>

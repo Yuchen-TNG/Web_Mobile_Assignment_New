@@ -9,6 +9,8 @@ builder.Services.AddSqlServer<DB>($@"
     AttachDbFilename={builder.Environment.ContentRootPath}\DB.mdf;
 ");
 
+builder.Services.AddSqlServer<DB>(@"Server=(localdb)\MSSQLLocalDB;Database=MyDB;Trusted_Connection=True;");
+
 builder.Services.AddScoped<Helper>();
 
 builder.Services.AddAuthentication().AddCookie();

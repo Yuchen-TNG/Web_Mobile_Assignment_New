@@ -13,7 +13,6 @@ public class DB : DbContext
     public DbSet<Tenant> Tenants { get; set; }
     public DbSet<Owner> Owners { get; set; }
     public DbSet<Admin> Admins { get; set; }
-
     public DbSet<House> Houses { get; set; }
 
 

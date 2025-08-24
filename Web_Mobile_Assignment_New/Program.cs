@@ -1,19 +1,20 @@
-using Microsoft.EntityFrameworkCore;
-using Web_Mobile_Assignment_New.Models;
+global using Microsoft.EntityFrameworkCore;
+global using Web_Mobile_Assignment_New.Models;
+using Web_Mobile_Assignment_New;
 
 var builder = WebApplication.CreateBuilder(args);
-
-//// ?? SQLite
-//builder.Services.AddDbContext<AppDbContext>(options =>
-//    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-builder.Services.AddDbContext<DB>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 builder.Services.AddControllersWithViews();
+builder.Services.AddSqlServer<DB>($@"
+    Data Source=(LocalDB)\MSSQLLocalDB;
+    AttachDbFilename={builder.Environment.ContentRootPath}\DB.mdf;
+");
+
+builder.Services.AddScoped<Helper>();
+
+builder.Services.AddAuthentication().AddCookie();
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
-
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();

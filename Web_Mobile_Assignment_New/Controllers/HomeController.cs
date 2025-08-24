@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using Web_Mobile_Assignment_New.Models;
@@ -45,5 +46,34 @@ namespace Web_Mobile_Assignment_New.Controllers
             if (house == null) return NotFound();
             return View(house);
         }
+
+        // GET: Home/Both
+        [Authorize]
+        public IActionResult Both()
+        {
+            return View();
+        }
+
+        // GET: Home/Owner
+        [Authorize(Roles = "Owner")]
+        public IActionResult Owner()
+        {
+            return View();
+        }
+
+        // GET: Home/Admin
+        [Authorize(Roles = "Admin")]
+        public IActionResult Admin()
+        {
+            return View();
+        }
+
+        // GET: Home/Tenant
+        [Authorize(Roles = "Tenant")]
+        public IActionResult Tenant()
+        {
+            return View();
+        }
     }
+
 }

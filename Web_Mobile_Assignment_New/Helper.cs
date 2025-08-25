@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Identity;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
+using System.Net;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 
@@ -11,11 +13,13 @@ public class Helper
 {
     private readonly IWebHostEnvironment en;
     private readonly IHttpContextAccessor ct;
-    
-    public Helper(IWebHostEnvironment en, IHttpContextAccessor ct)
+    private readonly IConfiguration cf;
+
+    public Helper(IWebHostEnvironment en, IHttpContextAccessor ct, IConfiguration cf)
     {
         this.en = en;
         this.ct = ct;
+        this.cf = cf;
     }
 
     // ------------------------------------------------------------------------
@@ -129,4 +133,27 @@ public class Helper
 
         return password;
     }
+
+    public void SendEmail(MailMessage mail)
+    {
+
+        string user = cf["Smtp:User"] ?? "";
+        string pass = cf["Smtp:Pass"] ?? "";
+        string name = cf["Smtp:Name"] ?? "";
+        string host = cf["Smtp:Host"] ?? "";
+        int port = cf.GetValue<int>("Smtp:Port");
+
+        mail.From = new MailAddress(user, name);
+
+        using var smtp = new SmtpClient
+        {
+            Host = host,
+            Port = port,
+            EnableSsl = true,
+            Credentials = new NetworkCredential(user, pass),
+        };
+
+        smtp.Send(mail);
+    }
+
 }

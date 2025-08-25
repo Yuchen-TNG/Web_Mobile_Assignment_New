@@ -18,6 +18,8 @@ var app = builder.Build();
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.MapDefaultControllerRoute();
 
+app.UseRequestLocalization("en-MY");
+
+app.MapDefaultControllerRoute();
 app.Run();

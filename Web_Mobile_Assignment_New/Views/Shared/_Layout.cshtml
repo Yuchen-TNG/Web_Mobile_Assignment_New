@@ -35,6 +35,7 @@
         }
 
         .alert-container {
+            pointer-events: none;
             position: fixed;
             top: 0;
             left: 0;
@@ -48,7 +49,7 @@
 
         .alert-message {
             width: 100%;
-            max-width: 800px;
+            max-width: 270px;
             padding: 12px 20px;
             border-radius: 6px;
             margin-bottom: 10px;
@@ -59,6 +60,7 @@
             animation: slideIn 0.5s ease-out;
             opacity: 1;
             transition: opacity 0.5s ease-out;
+            pointer-events: auto;
         }
 
             .alert-message.hiding {
@@ -107,13 +109,9 @@
             justify-content: flex-end;
             align-items: center;
             gap: 15px;
-            margin-top: 0;
-            transition: margin-top 0.5s ease;
+            position: relative;
+            z-index: 1000;
         }
-
-            .top-bar.with-alert {
-                margin-top: 70px;
-            }
 
         .user-info {
             display: flex;
@@ -349,7 +347,7 @@
                     @if (User.Identity!.IsAuthenticated)
                     {
                         <li class="nav-item">
-                            <a class="nav-link text-light" href="/Account/Logout">
+                            <a class="nav-link text-light" href="/Account/Logout" onclick="return confirm('Are you sure you want to logout?')"  >
                                 <i class="fas fa-sign-out-alt"></i>Logout
                             </a>
                         </li>

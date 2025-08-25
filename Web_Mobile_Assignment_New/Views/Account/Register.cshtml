@@ -173,29 +173,36 @@
 
         <div class="form-columns">
             <div class="form-center">
+
+                <div class="form-group">
+                    <label asp-for="Name">Name</label>
+                    <input asp-for="Name" type="text" autofocus>
+                </div>
+                <span asp-validation-for="Name"></span>
+
                 <div class="form-group">
                     <label asp-for="Email">Email</label>
-                    <input asp-for="Email" type="email" autofocus />
+                    <input asp-for="Email" type="email">
                 </div>
                 <span asp-validation-for="Email"></span>
 
                 <div class="form-group">
                     <label asp-for="Password">Password</label>
-                    <input asp-for="Password" type="password" />
+                    <input asp-for="Password" type="password">
                 </div>
                 <span asp-validation-for="Password"></span>
 
                 <div class="form-group">
                     <label asp-for="Confirm">Confirm Password</label>
-                    <input asp-for="Confirm" type="password" />
+                    <input asp-for="Confirm" type="password">
                 </div>
-                <span asp-validation-for="Confirm"></span>
+                <span asp-validation-for="Confirm"></span>            
 
                 <div class="form-group">
-                    <label asp-for="Name">Name</label>
-                    <input asp-for="Name" type="text" />
+                    <label asp-for="Birthday"></label>
+                    <input asp-for="Birthday">
                 </div>
-                <span asp-validation-for="Name"></span>
+                <span asp-validation-for="Birthday"></span>
 
                 <div class="form-group vertical" style="margin-top:0;">
                     <label asp-for="Photo">Photo</label>

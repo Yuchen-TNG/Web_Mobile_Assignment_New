@@ -1,16 +1,19 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net.Mail;
 
 namespace Web_Mobile_Assignment_New.Controllers;
 
 public class AccountController : Controller
 {
     private readonly DB db;
+    private readonly IWebHostEnvironment en;
     private readonly Helper hp;
 
-    public AccountController(DB db, Helper hp)
+    public AccountController(DB db,IWebHostEnvironment en, Helper hp)
     {
         this.db = db;
+        this.en = en;
         this.hp = hp;
     }
 
@@ -112,7 +115,8 @@ public class AccountController : Controller
                     Email = vm.Email,
                     Hash = hp.HashPassword(vm.Password),
                     Name = vm.Name,
-                    PhotoURL = hp.SavePhoto(vm.Photo, "Photos")
+                    PhotoURL = hp.SavePhoto(vm.Photo, "Photos"),
+                    Birthday = vm.Birthday,
                 };
             }
             else // Tenant
@@ -122,7 +126,8 @@ public class AccountController : Controller
                     Email = vm.Email,
                     Hash = hp.HashPassword(vm.Password),
                     Name = vm.Name,
-                    PhotoURL = hp.SavePhoto(vm.Photo, "Photos")
+                    PhotoURL = hp.SavePhoto(vm.Photo, "Photos"),
+                    Birthday = vm.Birthday,
                 };
             }
 
@@ -282,10 +287,50 @@ public class AccountController : Controller
             db.SaveChanges();
 
             // Send reset password email
-            TempData["Info"] = $"Password reset to <b>{password}</b>.";
+            SendResetPasswordEmail(u, password);
+
+            TempData["Info"] = $"Password reset. Check your email.";
             return RedirectToAction();
         }
 
         return View();
     }
-}
+
+    private void SendResetPasswordEmail(User u, string password)
+    {
+        var mail = new MailMessage();
+        mail.To.Add(new MailAddress(u.Email, u.Name));
+        mail.Subject = "Reset Password";
+        mail.IsBodyHtml = true;
+
+        var url = Url.Action("Login", "Account", null, "https");
+
+        var path = u switch
+        {
+            Admin    => Path.Combine(en.WebRootPath, "photos", "admin.jpg"),
+            Tenant T => Path.Combine(en.WebRootPath, "photos", T.PhotoURL),
+            Owner  O => Path.Combine(en.WebRootPath, "photos", O.PhotoURL),
+            _        => "",
+        };
+
+        var att = new Attachment(path);
+        mail.Attachments.Add(att);
+        att.ContentId = "photo";
+
+        mail.Body = $@"
+            <img src='cid:photo' style='width: 200px; height: 200px;
+                                        border: 1px solid #333'>
+            <p>Dear {u.Name},<p>
+            <p>Your password has been reset to:</p>
+            <h1 style='color: red'>{password}</h1>
+            <p>
+                Please <a href='{url}'>login</a>
+                with your new password.
+            </p>
+            <p>From, 🐱 Super Admin</p>
+        ";
+
+        hp.SendEmail(mail);
+    }
+
+    }

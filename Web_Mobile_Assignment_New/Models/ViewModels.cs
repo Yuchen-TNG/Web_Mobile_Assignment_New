@@ -43,6 +43,10 @@ public class RegisterVM
     public IFormFile Photo { get; set; }
 
     public string Category { get; set; }
+
+    [Required]
+    [DataType(DataType.Date)]
+    public DateOnly Birthday { get; set; }
 }
 
 public class UpdatePasswordVM
@@ -74,6 +78,9 @@ public class UpdateProfileVM
     public string? PhotoURL { get; set; }
 
     public IFormFile? Photo { get; set; }
+
+    [DataType(DataType.Date)]
+    public DateOnly Birthday { get; set; }
 }
 
 public class ResetPasswordVM

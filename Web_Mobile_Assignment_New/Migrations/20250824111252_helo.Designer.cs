@@ -11,8 +11,8 @@ using Web_Mobile_Assignment_New.Models;
 namespace Web_Mobile_Assignment_New.Migrations
 {
     [DbContext(typeof(DB))]
-    [Migration("20250824110600_CreateDB")]
-    partial class CreateDB
+    [Migration("20250824111252_helo")]
+    partial class helo
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

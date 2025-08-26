@@ -5,7 +5,7 @@
 namespace Web_Mobile_Assignment_New.Migrations
 {
     /// <inheritdoc />
-    public partial class CreateDB : Migration
+    public partial class helo : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

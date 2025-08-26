@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Net.Mail;
 
 namespace Web_Mobile_Assignment_New.Controllers;
@@ -279,21 +280,115 @@ public class AccountController : Controller
 
         if (ModelState.IsValid)
         {
-            // Generate random password
-            string password = hp.RandomPassword();
+            // 生成验证码
+            string verificationCode = hp.GenerateVerificationCode();
 
-            // Update user (admin or member) record
-            u!.Hash = hp.HashPassword(password);
-            db.SaveChanges();
+            // 存储验证码到Session
+            hp.SetVerificationCode(vm.Email, verificationCode);
 
-            // Send reset password email
-            SendResetPasswordEmail(u, password);
+            // 发送验证码邮件
+            hp.SendVerificationCodeEmail(u!, verificationCode);
 
-            TempData["Info"] = $"Password reset. Check your email.";
-            return RedirectToAction();
+            TempData["Info"] = $"Verification code has been sent to your email. Please check your email.";
+
+            // 重定向到验证码输入页面
+            return RedirectToAction("VerifyCode", "Account", new { email = vm.Email });
+
         }
 
-        return View();
+        return View(vm);
+    }
+
+
+    // GET: Account/VerifyCode
+    [HttpGet("Account/VerifyCode/{email?}")]
+    public IActionResult VerifyCode(string email)
+    {
+
+        if (string.IsNullOrEmpty(email))
+        {
+            TempData["info"] = "Email parameter is missing.";
+            return RedirectToAction("ResetPassword");
+        }
+
+        var vm = new VerifyCodeVM { Email = email };
+        return View(vm);
+    }
+
+    // POST: Account/VerifyCode - 第二步：验证验证码
+    [HttpPost]
+    public IActionResult VerifyCode(VerifyCodeVM vm)
+    {
+        // 添加调试日志
+        System.Diagnostics.Debug.WriteLine($"VerifyCode POST - Email: {vm.Email}, Code: {vm.VerificationCode}");
+
+        if (string.IsNullOrEmpty(vm.Email))
+        {
+            ModelState.AddModelError("", "Email is required.");
+            return View(vm);
+        }
+
+        if (ModelState.IsValid)
+        {
+            // 验证验证码
+            if (!hp.VerifyCode(vm.Email, vm.VerificationCode))
+            {
+                ModelState.AddModelError("VerificationCode", "Invalid or expired verification code.");
+                return View(vm);
+            }
+
+            // 验证码正确，查找用户并重置密码
+            var u = db.Users.Find(vm.Email);
+            if (u == null)
+            {
+                ModelState.AddModelError("", "User not found.");
+                return View(vm);
+            }
+
+            // 生成新密码
+            string newPassword = hp.RandomPassword();
+
+            // 更新用户密码
+            u.Hash = hp.HashPassword(newPassword);
+            db.SaveChanges();
+
+            // 发送新密码邮件
+            SendResetPasswordEmail(u, newPassword);
+
+            TempData["Info"] = "Password reset successfully. Check your email for the new password.";
+            return RedirectToAction("Login");
+        }
+
+        return View(vm);
+    }
+
+    // GET: Account/ResendCode - 重新发送验证码
+    public IActionResult ResendCode(string emails)
+    {
+        if (string.IsNullOrEmpty(emails))
+        {
+            return RedirectToAction("ResetPassword");
+        }
+
+        var u = db.Users.Find(emails);
+        if (u == null)
+        {
+            TempData["Error"] = "User not found.";
+            return RedirectToAction("ResetPassword");
+        }
+
+        // 生成新的验证码
+        string verificationCode = hp.GenerateVerificationCode();
+
+        // 存储验证码到Session
+        hp.SetVerificationCode(emails, verificationCode);
+
+        // 发送验证码邮件
+        hp.SendVerificationCodeEmail(u, verificationCode);
+
+        TempData["Info"] = "New verification code has been sent to your email.";
+
+        return RedirectToAction("VerifyCode", new { email = emails });
     }
 
     private void SendResetPasswordEmail(User u, string password)
@@ -307,10 +402,10 @@ public class AccountController : Controller
 
         var path = u switch
         {
-            Admin    => Path.Combine(en.WebRootPath, "photos", "admin.jpg"),
+            Admin => Path.Combine(en.WebRootPath, "photos", "admin.jpg"),
             Tenant T => Path.Combine(en.WebRootPath, "photos", T.PhotoURL),
-            Owner  O => Path.Combine(en.WebRootPath, "photos", O.PhotoURL),
-            _        => "",
+            Owner O => Path.Combine(en.WebRootPath, "photos", O.PhotoURL),
+            _ => "",
         };
 
         var att = new Attachment(path);
@@ -327,10 +422,10 @@ public class AccountController : Controller
                 Please <a href='{url}'>login</a>
                 with your new password.
             </p>
-            <p>From, 🐱 Super Admin</p>
+            <p>From, 🐱 Rental Management</p>
         ";
 
         hp.SendEmail(mail);
     }
 
-    }
+}

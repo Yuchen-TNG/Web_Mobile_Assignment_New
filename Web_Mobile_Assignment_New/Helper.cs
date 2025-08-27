@@ -156,4 +156,108 @@ public class Helper
         smtp.Send(mail);
     }
 
+    // ------------------------------------------------------------------------
+    // 验证码相关功能
+    // ------------------------------------------------------------------------
+
+    /// <summary>
+    /// 生成6位数字验证码
+    /// </summary>
+    public string GenerateVerificationCode()
+    {
+        Random random = new();
+        return random.Next(100000, 999999).ToString();
+    }
+
+    /// <summary>
+    /// 设置验证码到Session（包含过期时间）
+    /// </summary>
+    public void SetVerificationCode(string email, string code)
+    {
+        var session = ct.HttpContext!.Session;
+        session.SetString($"VerificationCode_{email}", code);
+        session.SetString($"VerificationCodeExpiry_{email}", DateTime.Now.AddMinutes(5).ToString("yyyy-MM-dd HH:mm:ss"));
+    }
+
+    /// <summary>
+    /// 验证验证码
+    /// </summary>
+    public bool VerifyCode(string email, string inputCode)
+    {
+        var session = ct.HttpContext!.Session;
+        var storedCode = session.GetString($"VerificationCode_{email}");
+        var expiryString = session.GetString($"VerificationCodeExpiry_{email}");
+
+        if (string.IsNullOrEmpty(storedCode) || string.IsNullOrEmpty(expiryString))
+        {
+            return false;
+        }
+
+        if (DateTime.TryParse(expiryString, out DateTime expiry) && DateTime.Now > expiry)
+        {
+            // 验证码已过期，清除Session
+            ClearVerificationCode(email);
+            return false;
+        }
+
+        var isValid = storedCode == inputCode;
+
+        if (isValid)
+        {
+            // 验证成功后清除验证码
+            ClearVerificationCode(email);
+            // 设置验证通过标记，有效期10分钟
+            session.SetString($"VerificationPassed_{email}", DateTime.Now.AddMinutes(10).ToString("yyyy-MM-dd HH:mm:ss"));
+        }
+
+        return isValid;
+    }
+
+    /// <summary>
+    /// 清除验证码
+    /// </summary>
+    public void ClearVerificationCode(string email)
+    {
+        var session = ct.HttpContext!.Session;
+        session.Remove($"VerificationCode_{email}");
+        session.Remove($"VerificationCodeExpiry_{email}");
+    }
+
+
+    /// <summary>
+    /// 发送验证码邮件
+    /// </summary>
+    public void SendVerificationCodeEmail(User u, string verificationCode)
+    {
+        var mail = new MailMessage();
+        mail.To.Add(new MailAddress(u.Email, u.Name));
+        mail.Subject = "Password Reset Verification Code";
+        mail.IsBodyHtml = true;
+
+        var path = u switch
+        {
+            Admin => Path.Combine(en.WebRootPath, "photos", "admin.jpg"),
+            Tenant T => Path.Combine(en.WebRootPath, "photos", T.PhotoURL),
+            Owner O => Path.Combine(en.WebRootPath, "photos", O.PhotoURL),
+            _ => "",
+        };
+
+
+        var att = new Attachment(path);
+        mail.Attachments.Add(att);
+        att.ContentId = "photo";
+
+
+        mail.Body = $@"
+            <img src='cid:photo' style='width: 200px; height: 200px;
+                                        border: 1px solid #333'>
+            <p>Dear {u.Name},<p>
+            <p>Your verification code is:</p>
+            <h1 style='color: red'>{verificationCode}</h1
+            <p>From, 🐱 Rental Management</p>
+        ";
+
+        SendEmail(mail);
+    }
+
 }

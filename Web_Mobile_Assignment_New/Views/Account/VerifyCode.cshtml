@@ -1,0 +1,180 @@
+﻿@model VerifyCodeVM
+
+@{
+    ViewBag.Title = "Account | Verify Code";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow">
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <i class="fas fa-shield-alt fa-3x text-success mb-3"></i>
+                    <h4 class="text-gray-900 mb-2">Verify Your Email</h4>
+                    <p class="text-muted">We've sent a 6-digit verification code to</p>
+                    <p class="text-primary font-weight-bold">@Model.Email</p>
+                    <small class="text-muted">Code expires in 5 minutes</small>
+                </div>
+
+                <form class="form" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    @* 确保Email值被正确传递 *@
+                    <input asp-for="Email" type="hidden" />
+
+                    <div class="form-group mb-4">
+                        <label asp-for="VerificationCode" class="form-label text-center d-block">Enter Verification Code</label>
+                        <div class="verification-code-container">
+                            <input asp-for="VerificationCode"
+                                   class="form-control verification-code-input text-center"
+                                   placeholder="000000"
+                                   maxlength="6"
+                                   autocomplete="off"
+                                   autofocus>
+                        </div>
+                        <span asp-validation-for="VerificationCode" class="text-danger d-block text-center mt-2"></span>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-check-circle me-2"></i>Verify & Reset Password
+                        </button>
+                        <a href="@Url.Action("ResendCode", new { emails = Model.Email })" class="btn btn-outline-primary">
+                            <i class="fas fa-redo me-2"></i>Resend Code
+                        </a>
+                        <a href="/Account/ResetPassword" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Reset Password
+                        </a>
+                    </div>
+                </form>
+
+                <!-- 倒计时显示 -->
+                <div class="text-center mt-3">
+                    <small class="text-muted">
+                        Code expires in: <span id="countdown" class="text-warning font-weight-bold">5:00</span>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        border-radius: 10px;
+    }
+
+    .verification-code-input {
+        font-size: 2rem;
+        letter-spacing: 0.5rem;
+        padding: 1rem;
+        border: 2px solid #d1d3e2;
+        border-radius: 8px;
+        font-weight: bold;
+        color: #2e59d9;
+    }
+
+        .verification-code-input:focus {
+            border-color: #1cc88a;
+            box-shadow: 0 0 0 0.2rem rgba(28, 200, 138, 0.25);
+            outline: none;
+        }
+
+        .verification-code-input::placeholder {
+            color: #d1d3e2;
+            font-weight: normal;
+        }
+
+    .btn-success {
+        background-color: #1cc88a;
+        border-color: #1cc88a;
+    }
+
+        .btn-success:hover {
+            background-color: #17a673;
+            border-color: #169b6b;
+        }
+
+    .verification-code-container {
+        position: relative;
+    }
+
+        .verification-code-container::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 2px;
+            background: repeating-linear-gradient( to right, transparent, transparent 15px, #d1d3e2 15px, #d1d3e2 17px );
+            pointer-events: none;
+            z-index: 1;
+        }
+
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 验证码输入格式化
+        const codeInput = document.querySelector('.verification-code-input');
+
+        if (codeInput) {
+            codeInput.addEventListener('input', function(e) {
+                // 只允许数字
+                this.value = this.value.replace(/\D/g, '');
+
+                // 限制长度为6位
+                if (this.value.length > 6) {
+                    this.value = this.value.slice(0, 6);
+                }
+            });
+
+            // 粘贴处理
+            codeInput.addEventListener('paste', function(e) {
+                e.preventDefault();
+                const paste = (e.clipboardData || window.clipboardData).getData('text');
+                const cleanPaste = paste.replace(/\D/g, '').slice(0, 6);
+                this.value = cleanPaste;
+            });
+        }
+
+        // 倒计时功能
+        let timeLeft = 5 * 60; // 5分钟
+        const countdownElement = document.getElementById('countdown');
+
+        function updateCountdown() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            countdownElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+            if (timeLeft <= 0) {
+                countdownElement.textContent = 'Expired';
+                countdownElement.className = 'text-danger font-weight-bold';
+                clearInterval(countdownInterval);
+
+                // 禁用表单
+                const form = document.querySelector('form');
+                const inputs = form.querySelectorAll('input, button');
+                inputs.forEach(input => {
+                    if (input.type !== 'hidden') {
+                        input.disabled = true;
+                    }
+                });
+
+                // 显示过期消息
+                const expiredAlert = document.createElement('div');
+                expiredAlert.className = 'alert alert-warning text-center mt-3';
+                expiredAlert.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Verification code has expired. Please request a new one.';
+                form.appendChild(expiredAlert);
+            }
+
+            timeLeft--;
+        }
+
+        // 立即更新一次，然后每秒更新
+        updateCountdown();
+        const countdownInterval = setInterval(updateCountdown, 1000);
+    });
+</script>

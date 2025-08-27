@@ -29,16 +29,39 @@ namespace Web_Mobile_Assignment_New.Controllers
         }
 
         [HttpPost]
-        public IActionResult AddHouse(House house)
+        public async Task<IActionResult> AddHouse(House house, IFormFile ImageFile)
         {
             if (ModelState.IsValid)
             {
+                if (ImageFile != null && ImageFile.Length > 0)
+                {
+                    // 确保 wwwroot/images 存在
+                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images");
+                    if (!Directory.Exists(uploadsFolder))
+                    {
+                        Directory.CreateDirectory(uploadsFolder);
+                    }
+
+                    // 保存文件
+                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(ImageFile.FileName);
+                    var filePath = Path.Combine(uploadsFolder, fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await ImageFile.CopyToAsync(stream);
+                    }
+
+                    // 存路径到数据库 (相对路径)
+                    house.ImageUrl = "/images/" + fileName;
+                }
+
                 _context.Houses.Add(house);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
                 return RedirectToAction("Index"); // 添加后跳去主页面
             }
             return View(house);
         }
+
 
         public IActionResult Details(int id)
         {

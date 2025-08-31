@@ -9,6 +9,43 @@
     <a class="btn btn-success" href="@Url.Action("AddHouse", "Home")">+ Add House</a>
 </div>
 
+<!-- 🔎 Filter Form (只做界面，不连后台) -->
+<form class="mb-4 p-3 border rounded bg-light">
+    <div class="row">
+        <!-- Price Range -->
+        <div class="col-md-3 mb-2">
+            <label for="minPrice" class="form-label">Min Price</label>
+            <input type="number" class="form-control" id="minPrice" name="minPrice" placeholder="Enter min price" />
+        </div>
+        <div class="col-md-3 mb-2">
+            <label for="maxPrice" class="form-label">Max Price</label>
+            <input type="number" class="form-control" id="maxPrice" name="maxPrice" placeholder="Enter max price" />
+        </div>
+
+        <!-- Furnishing -->
+        <div class="col-md-3 mb-2">
+            <label for="furnish" class="form-label">Furnishing</label>
+            <select class="form-select" id="furnish" name="furnish">
+                <option value="">-- Any --</option>
+                <option value="true">Fully Furnished</option>
+                <option value="false">Not Fully Furnished</option>
+            </select>
+        </div>
+
+        <!-- House Type -->
+        <div class="col-md-3 mb-2">
+            <label for="type" class="form-label">Type</label>
+            <input type="text" class="form-control" id="type" name="type" placeholder="e.g. Condo" />
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <button type="button" class="btn btn-primary">Apply Filter</button>
+        <button type="reset" class="btn btn-secondary">Reset</button>
+    </div>
+</form>
+
+<!-- 房子列表 -->
 <div class="row">
     @foreach (var house in Model)
     {

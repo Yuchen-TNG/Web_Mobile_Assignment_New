@@ -193,6 +193,7 @@ public class AccountController : Controller
                 Email = m.Email,
                 Name = m.Name,
                 PhotoURL = m.PhotoURL,
+                Birthday = m.Birthday,
             };
 
             return View(vm);
@@ -208,6 +209,7 @@ public class AccountController : Controller
                 Email = m.Email,
                 Name = m.Name,
                 PhotoURL = m.PhotoURL,
+                Birthday = m.Birthday,
             };
             return View(vm);
         }
@@ -243,6 +245,8 @@ public class AccountController : Controller
         if (ModelState.IsValid)
         {
             var Name = vm.Name;
+            user.Name = vm.Name;
+            user.Birthday = vm.Birthday;
 
             if (vm.Photo != null)
             {
@@ -258,6 +262,7 @@ public class AccountController : Controller
 
         vm.Email = user.Email;
         vm.PhotoURL = user.PhotoURL;
+        vm.Birthday = user.Birthday;
         return View(vm);
     }
 

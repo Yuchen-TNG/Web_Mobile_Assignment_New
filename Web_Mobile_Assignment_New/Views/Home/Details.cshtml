@@ -7,9 +7,17 @@
 <h2>House Details</h2>
 
 <div class="card p-3">
-    <p><strong>Price:</strong> @Model.Price.ToString("C")</p>
-    <p><strong>Location:</strong> @Model.Address</p>
-    <p><strong>Description:</strong> @Model.Description</p>
+    <p><strong>Type:</strong> @Model.RoomType</p>
+    <p><strong>Price:</strong> RM @Model.Price</p>
+    <p><strong>Rooms:</strong> @Model.Rooms</p>
+    <p><strong>Bathrooms:</strong> @Model.Bathrooms</p>
+    <p><strong>Square Feet:</strong> @Model.Sqft</p>
+    <p><strong>Address:</strong> @Model.Address</p>
+    <p><strong>Other Info:</strong> @Model.Other</p>
+    @if (!string.IsNullOrEmpty(Model.ImageUrl))
+    {
+        <p><img src="@Model.ImageUrl" alt="House Image" class="img-fluid" style="max-width:400px;" /></p>
+    }
 </div>
 
 <a class="btn btn-secondary mt-3" href="@Url.Action("Index", "Home")">Back to List</a>

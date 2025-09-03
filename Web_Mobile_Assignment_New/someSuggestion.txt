@@ -1,0 +1,11 @@
+Suggetion 1:
+i think room type change to database will be best not like direct coding 
+exp:            
+<label for="type" class="form-label">Type</label>
+	<select class="form-select" id="type" name="type">
+		<option value="Master Room">Master Room</option>
+		<option value="Big Medium Room">Big Medium Room</option>
+		<option value="Medium Room">Medium Room</option>
+		<option value="Single Room">Single Room</option>
+		<option value="Whole Unit">Whole Unit</option>
+	</select>

@@ -93,9 +93,28 @@ namespace Web_Mobile_Assignment_New.Controllers
 
         // GET: Home/Tenant
         [Authorize(Roles = "Tenant")]
-        public IActionResult Tenant()
+        public IActionResult Rent(int id)
         {
-            return View();
+            var house = _context.Houses.FirstOrDefault(h => h.Id == id);
+            if (house == null) return NotFound();
+            return View(house); // This will look for Views/Home/Rent.cshtml
+        }
+
+        [HttpPost]
+        public IActionResult ConfirmRent(int id, DateTime startDate, DateTime endDate)
+        {
+            // Validate dates (e.g., startDate <= endDate)
+            if (startDate > endDate)
+            {
+                ModelState.AddModelError("", "Start date must be before or equal to end date.");
+                var house = _context.Houses.FirstOrDefault(h => h.Id == id);
+                return View("Rent", house);
+            }
+
+            // Process the rental (save to DB, etc.)
+            // Example: Save rental info, show confirmation, etc.
+
+            return RedirectToAction("Index");
         }
     }
 

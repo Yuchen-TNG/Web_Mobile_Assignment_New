@@ -105,6 +105,8 @@
             <input asp-for="RememberMe" /> Remember Me
         </label>
 
+        <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+
         <button type="submit">Login</button>
         <button type="reset" style="margin-top:10px; background:#6f42c1;">Reset</button>
     </form>

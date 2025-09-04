@@ -18,6 +18,24 @@
     {
         <p><img src="@Model.ImageUrl" alt="House Image" class="img-fluid" style="max-width:400px;" /></p>
     }
+    <div class="d-flex justify-content-between align-items-center mt-3">
+        <a class="btn btn-secondary" asp-action="Index" asp-controller="Home">Back to List</a>
+        @if (!User.Identity.IsAuthenticated)
+        {
+            <a asp-action="Login"
+               asp-controller="Account"
+               asp-route-returnUrl="@Url.Action("Details", "Home", new { id = Model.Id })"
+               class="btn btn-primary">
+                Rent this Room
+            </a>
+        }
+        else if (User.IsInRole("Tenant"))
+        {
+            <a asp-action="Rent" asp-controller="Home" asp-route-id="@Model.Id" class="btn btn-primary">
+                Rent this Room
+            </a>
+        }
+    </div>
+
 </div>
 
-<a class="btn btn-secondary mt-3" href="@Url.Action("Index", "Home")">Back to List</a>

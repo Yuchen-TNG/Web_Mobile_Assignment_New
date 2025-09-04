@@ -29,7 +29,6 @@ public class User
     [MaxLength(100)]
     public string Hash { get; set; }
     public DateOnly Birthday { get; set; }
-
     public string Role => GetType().Name;
 
 }

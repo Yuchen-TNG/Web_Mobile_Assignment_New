@@ -6,7 +6,10 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>Available Houses</h2>
-    <a class="btn btn-success" href="@Url.Action("AddHouse", "Home")">+ Add House</a>
+     @if(User.IsInRole("Owner"))
+     {
+            <a class="btn btn-success" id="addHouse" href="@Url.Action("AddHouse", "Home")">+ Add House</a>
+        }
 </div>
 
 <!-- 🔎 Filter Form (只做界面，不连后台) -->

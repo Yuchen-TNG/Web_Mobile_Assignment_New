@@ -103,6 +103,9 @@ public class VerifyCodeVM
     [StringLength(6, MinimumLength = 6, ErrorMessage = "Verification code must be 6 digits.")]
     [Display(Name = "Verification Code")]
     public string VerificationCode { get; set; }
+
+    // 倒计时剩余秒数
+    public int SecondsLeft { get; set; }
 }
 
 

@@ -1,4 +1,4 @@
-Suggetion 1:
+Suggestion 1:
 i think room type change to database will be best not like direct coding 
 exp:            
 <label for="type" class="form-label">Type</label>
@@ -9,3 +9,17 @@ exp:
 		<option value="Single Room">Single Room</option>
 		<option value="Whole Unit">Whole Unit</option>
 	</select>
+
+
+Suggestion 2 :
+
+What admin can do?
+User Management
+-can view all user data
+-can ban someone
+-can unban someone
+-can configure user information
+
+Property Management
+-block property
+-delete property

@@ -317,6 +317,19 @@ public class AccountController : Controller
         }
 
         var vm = new VerifyCodeVM { Email = email };
+
+        // 从 Session 取到过期时间
+        var expiryString = HttpContext.Session.GetString($"VerificationCodeExpiry_{email}");
+        if (DateTime.TryParse(expiryString, out var expiry))
+        {
+            var remainingSeconds = (int)(expiry - DateTime.Now).TotalSeconds;
+            vm.SecondsLeft = remainingSeconds > 0 ? remainingSeconds : 0;
+        }
+        else
+        {
+            vm.SecondsLeft = 0;
+        }
+
         return View(vm);
     }
 
@@ -330,6 +343,7 @@ public class AccountController : Controller
         if (string.IsNullOrEmpty(vm.Email))
         {
             ModelState.AddModelError("", "Email is required.");
+            vm.SecondsLeft = hp.GetVerificationSecondsLeft(vm.Email ?? "");
             return View(vm);
         }
 
@@ -338,6 +352,7 @@ public class AccountController : Controller
             // 验证验证码
             if (!hp.VerifyCode(vm.Email, vm.VerificationCode))
             {
+                vm.SecondsLeft = hp.GetVerificationSecondsLeft(vm.Email);
                 ModelState.AddModelError("VerificationCode", "Invalid or expired verification code.");
                 return View(vm);
             }
@@ -346,6 +361,7 @@ public class AccountController : Controller
             var u = db.Users.Find(vm.Email);
             if (u == null)
             {
+                vm.SecondsLeft = hp.GetVerificationSecondsLeft(vm.Email);
                 ModelState.AddModelError("", "User not found.");
                 return View(vm);
             }
@@ -364,6 +380,7 @@ public class AccountController : Controller
             return RedirectToAction("Login");
         }
 
+        vm.SecondsLeft = hp.GetVerificationSecondsLeft(vm.Email ?? "");
         return View(vm);
     }
 

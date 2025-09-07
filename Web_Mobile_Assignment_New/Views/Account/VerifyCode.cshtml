@@ -13,7 +13,7 @@
                     <h4 class="text-gray-900 mb-2">Verify Your Email</h4>
                     <p class="text-muted">We've sent a 6-digit verification code to</p>
                     <p class="text-primary font-weight-bold">@Model.Email</p>
-                    <small class="text-muted">Code expires in 5 minutes</small>
+                    <small class="text-muted">Code expires in 1 minutes</small>
                 </div>
 
                 <form class="form" method="post">
@@ -115,66 +115,37 @@
 
 </style>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // 验证码输入格式化
-        const codeInput = document.querySelector('.verification-code-input');
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 从后端获取真实剩余时间
+            let timeLeft = @(Model.SecondsLeft);
 
-        if (codeInput) {
-            codeInput.addEventListener('input', function(e) {
-                // 只允许数字
-                this.value = this.value.replace(/\D/g, '');
+            const countdownElement = document.getElementById('countdown');
+            const form = document.querySelector('form');
 
-                // 限制长度为6位
-                if (this.value.length > 6) {
-                    this.value = this.value.slice(0, 6);
+            function updateCountdown() {
+                if (timeLeft > 0) {
+                    const minutes = Math.floor(timeLeft / 60);
+                    const seconds = timeLeft % 60;
+                    countdownElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                    timeLeft--;
+                } else {
+                    countdownElement.textContent = 'Expired';
+                    countdownElement.className = 'text-danger font-weight-bold';
+                    clearInterval(countdownInterval);
+
+                    // 禁用表单
+                    const inputs = form.querySelectorAll('input, button');
+                    inputs.forEach(input => {
+                        if (input.type !== 'hidden') {
+                            input.disabled = true;
+                        }
+                    });
                 }
-            });
-
-            // 粘贴处理
-            codeInput.addEventListener('paste', function(e) {
-                e.preventDefault();
-                const paste = (e.clipboardData || window.clipboardData).getData('text');
-                const cleanPaste = paste.replace(/\D/g, '').slice(0, 6);
-                this.value = cleanPaste;
-            });
-        }
-
-        // 倒计时功能
-        let timeLeft = 5 * 60; // 5分钟
-        const countdownElement = document.getElementById('countdown');
-
-        function updateCountdown() {
-            const minutes = Math.floor(timeLeft / 60);
-            const seconds = timeLeft % 60;
-            countdownElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-
-            if (timeLeft <= 0) {
-                countdownElement.textContent = 'Expired';
-                countdownElement.className = 'text-danger font-weight-bold';
-                clearInterval(countdownInterval);
-
-                // 禁用表单
-                const form = document.querySelector('form');
-                const inputs = form.querySelectorAll('input, button');
-                inputs.forEach(input => {
-                    if (input.type !== 'hidden') {
-                        input.disabled = true;
-                    }
-                });
-
-                // 显示过期消息
-                const expiredAlert = document.createElement('div');
-                expiredAlert.className = 'alert alert-warning text-center mt-3';
-                expiredAlert.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Verification code has expired. Please request a new one.';
-                form.appendChild(expiredAlert);
             }
 
-            timeLeft--;
-        }
-
-        // 立即更新一次，然后每秒更新
-        updateCountdown();
-        const countdownInterval = setInterval(updateCountdown, 1000);
-    });
-</script>
+            // 立即运行一次 + 每秒更新
+            updateCountdown();
+            const countdownInterval = setInterval(updateCountdown, 1000);
+        });
+    </script>

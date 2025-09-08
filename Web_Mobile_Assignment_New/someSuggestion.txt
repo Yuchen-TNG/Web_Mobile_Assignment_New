@@ -1,4 +1,4 @@
-Suggestion 1:
+﻿Suggestion 1:
 i think room type change to database will be best not like direct coding 
 exp:            
 <label for="type" class="form-label">Type</label>
@@ -15,11 +15,14 @@ Suggestion 2 :
 
 What admin can do?
 User Management
--can view all user data
--can ban someone
--can unban someone
--can configure user information
+-can view all user data ✓
+-can ban/unban someone
+	(if want to do ban database should add one more list which is status)
+-can configure user information ✓
 
 Property Management
+-same as user management
+-can see all property
 -block property
 -delete property
+

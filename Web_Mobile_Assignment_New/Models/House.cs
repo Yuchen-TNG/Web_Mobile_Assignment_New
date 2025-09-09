@@ -23,11 +23,10 @@ namespace Web_Mobile_Assignment_New.Models
         public string? Other { get; set; }
 
         // 🆕 新增字段
-        [Required]
-        public string RoomName { get; set; }  // 房间名称
+       
+        public string? RoomName { get; set; }  // 房间名称
 
-        [Required]
-        public string RoomStatus { get; set; }  // 房间状态（Available / Rented / Maintenance）
+        public string? RoomStatus { get; set; }  // 房间状态（Available / Rented / Maintenance）
 
         [DataType(DataType.Date)]
         public DateTime? StartDate { get; set; }  // 租期开始

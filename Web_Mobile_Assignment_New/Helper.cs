@@ -76,7 +76,7 @@ public class Helper
     // Security Helper Functions
     // ------------------------------------------------------------------------
 
-    
+
     private readonly PasswordHasher<object> ph = new();
 
     public string HashPassword(string password)
@@ -86,14 +86,14 @@ public class Helper
 
     public bool VerifyPassword(string hash, string password)
     {
-        return ph.VerifyHashedPassword(0, hash, password) 
+        return ph.VerifyHashedPassword(0, hash, password)
             == PasswordVerificationResult.Success;
     }
 
     public void SignIn(string email, string role, bool rememberMe)
     {
         // (1) Claim, identity and principal
-        List<Claim> claims = 
+        List<Claim> claims =
             [
                   new(ClaimTypes.Name, email),
                   new(ClaimTypes.Role, role),
@@ -252,7 +252,7 @@ public class Helper
     /// </summary>
     public void SendVerificationCodeEmail(User u, string verificationCode)
     {
-        var mail = new MailMessage();
+        using var mail = new MailMessage();
         mail.To.Add(new MailAddress(u.Email, u.Name));
         mail.Subject = "Password Reset Verification Code";
         mail.IsBodyHtml = true;
@@ -265,22 +265,32 @@ public class Helper
             _ => "",
         };
 
+        if (!string.IsNullOrEmpty(path) && System.IO.File.Exists(path))
+        {
+            var att = new Attachment(path);
+            mail.Attachments.Add(att);
+            att.ContentId = "photo";
 
-        var att = new Attachment(path);
-        mail.Attachments.Add(att);
-        att.ContentId = "photo";
-
-
-        mail.Body = $@"
-            <img src='cid:photo' style='width: 200px; height: 200px;
-                                        border: 1px solid #333'>
+            mail.Body = $@"
+            <img src='cid:photo' style='width: 200px; height: 200px; border: 1px solid #333'>
             <p>Dear {u.Name},<p>
             <p>Your verification code is:</p>
-            <h1 style='color: red'>{verificationCode}</h1
+            <h1 style='color: red'>{verificationCode}</h1>
             <p>From, 🐱 Rental Management</p>
         ";
+        }
+        else
+        {
+            // 没有头像时 → 只发文字，不报错
+            mail.Body = $@"
+            <p>Dear {u.Name},<p>
+            <p>Your verification code is:</p>
+            <h1 style='color: red'>{verificationCode}</h1>
+            <p>From, 🐱 Rental Management</p>
+        ";
+        }
 
         SendEmail(mail);
-    }
 
+    }
 }

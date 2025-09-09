@@ -37,6 +37,12 @@ namespace Web_Mobile_Assignment_New.Migrations
                     b.Property<int>("Bathrooms")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Furnishing")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("ImageUrl")
                         .HasColumnType("nvarchar(max)");
 
@@ -45,6 +51,12 @@ namespace Web_Mobile_Assignment_New.Migrations
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("RoomName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RoomStatus")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RoomType")
                         .IsRequired()
@@ -55,6 +67,9 @@ namespace Web_Mobile_Assignment_New.Migrations
 
                     b.Property<int>("Sqft")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -106,7 +121,6 @@ namespace Web_Mobile_Assignment_New.Migrations
                     b.HasBaseType("Web_Mobile_Assignment_New.Models.User");
 
                     b.Property<string>("PhotoURL")
-                        .IsRequired()
                         .ValueGeneratedOnUpdateSometimes()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -125,7 +139,6 @@ namespace Web_Mobile_Assignment_New.Migrations
                     b.HasBaseType("Web_Mobile_Assignment_New.Models.User");
 
                     b.Property<string>("PhotoURL")
-                        .IsRequired()
                         .ValueGeneratedOnUpdateSometimes()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");

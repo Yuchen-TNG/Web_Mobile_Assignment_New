@@ -50,13 +50,7 @@ namespace Web_Mobile_Assignment_New.Migrations
                     .IsRequired()
                     .HasColumnType("nvarchar(max)");
 
-                b.Property<int>("Rooms")
-                    .HasColumnType("int");
-
-                b.Property<int>("Sqft")
-                    .HasColumnType("int");
-
-                b.HasKey("Id");
+                    b.HasKey("Id");
 
                 b.ToTable("Houses");
             });

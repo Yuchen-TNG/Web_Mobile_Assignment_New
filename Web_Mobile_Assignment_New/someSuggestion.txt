@@ -1,0 +1,28 @@
+﻿Suggestion 1:
+i think room type change to database will be best not like direct coding 
+exp:            
+<label for="type" class="form-label">Type</label>
+	<select class="form-select" id="type" name="type">
+		<option value="Master Room">Master Room</option>
+		<option value="Big Medium Room">Big Medium Room</option>
+		<option value="Medium Room">Medium Room</option>
+		<option value="Single Room">Single Room</option>
+		<option value="Whole Unit">Whole Unit</option>
+	</select>
+
+
+Suggestion 2 :
+
+What admin can do?
+User Management
+-can view all user data ✓
+-can ban/unban someone
+	(if want to do ban database should add one more list which is status)
+-can configure user information ✓
+
+Property Management
+-same as user management
+-can see all property
+-block property
+-delete property
+

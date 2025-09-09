@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
+using System.Globalization;
 using System.Net;
 using System.Net.Mail;
 using System.Security.Claims;
@@ -176,7 +177,10 @@ public class Helper
     {
         var session = ct.HttpContext!.Session;
         session.SetString($"VerificationCode_{email}", code);
-        session.SetString($"VerificationCodeExpiry_{email}", DateTime.Now.AddMinutes(5).ToString("yyyy-MM-dd HH:mm:ss"));
+
+        // 使用 DateTimeOffset.UtcNow 并用 "o" 格式（round-trip）
+        var expires = DateTimeOffset.UtcNow.AddMinutes(1);
+        session.SetString($"VerificationCodeExpiry_{email}", expires.ToString("o"));
     }
 
     /// <summary>
@@ -189,28 +193,47 @@ public class Helper
         var expiryString = session.GetString($"VerificationCodeExpiry_{email}");
 
         if (string.IsNullOrEmpty(storedCode) || string.IsNullOrEmpty(expiryString))
+            return false;
+
+        // 用 DateTimeOffset.TryParse 来解析 "o" 格式
+        if (!DateTimeOffset.TryParse(expiryString, null, DateTimeStyles.RoundtripKind, out var expiryUtc))
         {
+            // 解析失败当作无效
             return false;
         }
 
-        if (DateTime.TryParse(expiryString, out DateTime expiry) && DateTime.Now > expiry)
+        if (DateTimeOffset.UtcNow > expiryUtc)
         {
-            // 验证码已过期，清除Session
+            // 已过期 -> 清除并返回 false
             ClearVerificationCode(email);
             return false;
         }
 
         var isValid = storedCode == inputCode;
-
         if (isValid)
         {
-            // 验证成功后清除验证码
+            // 成功 -> 清除并设置验证通过标记
             ClearVerificationCode(email);
-            // 设置验证通过标记，有效期10分钟
-            session.SetString($"VerificationPassed_{email}", DateTime.Now.AddMinutes(10).ToString("yyyy-MM-dd HH:mm:ss"));
+            session.SetString($"VerificationPassed_{email}", DateTimeOffset.UtcNow.AddMinutes(10).ToString("o"));
         }
 
         return isValid;
+    }
+
+    // 供 Controller 在返回 View 时取“真实剩余秒数”
+    public int GetVerificationSecondsLeft(string email)
+    {
+        var session = ct.HttpContext!.Session;
+        var expiryString = session.GetString($"VerificationCodeExpiry_{email}");
+        if (string.IsNullOrEmpty(expiryString)) return 0;
+
+        if (!DateTimeOffset.TryParse(expiryString, null, DateTimeStyles.RoundtripKind, out var expiryUtc))
+            return 0;
+
+        var left = (int)(expiryUtc - DateTimeOffset.UtcNow).TotalSeconds;
+        // 可选：如果你设定初始最大值（例如 60 秒），可以把 left 限制在最大值以内
+        if (left > 60) left = 60;
+        return left > 0 ? left : 0;
     }
 
     /// <summary>

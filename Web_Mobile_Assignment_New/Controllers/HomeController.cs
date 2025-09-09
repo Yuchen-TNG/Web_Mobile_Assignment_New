@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 using System;
 using Web_Mobile_Assignment_New.Models;
 
@@ -9,6 +10,23 @@ namespace Web_Mobile_Assignment_New.Controllers
     public class HomeController : Controller
     {
         private readonly DB _context;
+        public IActionResult Filter(int? minPrice, int? maxPrice, string? type)
+        {
+            var houses = _context.Houses.AsQueryable();
+            //asQueryable() is will save the "where" condition after use ToList he will help to filter
+
+            if (minPrice.HasValue)
+                houses = houses.Where(h => h.Price >= minPrice.Value);
+
+            if (maxPrice.HasValue)
+                houses = houses.Where(h => h.Price <= maxPrice.Value);
+
+            if (!string.IsNullOrEmpty(type))
+            houses = houses.Where(h => h.RoomType == type);
+
+            return View("Index",houses.ToList());
+
+        }
 
         public HomeController(DB context)
         {
@@ -60,6 +78,8 @@ namespace Web_Mobile_Assignment_New.Controllers
                 return RedirectToAction("Index"); // 添加后跳去主页面
             }
             return View(house);
+
+            
         }
 
 
@@ -116,6 +136,9 @@ namespace Web_Mobile_Assignment_New.Controllers
 
             return RedirectToAction("Index");
         }
+
+
     }
+
 
 }

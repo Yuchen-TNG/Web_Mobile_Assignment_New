@@ -1,0 +1,82 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+namespace Web_Mobile_Assignment_New.Controllers
+{
+    public class AdminController : Controller
+    {
+        private readonly DB _context;
+        public AdminController(DB context)
+        {
+            _context = context; // 依赖注入 DB
+        }
+
+        public IActionResult userManagement()
+        {
+            var users = _context.Users.ToList();
+            return View(users);
+        }
+
+        public IActionResult propertyManagement()
+        {
+            return View();
+        }
+
+        public IActionResult UserDetails(string? email)
+        {
+            if (string.IsNullOrEmpty(email)) return NotFound();
+
+            User? user = _context.Users.FirstOrDefault(u => u.Email == email);
+            if (user == null) return NotFound();
+
+            return View(user);
+        }
+        public IActionResult Update(User user)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.Users.Update(user);
+                _context.SaveChanges();
+                return RedirectToAction("UserDetails", new { email = user.Email });
+            }
+            return View("UserDetails", user); // 回到 details view
+        }
+        [HttpPost]
+        public IActionResult DeletePhoto(string? email)
+        {
+            if (string.IsNullOrEmpty(email)) return NotFound();
+
+            User? user = _context.Users.FirstOrDefault(u => u.Email == email);
+            if (user != null && user is Photo photoUser)
+            {
+                photoUser.PhotoURL = null;
+                _context.Users.Update(photoUser);
+                _context.SaveChanges();
+            }
+            return RedirectToAction("UserDetails", new { email = email });
+        }
+
+        public IActionResult DeleteUser(string? email)
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                TempData["Message"] = "No email provided.";
+                return RedirectToAction("UserManagement");
+            }
+
+            User? user = _context.Users.FirstOrDefault(u => u.Email == email);
+            if (user != null)
+            {
+                _context.Users.Remove(user);
+                _context.SaveChanges();
+                TempData["Message"] = "User deleted successfully!";
+            }
+            else
+            {
+                TempData["Message"] = "User not found.";
+            }
+
+            return RedirectToAction("UserManagement");
+        }
+    }
+}

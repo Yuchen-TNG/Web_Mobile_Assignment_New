@@ -4,31 +4,172 @@
     ViewBag.Title = "Account | Update Profile";
 }
 
-<form class="form" method="post" enctype="multipart/form-data">
-    <div asp-validation-summary="ModelOnly"></div>
+@section head {
+    <style>
+        body {
+            background: linear-gradient(135deg, #4e73df, #6f42c1);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-    <label asp-for="Email"></label>
-    <b>@Model.Email</b>
-    <br>
+        .update-profile-container {
+            max-width: 595px;
+            margin: 60px auto;
+            padding: 30px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
 
-    <label asp-for="Name"></label>
-    <input asp-for="Name" autofocus>
-    <span asp-validation-for="Name"></span>
+            .update-profile-container h2 {
+                text-align: center;
+                margin-bottom: 30px;
+                color: #4e73df;
+                font-weight: 600;
+            }
 
-    <label asp-for="Birthday"></label>
-    <input asp-for="Birthday" type="date">
-    <span asp-validation-for="Birthday"></span>
+        /* 整体左右布局 */
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            gap: 40px;
+            align-items: start;
+        }
 
-    <label asp-for="Photo"></label>
-    <label class="upload">
-        <small>Select Photo...</small>
-        <input asp-for="Photo" accept="image/jpeg,image/png" hidden>
-        <img src="/photos/@Model.PhotoURL">
-    </label>
-    <span asp-validation-for="Photo"></span>
+        /* 左边头像区 */
+        .form-group.photo-group {
+            text-align: left;
+        }
 
-    <section>
-        <button>Update</button>
-        <button type="reset">Reset</button>
-    </section>
-</form>
+        .upload {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 32px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+            .upload:hover {
+                border-color: #4e73df;
+            }
+
+            .upload img {
+                max-width: 150px;
+                max-height: 150px;
+                margin-top: 10px;
+                border-radius: 5%;
+                object-fit: cover;
+                border: 2px solid #4e73df;
+            }
+
+        /* 右边表单区 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+            .form-group label {
+                display: block;
+                font-weight: 500;
+                margin-bottom: 6px;
+                color: #5a5c69;
+            }
+
+            .form-group input {
+                width: 100%;
+                padding: 10px 12px;
+                border: 1px solid #ccc;
+                border-radius: 6px;
+                font-size: 1rem;
+            }
+
+            .form-group span {
+                display: block;
+                margin-top: 5px;
+                font-size: 0.9rem;
+                color: #e74a3b;
+            }
+
+        /* 按钮组 */
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+            .button-group button {
+                flex: 1;
+                padding: 12px;
+                border: none;
+                border-radius: 6px;
+                font-size: 1rem;
+                font-weight: 500;
+                cursor: pointer;
+                color: white;
+                transition: background 0.3s;
+            }
+
+                .button-group button[type="submit"] {
+                    background: #4e73df;
+                }
+
+                    .button-group button[type="submit"]:hover {
+                        background: #3b5bdb;
+                    }
+
+                .button-group button[type="reset"] {
+                    background: #6f42c1;
+                }
+
+                    .button-group button[type="reset"]:hover {
+                        background: #5a2fa0;
+                    }
+    </style>
+}
+
+
+<div class="update-profile-container">
+    <h2>Update Profile</h2>
+    <form class="form" method="post" enctype="multipart/form-data">
+        <div asp-validation-summary="ModelOnly"></div>
+
+        <div class="profile-grid">
+            <!-- 左边头像区 -->
+            <div class="form-group photo-group">
+                <label asp-for="Photo"></label>
+                <label class="upload">
+                    <small>Select Photo...</small>
+                    <input asp-for="Photo" accept="image/jpeg,image/png" hidden>
+                    <img src="/photos/@Model.PhotoURL">
+                </label>
+                <span asp-validation-for="Photo"></span>
+            </div>
+
+            <!-- 右边信息区 -->
+            <div>
+                <div class="form-group">
+                    <label asp-for="Email"></label>
+                    <b>@Model.Email</b>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Name"></label>
+                    <input asp-for="Name" autofocus>
+                    <span asp-validation-for="Name"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Birthday"></label>
+                    <input asp-for="Birthday" type="date">
+                    <span asp-validation-for="Birthday"></span>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit">Update</button>
+                    <button type="reset">Reset</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>

@@ -8,16 +8,24 @@ namespace Web_Mobile_Assignment_New.Controllers
         private readonly DB _context;
         public AdminController(DB context)
         {
-            _context = context; // 依赖注入 DB
+            _context = context;
         }
 
-        public IActionResult userManagement()
+        public IActionResult UserManagement(int page=1, int pageSize=50)
         {
-            var users = _context.Users.ToList();
+            var users = _context.Users.OrderBy(u => u.Email).Skip(page - 1).Take(pageSize).ToList();
+
+            // calculate total pages
+            var totalUsers = _context.Users.Count();
+            var totalPages = (int)Math.Ceiling(totalUsers / (double)pageSize);
+
+            ViewBag.Page = page;
+            ViewBag.TotalPages = totalPages;
+
             return View(users);
         }
 
-        public IActionResult propertyManagement()
+        public IActionResult PropertyManagement()
         {
             return View();
         }
@@ -39,7 +47,7 @@ namespace Web_Mobile_Assignment_New.Controllers
                 _context.SaveChanges();
                 return RedirectToAction("UserDetails", new { email = user.Email });
             }
-            return View("UserDetails", user); // 回到 details view
+            return View("UserDetails", user); // 
         }
         [HttpPost]
         public IActionResult DeletePhoto(string? email)

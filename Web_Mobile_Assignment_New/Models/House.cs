@@ -21,6 +21,20 @@ namespace Web_Mobile_Assignment_New.Models
         public string? ImageUrl { get; set; } // ✅ 改成 ImageUrl
 
         public string? Other { get; set; }
+
+        // 🆕 新增字段
+        [Required]
+        public string RoomName { get; set; }  // 房间名称
+
+        [Required]
+        public string RoomStatus { get; set; }  // 房间状态（Available / Rented / Maintenance）
+
+        [DataType(DataType.Date)]
+        public DateTime? StartDate { get; set; }  // 租期开始
+
+        [DataType(DataType.Date)]
+        public DateTime? EndDate { get; set; }    // 租期结束
+
+        public string? Furnishing { get; set; }   // 家具配置（Fully / Semi / Unfurnished）
     }
 }
-

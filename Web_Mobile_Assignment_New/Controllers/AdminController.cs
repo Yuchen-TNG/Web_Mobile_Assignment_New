@@ -54,13 +54,15 @@ namespace Web_Mobile_Assignment_New.Controllers
         {
             if (string.IsNullOrEmpty(email)) return NotFound();
 
+
             User? user = _context.Users.FirstOrDefault(u => u.Email == email);
-            if (user != null && user is Photo photoUser)
+            if (user is OwnerTenant otUser) // 👈 只有 Owner/Tenant 才有 PhotoURL
             {
-                photoUser.PhotoURL = null;
-                _context.Users.Update(photoUser);
+                otUser.PhotoURL = null;
+                _context.Users.Update(otUser);
                 _context.SaveChanges();
             }
+
             return RedirectToAction("UserDetails", new { email = email });
         }
 

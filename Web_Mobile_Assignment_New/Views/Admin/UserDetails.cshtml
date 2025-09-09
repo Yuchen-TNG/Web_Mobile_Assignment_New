@@ -11,9 +11,9 @@
 <div style="width:60%; margin:20px auto; font-family:Arial; text-align:center;">
 
     <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin-bottom:20px;">
-        @if (Model is Web_Mobile_Assignment_New.Models.Photo photoUser && !string.IsNullOrEmpty(photoUser.PhotoURL))
+        @if (Model is Web_Mobile_Assignment_New.Models.OwnerTenant photoUser && !string.IsNullOrEmpty(photoUser.PhotoURL))
         {
-            <img src="/photos/@photoUser.PhotoURL" alt="User Photo"
+            <img src="@photoUser.PhotoURL" alt="User Photo"
                  style="width:150px; height:150px; object-fit:cover; border-radius:50%;" />
 
             <!-- DeletePhoto function -->
@@ -30,6 +30,7 @@
             <img src="/images/photo.jpg" alt="Default Photo"
                  style="width:150px; height:150px; object-fit:cover; border-radius:50%;" />
         }
+
     </div>
 
     <!-- Update function -->

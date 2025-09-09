@@ -20,13 +20,15 @@ Property Management
 
 
 
-yuchen
+yuchen gugubird
 -owner上传的property全部都要等admin accept才可以(这个就是要开新的database，然后pending他是否被accept了)
 -还有就是，database要放多一个status就是他有没有被admin ban ✓
 -出租时间 要有一个limit 
--add house 要加name. etc: Prima Setapak Condominium 
--家具在哪里？
+-add house 要加name. etc: Prima Setapak Condominium ✓
+-家具在哪里？✓
 -partiton (no need)
 -search boleh buat apa
+
+
 
 if got payment should we need payment method?

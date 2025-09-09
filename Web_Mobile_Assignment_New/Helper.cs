@@ -65,9 +65,12 @@ public class Helper
 
     public void DeletePhoto(string file, string folder)
     {
+        if (string.IsNullOrWhiteSpace(file))
+            return;
         file = Path.GetFileName(file);
-        var path = Path.Combine(en.WebRootPath, folder, file);
-        File.Delete(path);
+            var path = Path.Combine(en.WebRootPath, folder, file);
+            File.Delete(path);
+
     }
 
 

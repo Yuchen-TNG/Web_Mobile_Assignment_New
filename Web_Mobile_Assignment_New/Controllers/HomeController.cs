@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
 using System;
 using Web_Mobile_Assignment_New.Models;
 
@@ -10,24 +9,6 @@ namespace Web_Mobile_Assignment_New.Controllers
     public class HomeController : Controller
     {
         private readonly DB _context;
-        public IActionResult Filter(int? minPrice, int? maxPrice, string? type)
-        {
-            var houses = _context.Houses.AsQueryable();
-            //asQueryable() is will save the "where" condition after use ToList he will help to filter
-
-            if (minPrice.HasValue)
-                houses = houses.Where(h => h.Price >= minPrice.Value);
-
-            if (maxPrice.HasValue)
-                houses = houses.Where(h => h.Price <= maxPrice.Value);
-
-            if (!string.IsNullOrEmpty(type))
-                if (type != "Whole Unit") 
-                    houses = houses.Where(h => h.RoomType == type);
-
-            return View("Index",houses.ToList());
-
-        }
 
         public HomeController(DB context)
         {
@@ -41,6 +22,23 @@ namespace Web_Mobile_Assignment_New.Controllers
             return View(houses);
         }
 
+        public IActionResult Filter(int? minPrice, int? maxPrice, string? type)
+        {
+            var houses = _context.Houses.AsQueryable();
+
+            if (minPrice.HasValue)
+                houses = houses.Where(h => h.Price >= minPrice.Value);
+
+            if (maxPrice.HasValue)
+                houses = houses.Where(h => h.Price <= maxPrice.Value);
+
+            if (!string.IsNullOrEmpty(type))
+                if (type != "Whole Unit")
+                    houses = houses.Where(h => h.RoomType == type);
+
+            return View("Index", houses.ToList());
+        }
+
         [HttpGet]
         public IActionResult AddHouse()
         {
@@ -50,6 +48,19 @@ namespace Web_Mobile_Assignment_New.Controllers
         [HttpPost]
         public async Task<IActionResult> AddHouse(House house, IFormFile ImageFile)
         {
+            // ✅ 后端验证 Rooms
+            if (house.RoomType == "Whole Unit")
+            {
+                if (house.Rooms < 1 || house.Rooms > 8)
+                {
+                    ModelState.AddModelError("Rooms", "For Whole Unit, rooms must be between 1 and 8.");
+                }
+            }
+            else
+            {
+                house.Rooms = 1; // 非 Whole Unit 强制设为 1
+            }
+
             if (ModelState.IsValid)
             {
                 if (ImageFile != null && ImageFile.Length > 0)
@@ -78,11 +89,9 @@ namespace Web_Mobile_Assignment_New.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction("Index"); // 添加后跳去主页面
             }
+
             return View(house);
-
-            
         }
-
 
         public IActionResult Details(int id)
         {
@@ -129,7 +138,6 @@ namespace Web_Mobile_Assignment_New.Controllers
         [HttpPost]
         public IActionResult ConfirmRent(int id, DateTime startDate, DateTime endDate)
         {
-            // Validate dates (e.g., startDate <= endDate)
             if (startDate > endDate)
             {
                 ModelState.AddModelError("", "Start date must be before or equal to end date.");
@@ -137,14 +145,9 @@ namespace Web_Mobile_Assignment_New.Controllers
                 return View("Rent", house);
             }
 
-            // Process the rental (save to DB, etc.)
-            // Example: Save rental info, show confirmation, etc.
+            // TODO: 保存租赁信息
 
             return RedirectToAction("Index");
         }
-
-
     }
-
-
 }

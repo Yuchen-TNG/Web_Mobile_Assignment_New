@@ -340,7 +340,7 @@
                     @if (User.Identity!.IsAuthenticated)
                     {
                         <li class="nav-item">
-                            <a class="nav-link text-light" href="/Account/Logout" onclick="return confirm('Are you sure you want to logout?')"  >
+                            <a class="nav-link text-light" href="/Account/Logout" onclick="return confirm('Are you sure you want to logout?')">
                                 <i class="fas fa-sign-out-alt"></i>Logout
                             </a>
                         </li>
@@ -473,5 +473,6 @@
     </script>
 
     @RenderSection("foot", false)
+    @RenderSection("Scripts", required: false) <!-- ✅ 新增 -->
 </body>
 </html>

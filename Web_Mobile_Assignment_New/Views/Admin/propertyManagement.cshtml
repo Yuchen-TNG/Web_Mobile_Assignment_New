@@ -1,7 +1,7 @@
-﻿@model List<Web_Mobile_Assignment_New.Models.User>
+﻿@model List<Web_Mobile_Assignment_New.Models.House>
 
 @{
-    ViewData["Title"] = "User Management";
+    ViewData["Title"] = "Property Management";
 }
 
 @if (TempData["Message"] != null)
@@ -13,7 +13,7 @@
 
 <div class="header-container">
     <h1>User Management</h1>
-    <a asp-controller="Admin" asp-action="Admin" class="back-btn">⬅ Back</a>
+    <a asp-controller="Home" asp-action="Admin" class="back-btn">⬅ Back</a>
 </div>
 
 <style>
@@ -81,27 +81,29 @@
     <thead>
         <tr>
             <th>Id</th>
-            <th>RoomType</th>
-            <th>Birthday</th>
-            <th>Role</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Rooms Number</th>
+            <th>Price</th>
+            <th>Address</th>
+            <th>Status</th>
             <th>Details</th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var user in Model)
+        @foreach (var houses in Model)
         {
-            @if (user.Role == "Admin")
-                continue;
-            else
-            {
                 <tr>
-                    <td>@user.Email</td>
-                    <td>@user.Name</td>
-                    <td>@user.Birthday</td>
-                    <td>@user.Role</td>
-                    <td><a asp-controller="Admin" asp-action="UserDetails" class="details" asp-route-email="@user.Email">Details</a></td>
+                <td>@houses.Id</td>
+                <td>@houses.RoomName</td>
+                <td>@houses.RoomType</td>
+                <td>@houses.Rooms</td>
+                <td>@houses.Price</td>
+                <td>@houses.Address</td>
+                <td>@houses.RoomStatus</td>
+                <td><a asp-controller="Admin" asp-action="PropertyDetails" class="details" asp-route-email="@houses.Id">Details</a></td>
                 </tr>
-            }
         }
     </tbody>
 </table>

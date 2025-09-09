@@ -1,7 +1,107 @@
-﻿@model Web_Mobile_Assignment_New.Models.House
+﻿@model List<Web_Mobile_Assignment_New.Models.House>
 
 @{
     ViewData["Title"] = "User Management";
 }
 
-<h1>Property Management</h1>
+@if (TempData["Message"] != null)
+{
+    <script>
+        alert("@TempData["Message"]");
+    </script>
+}
+
+<div class="header-container">
+    <h1>User Management</h1>
+    <a asp-controller="Admin" asp-action="Admin" class="back-btn">⬅ Back</a>
+</div>
+
+<style>
+    .header-container {
+        display: flex;
+        justify-content: center; /* 标题居中 */
+        align-items: center;
+        margin-bottom: 20px;
+        position: relative;
+    }
+
+        .header-container h1 {
+            margin: 0;
+            flex-grow: 1;
+            text-align: center;
+            font-size: 28px;
+            color: #333;
+        }
+
+    .back-btn {
+        position: absolute;
+        left: 0;
+        padding: 8px 15px;
+        background-color: #4CAF50;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: bold;
+        transition: background-color 0.3s, transform 0.2s;
+    }
+
+        .back-btn:hover {
+            background-color: #45a049;
+            transform: scale(1.05);
+        }
+
+    table {
+        width: 80%;
+        margin: 20px auto;
+        border-collapse: collapse;
+        font-family: Arial, sans-serif;
+    }
+
+    th, td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+
+    th {
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    tr:hover {
+        background-color: #f5f5f5;
+    }
+
+    .details {
+        color: cornflowerblue
+    }
+</style>
+
+<table>
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Name</th>
+            <th>Birthday</th>
+            <th>Role</th>
+            <th>Details</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            @if (user.Role == "Admin")
+                continue;
+            else
+            {
+                <tr>
+                    <td>@user.Email</td>
+                    <td>@user.Name</td>
+                    <td>@user.Birthday</td>
+                    <td>@user.Role</td>
+                    <td><a asp-controller="Admin" asp-action="UserDetails" class="details" asp-route-email="@user.Email">Details</a></td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

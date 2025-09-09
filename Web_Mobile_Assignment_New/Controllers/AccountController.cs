@@ -36,7 +36,7 @@ public class AccountController : Controller
             ModelState.AddModelError("", "Login credentials not matched.");
         }
 
-        if (u is Photo OT && OT.Status == "restricted")
+        if (u is OwnerTenant OT && OT.Status == "restricted")
         {
             ModelState.AddModelError("", "This account is restricted.");
         }

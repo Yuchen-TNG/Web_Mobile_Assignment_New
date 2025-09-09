@@ -19,19 +19,19 @@ public class AccountController : Controller
     }
 
     // GET: Account/Login
-    public IActionResult Login()
+    public IActionResult Login(string? returnUrl)
     {
+        ViewData["ReturnUrl"] = returnUrl;
         return View();
     }
 
     // POST: Account/Login
     [HttpPost]
-    public IActionResult Login(LoginVM vm, string? returnURL)
+    public IActionResult Login(LoginVM vm, string? returnUrl)
     {
-        // (1) Get user (admin or member) record based on email (PK)
         var u = db.Users.Find(vm.Email);
+        var s = db.Users.Find(vm.Status);
 
-        // (2) Custom validation -> verify password
         if (u == null || !hp.VerifyPassword(u.Hash, vm.Password))
         {
             ModelState.AddModelError("", "Login credentials not matched.");
@@ -39,18 +39,27 @@ public class AccountController : Controller
 
         if (ModelState.IsValid)
         {
-            TempData["Info"] = "Login successfully.";
+            if (u is OwnerTenant OT && OT.Status == "restricted")
+            {
+                ModelState.AddModelError("", "This account is restricted.");
+                return View(vm);
+            }
 
-            // (3) Sign in
+            TempData["Info"] = "Login successfully.";
             hp.SignIn(u!.Email, u.Role, vm.RememberMe);
 
-            // (4) Handle return URL
-            if(string.IsNullOrEmpty(returnURL))
+            // Redirect to returnUrl if valid, otherwise to Home/Index
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+            else
             {
                 return RedirectToAction("Index", "Home");
             }
         }
-        
+
+        ViewData["ReturnUrl"] = returnUrl;
         return View(vm);
     }
 

@@ -1,0 +1,54 @@
+﻿@model Web_Mobile_Assignment_New.Models.House
+
+@{
+    ViewData["Title"] = "Rent Room";
+}
+
+<!-- Add in your _Layout.cshtml or directly in Rent.cshtml -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<h2>Rent Room</h2>
+<p>You are about to rent: <strong>@Model.RoomType</strong></p>
+<p>Price: RM @Model.Price</p>
+
+<form asp-action="ConfirmRent" asp-controller="Home" method="post">
+    <input type="hidden" name="Id" value="@Model.Id" />
+    <div class="mb-3">
+        <label for="StartDate" class="form-label">Start Date</label>
+        <input type="text" class="form-control" id="StartDate" name="StartDate" required autocomplete="off" />
+    </div>
+    <div class="mb-3">
+        <label for="EndDate" class="form-label">End Date</label>
+        <input type="text" class="form-control" id="EndDate" name="EndDate" required autocomplete="off" />
+    </div>
+    <a class="btn btn-secondary" asp-action="Details" asp-controller="Home" asp-route-id="@Model.Id">Back</a>
+    <button type="submit" class="btn btn-success">Confirm Rent</button>
+</form>
+
+<script>
+    // Dates that are unpickable (YYYY-MM-DD format)
+    var unpickableDates = [
+        "2025-09-10",
+        "2025-09-12",
+        "2025-09-15"
+    ];
+
+    var minSelectableDate = new Date().toISOString().split('T')[0];
+
+    flatpickr("#StartDate", {
+        dateFormat: "Y-m-d",
+        disable: unpickableDates,
+        minDate: minSelectableDate,
+        onChange: function(selectedDates, dateStr, instance) {
+            // Set minDate for EndDate based on StartDate
+            endPicker.set('minDate', dateStr);
+        }
+    });
+
+    var endPicker = flatpickr("#EndDate", {
+        dateFormat: "Y-m-d",
+        disable: unpickableDates,
+        minDate: minSelectableDate
+    });
+</script>

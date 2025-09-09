@@ -111,6 +111,12 @@ namespace Web_Mobile_Assignment_New.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.HasDiscriminator().HasValue("Owner");
                 });
 
@@ -119,6 +125,12 @@ namespace Web_Mobile_Assignment_New.Migrations
                     b.HasBaseType("Web_Mobile_Assignment_New.Models.User");
 
                     b.Property<string>("PhotoURL")
+                        .IsRequired()
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Status")
                         .IsRequired()
                         .ValueGeneratedOnUpdateSometimes()
                         .HasMaxLength(100)

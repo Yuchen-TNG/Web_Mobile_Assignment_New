@@ -30,6 +30,7 @@ public class AccountController : Controller
     public IActionResult Login(LoginVM vm, string? returnUrl)
     {
         var u = db.Users.Find(vm.Email);
+        var s = db.Users.Find(vm.Status);
 
         if (u == null || !hp.VerifyPassword(u.Hash, vm.Password))
         {
@@ -38,6 +39,12 @@ public class AccountController : Controller
 
         if (ModelState.IsValid)
         {
+            if (u is OwnerTenant OT && OT.Status == "restricted")
+            {
+                ModelState.AddModelError("", "This account is restricted.");
+                return View(vm);
+            }
+
             TempData["Info"] = "Login successfully.";
             hp.SignIn(u!.Email, u.Role, vm.RememberMe);
 

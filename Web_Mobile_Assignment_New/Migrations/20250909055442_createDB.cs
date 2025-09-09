@@ -40,7 +40,8 @@ namespace Web_Mobile_Assignment_New.Migrations
                     Hash = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Birthday = table.Column<DateOnly>(type: "date", nullable: false),
                     Discriminator = table.Column<string>(type: "nvarchar(8)", maxLength: 8, nullable: false),
-                    PhotoURL = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true)
+                    PhotoURL = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true)
                 },
                 constraints: table =>
                 {

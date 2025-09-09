@@ -23,103 +23,121 @@ namespace Web_Mobile_Assignment_New.Migrations
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("Web_Mobile_Assignment_New.Models.House", b =>
-            {
-                b.Property<int>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("int");
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
-                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                b.Property<string>("Address")
-                    .IsRequired()
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<int>("Bathrooms")
-                    .HasColumnType("int");
+                    b.Property<int>("Bathrooms")
+                        .HasColumnType("int");
 
-                b.Property<string>("ImageUrl")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<string>("Other")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("Other")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<decimal>("Price")
-                    .HasColumnType("decimal(18,2)");
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
 
-                b.Property<string>("RoomType")
-                    .IsRequired()
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("RoomType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Rooms")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Sqft")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                b.ToTable("Houses");
-            });
+                    b.ToTable("Houses");
+                });
 
             modelBuilder.Entity("Web_Mobile_Assignment_New.Models.User", b =>
-            {
-                b.Property<string>("Email")
-                    .HasMaxLength(100)
-                    .HasColumnType("nvarchar(100)");
+                {
+                    b.Property<string>("Email")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                b.Property<DateOnly>("Birthday")
-                    .HasColumnType("date");
+                    b.Property<DateOnly>("Birthday")
+                        .HasColumnType("date");
 
-                b.Property<string>("Discriminator")
-                    .IsRequired()
-                    .HasMaxLength(8)
-                    .HasColumnType("nvarchar(8)");
+                    b.Property<string>("Discriminator")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
 
-                b.Property<string>("Hash")
-                    .IsRequired()
-                    .HasMaxLength(100)
-                    .HasColumnType("nvarchar(100)");
+                    b.Property<string>("Hash")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                b.Property<string>("Name")
-                    .IsRequired()
-                    .HasMaxLength(100)
-                    .HasColumnType("nvarchar(100)");
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                b.HasKey("Email");
+                    b.HasKey("Email");
 
-                b.ToTable("Users");
+                    b.ToTable("Users");
 
-                b.HasDiscriminator().HasValue("User");
+                    b.HasDiscriminator().HasValue("User");
 
-                b.UseTphMappingStrategy();
-            });
+                    b.UseTphMappingStrategy();
+                });
 
             modelBuilder.Entity("Web_Mobile_Assignment_New.Models.Admin", b =>
-            {
-                b.HasBaseType("Web_Mobile_Assignment_New.Models.User");
+                {
+                    b.HasBaseType("Web_Mobile_Assignment_New.Models.User");
 
-                b.HasDiscriminator().HasValue("Admin");
-            });
+                    b.HasDiscriminator().HasValue("Admin");
+                });
 
             modelBuilder.Entity("Web_Mobile_Assignment_New.Models.Owner", b =>
-            {
-                b.HasBaseType("Web_Mobile_Assignment_New.Models.User");
+                {
+                    b.HasBaseType("Web_Mobile_Assignment_New.Models.User");
 
-                b.Property<string>("PhotoURL")
-                    .IsRequired()
-                    .ValueGeneratedOnUpdateSometimes()
-                    .HasMaxLength(100)
-                    .HasColumnType("nvarchar(100)");
+                    b.Property<string>("PhotoURL")
+                        .IsRequired()
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                b.HasDiscriminator().HasValue("Owner");
-            });
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasDiscriminator().HasValue("Owner");
+                });
 
             modelBuilder.Entity("Web_Mobile_Assignment_New.Models.Tenant", b =>
-            {
-                b.HasBaseType("Web_Mobile_Assignment_New.Models.User");
+                {
+                    b.HasBaseType("Web_Mobile_Assignment_New.Models.User");
 
-                b.Property<string>("PhotoURL")
-                    .IsRequired()
-                    .ValueGeneratedOnUpdateSometimes()
-                    .HasMaxLength(100)
-                    .HasColumnType("nvarchar(100)");
+                    b.Property<string>("PhotoURL")
+                        .IsRequired()
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                b.HasDiscriminator().HasValue("Tenant");
-            });
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasDiscriminator().HasValue("Tenant");
+                });
 #pragma warning restore 612, 618
         }
     }

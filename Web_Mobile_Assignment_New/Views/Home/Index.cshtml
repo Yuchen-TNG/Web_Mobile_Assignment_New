@@ -16,18 +16,15 @@
         </div>
     </form>
 
-@if (User.IsInRole("Owner") || User.IsInRole("Admin"))
-{
-    <a class="btn btn-success" id="addHouse" href="@Url.Action("AddHouse", "Home")">+ Add House</a>
-}
-   
+    @if (User.IsInRole("Owner") || User.IsInRole("Admin"))
+    {
+        <a class="btn btn-success" id="addHouse" href="@Url.Action("AddHouse", "Home")">+ Add House</a>
+    }
 </div>
 
-<!-- 🔎 Filter Form (只做界面，不连后台) -->
+<!-- 🔎 Filter Form (UI only, not connected yet) -->
 <form class="mb-4 p-3 border rounded bg-light" asp-action="Filter" asp-controller="Home" method="get">
-    <!--auto generate correct url-->
-
-       <div class="row">
+    <div class="row">
         <!-- Price Range -->
         <div class="col-md-3 mb-2">
             <label for="minPrice" class="form-label">Min Price</label>
@@ -73,27 +70,34 @@
         @foreach (var house in Model)
         {
             <div class="col-md-3 mb-4">
-                <div class="card shadow-sm" style="width: 100%; aspect-ratio: 1/1; overflow: hidden;">
+                <div class="card shadow-sm" style="width: 100%; overflow: hidden;">
                     @if (!string.IsNullOrEmpty(house.ImageUrl))
                     {
                         <img src="@house.ImageUrl" alt="House Image"
-                             style="width: 100%; height: 75%; object-fit: cover;" />
+                             style="width: 100%; height: 180px; object-fit: cover;" />
                     }
                     else
                     {
                         <div class="d-flex align-items-center justify-content-center bg-light"
-                             style="width:100%; height:75%;">
+                             style="width:100%; height:180px;">
                             <span class="text-muted">No Image</span>
                         </div>
                     }
-                    <div class="card-body text-center p-2">
-                        <h5 class="card-title">RM @house.Price</h5>
-                        <a href="@Url.Action("Details", "Home", new { id = house.Id })"
-                           class="btn btn-primary btn-sm mt-2">View Details</a>
-                    </div>
+
+                <div class="card-body text-center p-2">
+                    <h6 class="card-title fw-bold">
+                        @(
+                                            string.IsNullOrWhiteSpace(house.RoomName)
+                                            ? house.RoomType
+                                            : $"{house.RoomName} - {house.RoomType}"
+                                            )
+                    </h6>
+                    <p class="text-success fw-bold mb-1">RM @house.Price</p>
+                    <a href="@Url.Action("Details", "Home", new { id = house.Id })"
+                       class="btn btn-primary btn-sm mt-2">View Details</a>
                 </div>
             </div>
+        </div>
         }
     }
 </div>
-

@@ -86,5 +86,10 @@ namespace Web_Mobile_Assignment_New.Controllers
 
             return RedirectToAction("UserManagement");
         }
+
+        public IActionResult ReportManagement()
+        {
+            return View();
+        }
     }
 }

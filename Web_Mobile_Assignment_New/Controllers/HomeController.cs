@@ -22,7 +22,8 @@ namespace Web_Mobile_Assignment_New.Controllers
                 houses = houses.Where(h => h.Price <= maxPrice.Value);
 
             if (!string.IsNullOrEmpty(type))
-            houses = houses.Where(h => h.RoomType == type);
+                if (type != "Whole Unit") 
+                    houses = houses.Where(h => h.RoomType == type);
 
             return View("Index",houses.ToList());
 

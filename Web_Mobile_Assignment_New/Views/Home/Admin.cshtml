@@ -28,11 +28,12 @@
         box-shadow: 0 8px 16px rgba(0,0,0,0.3);
     }
 
-        .button:hover {
-            background-color: #4682b4; /* 深蓝 */
-            transform: scale(1.05);
-            box-shadow: 0 12px 20px rgba(0,0,0,0.5);
-        }
+    .button:hover {
+        background-color: #4682b4; /* 深蓝 */
+        transform: scale(1.05);
+        box-shadow: 0 12px 20px rgba(0,0,0,0.5);
+    }
+
 </style>
 
 <div class="AdminBlock">
@@ -41,5 +42,8 @@
     </form>
     <form asp-controller="Admin" asp-action="PropertyManagement" method="get">
         <button type="submit" class="button">Property Management</button>
+    </form>
+    <form asp-controller="Admin" asp-action="ReportManagement" method="get">
+        <button type="submit" class="button">Report Management</button>
     </form>
 </div>

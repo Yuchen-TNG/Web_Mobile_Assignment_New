@@ -27,7 +27,8 @@ namespace Web_Mobile_Assignment_New.Controllers
 
         public IActionResult PropertyManagement()
         {
-            return View();
+            var houses = _context.Houses.ToList();
+            return View(houses);
         }
 
         public IActionResult UserDetails(string? email)
@@ -39,6 +40,18 @@ namespace Web_Mobile_Assignment_New.Controllers
 
             return View(user);
         }
+
+        public IActionResult PropertyDetails(int id)
+        {
+            if (id is 0) return NotFound();
+
+            House? house = _context.Houses.FirstOrDefault(h => h.Id == id);
+            if (house == null) return NotFound();
+
+            return View(house);
+        }
+
+
         public IActionResult Update(User user)
         {
             if (ModelState.IsValid)

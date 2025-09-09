@@ -13,7 +13,7 @@
 
 <div class="header-container">
     <h1>User Management</h1>
-    <a asp-controller="Admin" asp-action="Admin" class="back-btn">⬅ Back</a>
+    <a asp-controller="Home" asp-action="Admin" class="back-btn">⬅ Back</a>
 </div>
 
 <style>
@@ -84,6 +84,7 @@
             <th>Name</th>
             <th>Birthday</th>
             <th>Role</th>
+            <th>Status</th>
             <th>Details</th>
         </tr>
     </thead>
@@ -99,6 +100,7 @@
                     <td>@user.Name</td>
                     <td>@user.Birthday</td>
                     <td>@user.Role</td>
+                    <td>@(user is OwnerTenant ot ? ot.Status : "N/A")</td>
                     <td><a asp-controller="Admin" asp-action="UserDetails" class="details" asp-route-email="@user.Email">Details</a></td>
                 </tr>
             }

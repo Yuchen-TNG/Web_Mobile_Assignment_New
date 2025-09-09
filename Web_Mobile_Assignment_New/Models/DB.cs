@@ -32,7 +32,7 @@ public class User
 
 }
 
-public class Photo : User
+public class OwnerTenant : User
 {
     [MaxLength(100)]
     public string? PhotoURL { get; set; }
@@ -41,12 +41,12 @@ public class Photo : User
     public string Status { get; set; }
 }
 
-public class Tenant : Photo
+public class Tenant : OwnerTenant
 {
 
 }
 
-public class Owner : Photo
+public class Owner : OwnerTenant
 {
    
 }

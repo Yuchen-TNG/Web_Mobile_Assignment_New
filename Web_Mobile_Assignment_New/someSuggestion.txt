@@ -1,28 +1,32 @@
-﻿Suggestion 1:
-i think room type change to database will be best not like direct coding 
-exp:            
-<label for="type" class="form-label">Type</label>
-	<select class="form-select" id="type" name="type">
-		<option value="Master Room">Master Room</option>
-		<option value="Big Medium Room">Big Medium Room</option>
-		<option value="Medium Room">Medium Room</option>
-		<option value="Single Room">Single Room</option>
-		<option value="Whole Unit">Whole Unit</option>
-	</select>
+﻿Suggestion 1 :
 
 
-Suggestion 2 :
 
 What admin can do?
 User Management
 -can view all user data ✓
+	(changing groping method)
 -can ban/unban someone
 	(if want to do ban database should add one more list which is status)
 -can configure user information ✓
 
+
+
 Property Management
--same as user management
 -can see all property
 -block property
 -delete property
+-can't change
 
+
+
+yuchen
+-owner上传的property全部都要等admin accept才可以(这个就是要开新的database，然后pending他是否被accept了)
+-还有就是，database要放多一个status就是他有没有被admin ban ✓
+-出租时间 要有一个limit 
+-add house 要加name. etc: Prima Setapak Condominium 
+-家具在哪里？
+-partiton (no need)
+-search boleh buat apa
+
+if got payment should we need payment method?

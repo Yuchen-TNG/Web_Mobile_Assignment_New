@@ -177,6 +177,12 @@ public class AccountController : Controller
             ModelState.AddModelError("Current", "Current Password not matched.");
         }
 
+        // 确保新密码和旧密码不一样（可选）
+        if (vm.New == vm.Current)
+        {
+            ModelState.AddModelError("New", "New password cannot be the same as current password.");
+        }
+
         if (ModelState.IsValid)
         {
             // Update user password (hash)
@@ -187,7 +193,7 @@ public class AccountController : Controller
             return RedirectToAction();
         }
 
-        return View();
+        return View(vm);
     }
 
     // GET: Account/UpdateProfile

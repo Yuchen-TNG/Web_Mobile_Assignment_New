@@ -62,7 +62,6 @@ public class PendingRegisterVM
 }
 
 
-
 public class UpdatePasswordVM
 {
     [StringLength(100, MinimumLength = 5)]

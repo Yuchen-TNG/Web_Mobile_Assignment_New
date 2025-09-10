@@ -67,10 +67,60 @@ public class Helper
     {
         if (string.IsNullOrWhiteSpace(file))
             return;
-        file = Path.GetFileName(file);
-            var path = Path.Combine(en.WebRootPath, folder, file);
-            File.Delete(path);
 
+        file = Path.GetFileName(file);
+        var path = Path.Combine(en.WebRootPath, folder, file);
+
+        if (!File.Exists(path))
+            return;
+
+        try
+        {
+            // 第一次尝试删除
+            File.Delete(path);
+        }
+        catch (IOException) // 文件被占用
+        {
+            // 重试机制（最多3次，每次间隔递增）
+            int maxRetries = 3;
+            int delayMs = 100;
+
+            for (int attempt = 1; attempt <= maxRetries; attempt++)
+            {
+                try
+                {
+                    Thread.Sleep(delayMs);
+                    File.Delete(path);
+                    return; // 删除成功
+                }
+                catch (IOException) when (attempt < maxRetries)
+                {
+                    // 增加等待时间（指数退避）
+                    delayMs *= 2;
+                    continue; // 继续重试
+                }
+                catch
+                {
+                    // 其他异常，直接返回
+                    return;
+                }
+            }
+
+            // 如果重试后仍然失败，尝试重命名文件
+            try
+            {
+                string backupPath = path + ".deleted_" + DateTime.Now.Ticks;
+                File.Move(path, backupPath);
+            }
+            catch
+            {
+                // 最终放弃
+            }
+        }
+        catch
+        {
+            // 其他异常处理
+        }
     }
 
 

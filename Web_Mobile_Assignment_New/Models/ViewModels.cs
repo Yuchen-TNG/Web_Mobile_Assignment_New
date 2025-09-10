@@ -58,6 +58,7 @@ public class PendingRegisterVM
 
     // 临时存放上传的照片路径，而不是 IFormFile
     public string TempPhotoPath { get; set; }
+
 }
 
 

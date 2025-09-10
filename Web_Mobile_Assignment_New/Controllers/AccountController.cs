@@ -40,8 +40,7 @@ public class AccountController : Controller
         {
             ModelState.AddModelError("", "This account is restricted.");
         }
-
-        if (ModelState.IsValid)
+        else if (ModelState.IsValid)
         {
             // 生成验证码
             string verificationCode = hp.GenerateVerificationCode();
@@ -419,7 +418,8 @@ public class AccountController : Controller
                                 Hash = hp.HashPassword(pending.Password),
                                 Name = pending.Name,
                                 PhotoURL = hp.SavePhoto(formFile, "Photos"), // ✅ 传 IFormFile
-                                Birthday = pending.Birthday
+                                Birthday = pending.Birthday,
+                                Status = "Valid"
                             };
                         }
                     }
@@ -441,7 +441,8 @@ public class AccountController : Controller
                                 Hash = hp.HashPassword(pending.Password),
                                 Name = pending.Name,
                                 PhotoURL = hp.SavePhoto(formFile, "Photos"), // ✅ 传 IFormFile
-                                Birthday = pending.Birthday
+                                Birthday = pending.Birthday,
+                                Status = "Valid"
                             };
                         }
                     }

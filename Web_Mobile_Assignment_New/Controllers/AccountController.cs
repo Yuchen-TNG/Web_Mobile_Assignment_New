@@ -419,7 +419,7 @@ public class AccountController : Controller
                                 Name = pending.Name,
                                 PhotoURL = hp.SavePhoto(formFile, "Photos"), // ✅ 传 IFormFile
                                 Birthday = pending.Birthday,
-                                Status = "Valid"
+                                Status = "valid"
                             };
                         }
                     }
@@ -442,7 +442,7 @@ public class AccountController : Controller
                                 Name = pending.Name,
                                 PhotoURL = hp.SavePhoto(formFile, "Photos"), // ✅ 传 IFormFile
                                 Birthday = pending.Birthday,
-                                Status = "Valid"
+                                Status = "valid"
                             };
                         }
                     }

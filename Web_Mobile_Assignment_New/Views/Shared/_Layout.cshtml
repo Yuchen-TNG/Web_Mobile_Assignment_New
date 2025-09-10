@@ -283,7 +283,7 @@
                     <span class="role-badge">Tenant</span>
                 }
             </div>
-
+            
             @if (User.IsInRole("Tenant"))
             {
                 var photoURL = db.Tenants.Find(User.Identity!.Name)!.PhotoURL;

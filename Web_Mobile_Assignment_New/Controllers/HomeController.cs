@@ -123,6 +123,11 @@ namespace Web_Mobile_Assignment_New.Controllers
 
         // GET: Home/Tenant
         [Authorize(Roles = "Tenant")]
+        public IActionResult Tenant()
+        {
+            return View();
+        }
+
         public IActionResult Rent(int id)
         {
             var house = _context.Houses.FirstOrDefault(h => h.Id == id);

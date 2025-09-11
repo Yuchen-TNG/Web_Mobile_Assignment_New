@@ -6,22 +6,24 @@
 
 @if (TempData["Message"] != null)
 {
-    <script>
-        alert("@TempData["Message"]");
-    </script>
+    var type = TempData["MessageType"]?.ToString() ?? "success";
+    <div class="alert @(type == "success" ? "alert-success" : "alert-error")">
+        @TempData["Message"]
+    </div>
 }
 
 <div class="header-container">
-    <h1>User Management</h1>
+    <h1>Property Management</h1>
     <a asp-controller="Home" asp-action="Admin" class="back-btn">⬅ Back</a>
 </div>
 
 <style>
+    /* header 容器 */
     .header-container {
         display: flex;
-        justify-content: center; /* 标题居中 */
+        justify-content: center;
         align-items: center;
-        margin-bottom: 20px;
+        margin-bottom: 25px;
         position: relative;
     }
 
@@ -33,48 +35,65 @@
             color: #333;
         }
 
+    /* back 按钮 */
     .back-btn {
         position: absolute;
         left: 0;
-        padding: 8px 15px;
-        background-color: #4CAF50;
-        color: white;
+        padding: 8px 16px;
+        background-color: #4a90e2;
+        color: #fff;
         text-decoration: none;
-        border-radius: 5px;
+        border-radius: 6px;
         font-weight: bold;
         transition: background-color 0.3s, transform 0.2s;
     }
 
         .back-btn:hover {
-            background-color: #45a049;
+            background-color: #357ab8;
             transform: scale(1.05);
         }
 
+    /* 表格 */
     table {
-        width: 80%;
-        margin: 20px auto;
+        width: 95%;
+        margin: 0 auto 30px auto;
         border-collapse: collapse;
         font-family: Arial, sans-serif;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        border-radius: 8px;
+        overflow: hidden;
     }
 
     th, td {
         padding: 12px 15px;
         text-align: left;
-        border-bottom: 1px solid #ddd;
+        border-bottom: 1px solid #eee;
+        font-size: 15px;
     }
 
     th {
-        background-color: #4CAF50;
-        color: white;
+        background-color: #4a90e2;
+        color: #fff;
+        font-weight: 600;
     }
 
     tr:hover {
-        background-color: #f5f5f5;
+        background-color: #f1f7ff;
+        transition: background-color 0.2s;
     }
 
+    /* details 链接按钮风格 */
     .details {
-        color: cornflowerblue
+        color: #4a90e2;
+        text-decoration: none;
+        font-weight: bold;
+        transition: color 0.2s, transform 0.2s;
     }
+
+        .details:hover {
+            color: #357ab8;
+            transform: scale(1.05);
+        }
 </style>
 
 <table>
@@ -88,22 +107,25 @@
             <th>Address</th>
             <th>Status</th>
             <th>Details</th>
-            <th></th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var houses in Model)
+        @foreach (var house in Model)
         {
-                <tr>
-                <td>@houses.Id</td>
-                <td>@houses.RoomName</td>
-                <td>@houses.RoomType</td>
-                <td>@houses.Rooms</td>
-                <td>@houses.Price</td>
-                <td>@houses.Address</td>
-                <td>@houses.RoomStatus</td>
-                <td><a asp-controller="Admin" asp-action="PropertyDetails" class="details" asp-route-id="@houses.Id">Details</a></td>
-                </tr>
+            <tr>
+                <td>@house.Id</td>
+                <td>@house.RoomName</td>
+                <td>@house.RoomType</td>
+                <td>@house.Rooms</td>
+                <td>@house.Price</td>
+                <td>@house.Address</td>
+                <td>@house.RoomStatus</td>
+                <td>
+                    <a asp-controller="Admin" asp-action="PropertyDetails" class="details" asp-route-id="@house.Id">
+                        Details
+                    </a>
+                </td>
+            </tr>
         }
     </tbody>
 </table>

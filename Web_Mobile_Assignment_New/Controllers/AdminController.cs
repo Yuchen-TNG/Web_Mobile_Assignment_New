@@ -52,16 +52,35 @@ namespace Web_Mobile_Assignment_New.Controllers
         }
 
 
-        public IActionResult Update(User user)
+        [HttpPost]
+        public IActionResult UpdateUser(string Email, string Name, string BirthdayString)
         {
-            if (ModelState.IsValid)
+            var existingUser = _context.Users.FirstOrDefault(u => u.Email == Email);
+            if (existingUser == null)
             {
-                _context.Users.Update(user);
-                _context.SaveChanges();
-                return RedirectToAction("UserDetails", new { email = user.Email });
+                TempData["Message"] = "System Error";
+                return NotFound();
             }
-            return View("UserDetails", user); // 
+            existingUser.Name = Name;
+
+            if (DateOnly.TryParse(BirthdayString, out var birthday))
+                existingUser.Birthday = birthday;
+            else
+            {
+                ModelState.AddModelError("Birthday", "Invalid date format");
+                TempData["Message"] = "System Error";
+            }
+            if (!ModelState.IsValid)
+            {
+                TempData["Message"] = "System Error";
+                return View("UserDetails", existingUser);
+            }    
+            _context.SaveChanges();
+            TempData["Message"] = "User Change Successful!";
+            return RedirectToAction("UserDetails", new { email = Email });
         }
+
+
         [HttpPost]
         public IActionResult DeletePhoto(string? email)
         {
@@ -74,8 +93,9 @@ namespace Web_Mobile_Assignment_New.Controllers
                 otUser.PhotoURL = null;
                 _context.Users.Update(otUser);
                 _context.SaveChanges();
+                TempData["Message"] = "Delete Successful";
             }
-
+            TempData["Message"] = "Delete failed";
             return RedirectToAction("UserDetails", new { email = email });
         }
 
@@ -92,7 +112,7 @@ namespace Web_Mobile_Assignment_New.Controllers
             {
                 _context.Users.Remove(user);
                 _context.SaveChanges();
-                TempData["Message"] = "User deleted successfully!";
+                TempData["Message"] = "User deleted Successful!";
             }
             else
             {
@@ -100,6 +120,65 @@ namespace Web_Mobile_Assignment_New.Controllers
             }
 
             return RedirectToAction("UserManagement");
+        }
+
+        [HttpPost]
+        [HttpPost]
+        public IActionResult UpdateProperty(House model)
+        {
+            var existing = _context.Houses.FirstOrDefault(h => h.Id == model.Id);
+            if (existing == null)
+            {
+                TempData["Message"] = "House not found";
+                return RedirectToAction("PropertyManagement");
+            }
+
+            // 更新允许修改的字段
+            existing.RoomName = model.RoomName;
+            existing.RoomType = model.RoomType;
+            existing.Rooms = model.Rooms;
+            existing.Bathrooms = model.Bathrooms;
+            existing.Furnishing = model.Furnishing;
+            existing.Price = model.Price;
+            existing.StartDate = model.StartDate;
+            existing.EndDate = model.EndDate;
+            existing.Address = model.Address;
+            existing.Sqft = model.Sqft;
+            existing.RoomStatus = model.RoomStatus;
+
+            // 如果你希望图片也可以修改，需要确保前端有 Hidden Input
+            if (!string.IsNullOrEmpty(model.ImageUrl))
+                existing.ImageUrl = model.ImageUrl;
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                              .Select(e => e.ErrorMessage)
+                                              .ToList();
+                TempData["Message"] = string.Join("; ", errors);
+                return RedirectToAction("PropertyDetails", new { id = model.Id });
+            }
+
+            _context.SaveChanges();
+            TempData["Message"] = "Property Change Successful";
+            return RedirectToAction("PropertyDetails", new { id = model.Id });
+        }
+
+
+        public IActionResult PropertyDelete(int id)
+        {
+            House? house = _context.Houses.FirstOrDefault(h => h.Id == id);
+            if (house != null)
+            {
+                _context.Houses.Remove(house);
+                _context.SaveChanges();
+                TempData["Message"] = "Deleted Susscesful.";
+            }
+            else
+            {
+                TempData["Message"] = "Deleted Failed, no releted house.";
+            }
+            return RedirectToAction("PropertyManagement");
         }
 
         public IActionResult ReportManagement()

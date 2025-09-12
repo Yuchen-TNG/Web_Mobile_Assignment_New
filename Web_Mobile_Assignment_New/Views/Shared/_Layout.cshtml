@@ -298,13 +298,27 @@
                 {
                     @if (User.IsInRole("Tenant"))
                     {
-                        var photoURL = db.Tenants.Find(User.Identity!.Name)!.PhotoURL;
-                        <img class="user-photo" src="/photos/@photoURL" alt="Profile Photo">
+                        var tenant = db.Tenants.Find(User.Identity!.Name);
+                        if (tenant != null && !string.IsNullOrEmpty(tenant.PhotoURL))
+                        {
+                            <img class="user-photo" src="/photos/@tenant.PhotoURL" alt="Profile Photo" />
+                        }
+                        else
+                        {
+                            <img class="user-photo" src="/photos/default.jpg" alt="Default Profile Photo" />
+                        }
                     }
                     @if (User.IsInRole("Owner"))
                     {
-                        var photoURL = db.Owners.Find(User.Identity!.Name)!.PhotoURL;
-                        <img class="user-photo" src="/photos/@photoURL" alt="Profile Photo">
+                        var owner = db.Owners.Find(User.Identity!.Name);
+                        if (owner != null && !string.IsNullOrEmpty(owner.PhotoURL))
+                        {
+                            <img class="user-photo" src="/photos/@owner.PhotoURL" alt="Profile Photo" />
+                        }
+                        else
+                        {
+                            <img class="user-photo" src="/photos/default.jpg" alt="Default Profile Photo" />
+                        }
                     }
                 }
             }

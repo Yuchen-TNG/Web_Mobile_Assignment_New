@@ -283,16 +283,30 @@
                     <span class="role-badge">Tenant</span>
                 }
             </div>
-            
-            @if (User.IsInRole("Tenant"))
+            @if (User.Identity?.IsAuthenticated ?? false)
             {
-                var photoURL = db.Tenants.Find(User.Identity!.Name)!.PhotoURL;
-                <img class="user-photo" src="/photos/@photoURL" alt="Profile Photo">
-            }
-            @if (User.IsInRole("Owner"))
-            {
-                var photoURL = db.Owners.Find(User.Identity!.Name)!.PhotoURL;
-                <img class="user-photo" src="/photos/@photoURL" alt="Profile Photo">
+                var user = db.Users.Find(User.Identity!.Name);
+
+                if (user == null)
+                {
+                    <div class="alert alert-danger text-center" style="margin-top:20px;">
+                        This account has been deleted from the system.
+                        <a href="/Account/Logout" class="btn btn-sm btn-danger ms-2">Logout</a>
+                    </div>
+                }
+                else
+                {
+                    @if (User.IsInRole("Tenant"))
+                    {
+                        var photoURL = db.Tenants.Find(User.Identity!.Name)!.PhotoURL;
+                        <img class="user-photo" src="/photos/@photoURL" alt="Profile Photo">
+                    }
+                    @if (User.IsInRole("Owner"))
+                    {
+                        var photoURL = db.Owners.Find(User.Identity!.Name)!.PhotoURL;
+                        <img class="user-photo" src="/photos/@photoURL" alt="Profile Photo">
+                    }
+                }
             }
         }
     </div>

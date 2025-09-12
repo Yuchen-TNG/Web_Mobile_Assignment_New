@@ -40,23 +40,19 @@ public class AccountController : Controller
         {
             ModelState.AddModelError("", "This account is restricted.");
         }
-        else if (ModelState.IsValid)
-        {
-            // 生成验证码
-            string verificationCode = hp.GenerateVerificationCode();
 
-            // 存储验证码到Session
-            hp.SetVerificationCode(vm.Email, verificationCode);
+        if (ModelState.IsValid)
+        { 
+            hp.SignIn(u!.Email, u.Role, vm.RememberMe);
+            TempData["Info"] = "Login successfully.";
 
-            // 发送验证码邮件
-            hp.SendVerificationCodeEmail(u!, verificationCode);
+            // Redirect to returnUrl if valid, otherwise to Home/
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
 
-            TempData["Info"] = $"Verification code has been sent to your email. Please check your email.";
-
-            // 重定向到验证码输入页面
-            TempData["RememberMe"] = vm.RememberMe;
-            return RedirectToAction("VerifyCode", new { email = vm.Email, purpose = "Login", returnUrl });
-
+            return RedirectToAction("Index", "Home");
         }
 
         ViewData["ReturnUrl"] = returnUrl;
@@ -470,28 +466,7 @@ public class AccountController : Controller
 
                 ModelState.AddModelError("", "Registration session expired. Please try again.");
                 return View(vm);
-
-            case "Login":
-                // 登录场景 → 直接登录
-                var u2 = db.Users.Find(vm.Email);
-                if (u2 == null)
-                {
-                    ModelState.AddModelError("", "User not found.");
-                    return View(vm);
-                }
-
-                bool rememberMe = TempData["RememberMe"] as bool? ?? false;
-                TempData["Info"] = "Login successfully.";
-                hp.SignIn(u2.Email, u2.Role, rememberMe);
-
-                // Redirect to returnUrl if valid, otherwise to Home/
-                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-                {
-                    return Redirect(returnUrl);
-                }
-                
-                return RedirectToAction("Index", "Home");
-
+          
             default:
                 ModelState.AddModelError("", "Unknown verification purpose.");
                 return View(vm);

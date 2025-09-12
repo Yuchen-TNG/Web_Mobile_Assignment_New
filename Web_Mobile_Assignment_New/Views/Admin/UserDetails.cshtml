@@ -37,12 +37,14 @@
             transform: scale(1.05);
         }
 
+    /* === 按钮通用样式 === */
     button,
-    a.button-link {
+    a.button-link,
+    a.btn {
         padding: 10px 18px;
         border: none;
         border-radius: 5px;
-        color: white;
+        color: #fff;
         font-weight: bold;
         text-decoration: none;
         cursor: pointer;
@@ -52,23 +54,39 @@
     }
 
         button:hover,
-        a.button-link:hover {
+        a.button-link:hover,
+        a.btn:hover {
             transform: scale(1.03);
             filter: brightness(0.9);
         }
 
+    /* === 按钮颜色分类 === */
     .btn-save {
         background: #2196F3;
     }
-
+    /* 蓝色 */
     .btn-back {
         background: #9E9E9E;
     }
-
+    /* 灰色 */
     .btn-delete {
         background: #f44336;
     }
+    /* 红色 */
+    .btn-reset {
+        background: #9E9E9E;
+    }
+    /* 灰色 (和 back 一致) */
+    .btn-restrict {
+        background: #e67e22;
+    }
+    /* 橙色 */
+    .btn-valid {
+        background: #4caf50;
+    }
+    /* 绿色 */
 
+    /* === 表单区域 === */
     .form-field {
         margin-bottom: 15px;
         text-align: left;
@@ -99,6 +117,34 @@
                 background: #eee;
             }
 
+    /* === 状态颜色 === */
+    .status-valid {
+        color: green;
+        font-weight: bold;
+    }
+
+    .status-restricted {
+        color: red;
+        font-weight: bold;
+    }
+
+    .status-unknown {
+        color: #666;
+    }
+
+    /* === Action 按钮区 === */
+    .action-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+        .action-buttons form {
+            margin: 0;
+        }
+
+    /* === 照片区域 === */
     .photo-delete-form {
         display: flex;
         flex-direction: column;
@@ -106,6 +152,7 @@
         gap: 10px;
         margin-bottom: 20px;
     }
+
 </style>
 
 <h1>User Details</h1>
@@ -116,7 +163,7 @@
         @if (Model is Web_Mobile_Assignment_New.Models.OwnerTenant photoUser && !string.IsNullOrEmpty(photoUser.PhotoURL))
         {
             <img src="@photoUser.PhotoURL" alt="User Photo" class="user-photo" />
-            <form asp-action="DeletePhoto" method="post">
+            <form asp-action="DeletePhoto" method="post" onsubmit="return confirm('Are you sure you want to delete photo？');">
                 <input type="hidden" name="email" value="@Model.Email" />
                 <button type="submit" class="btn-delete">🗑 Delete Photo</button>
             </form>
@@ -148,13 +195,44 @@
             <input asp-for="Role" readonly />
         </div>
 
-        <button type="submit" class="btn-save">💾 Save Changes</button>
+        <div class="form-field">
+            <label>Status:</label>
+            @if (Model is Web_Mobile_Assignment_New.Models.OwnerTenant tenantUser)
+            {
+                <input type="text" value="@tenantUser.Status" readonly />
+            }
+            else
+            {
+                <input type="text" value="N/A" readonly />
+            }
+        </div>
+        <button type="submit" class="btn-save">Save Changes</button>
+        <a asp-action="UserDetails"
+           asp-controller="Admin"
+           asp-route-email="@Model.Email"
+           class="button-link btn-reset">↩ Reset</a>
         <a asp-controller="Admin" asp-action="UserManagement" class="button-link btn-back">⬅ Back</a>
     </form>
 
-    <form asp-action="DeleteUser" method="post" style="margin-top:20px;">
-        <input type="hidden" name="email" value="@Model.Email" />
-        <button type="submit" class="btn-delete">🗑 Delete User</button>
-    </form>
+    <div class="action-buttons">
+        <form asp-action="DeleteUser" method="post" onsubmit="return confirm('Are you sure you want to delete user?');">
+            <input type="hidden" name="email" value="@Model.Email" />
+            <button type="submit" class="btn-delete">🗑 Delete User</button>
+        </form>
+        @if (Model is Web_Mobile_Assignment_New.Models.OwnerTenant tenantUser && tenantUser.Status == "valid")
+        {
+            <form asp-action="RestrictedUser" method="post">
+                <input type="hidden" name="email" value="@Model.Email" />
+                <button type="submit" class="btn-delete">Restricted User</button>
+            </form>
+        }
+        else
+        {
+            <form asp-action="ValidUser" method="post">
+                <input type="hidden" name="email" value="@Model.Email" />
+                <button type="submit" class="btn-delete">⭕ Valid User</button>
+            </form>
+        }
+    </div>
 
 </div>

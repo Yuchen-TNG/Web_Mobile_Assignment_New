@@ -16,7 +16,7 @@
         </div>
     </form>
 
-    @if (User.IsInRole("Owner") || User.IsInRole("Admin"))
+    @if (User.IsInRole("Owner"))
     {
         <a class="btn btn-success" id="addHouse" href="@Url.Action("AddHouse", "Home")">+ Add House</a>
     }

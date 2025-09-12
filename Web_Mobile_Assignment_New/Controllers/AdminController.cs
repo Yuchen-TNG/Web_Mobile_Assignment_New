@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Web_Mobile_Assignment_New.Models;
 
 namespace Web_Mobile_Assignment_New.Controllers
 {
@@ -122,7 +123,41 @@ namespace Web_Mobile_Assignment_New.Controllers
             return RedirectToAction("UserManagement");
         }
 
-        [HttpPost]
+        public IActionResult RestrictedUser(string? email)
+        {
+            var user = _context.Users.FirstOrDefault(u => u.Email == email);
+
+            if (user is OwnerTenant otUser)
+            {
+                otUser.Status = "restricted";
+                _context.SaveChanges();
+                TempData["Message"] = "User has been restricted";
+            }
+            else
+            {
+                TempData["Message"] = "System problem";
+            }
+            return RedirectToAction("UserDetails", new { email = email });
+
+        }
+
+
+        public IActionResult ValidUser(string? email) {  
+            var user = _context.Users.FirstOrDefault(u => u.Email == email);
+
+            if (user is OwnerTenant otUser)
+            {
+                otUser.Status = "valid";
+                _context.SaveChanges();
+                TempData["Message"] = "User has been valid";
+            }
+            else
+            {
+                TempData["Message"] = "System problem";
+            }
+            return RedirectToAction("UserDetails", new { email = email });
+
+        }
         [HttpPost]
         public IActionResult UpdateProperty(House model)
         {
@@ -181,6 +216,35 @@ namespace Web_Mobile_Assignment_New.Controllers
             return RedirectToAction("PropertyManagement");
         }
 
+        public IActionResult RestrictedProperty(int id)
+        {
+            var house = _context.Houses.FirstOrDefault(p => p.Id == id);
+            if (house != null)
+            {
+                house.RoomStatus = "restricted";
+                _context.SaveChanges();
+                TempData["Message"] = "Proprety has been change to restricted";
+            }
+            else
+                TempData["Message"] = "System problem";
+            return RedirectToAction("PropertyDetails", new { id = id });
+                    
+        }
+
+        public IActionResult ValidProperty(int id)
+        {
+            var house = _context.Houses.FirstOrDefault(p => p.Id == id);
+            if (house != null)
+            {
+                house.RoomStatus = "valid";
+                _context.SaveChanges();
+                TempData["Message"] = "Proprety has been change to valid";
+            }
+            else
+                TempData["Message"] = "System problem";
+            return RedirectToAction("PropertyDetails", new { id = id });
+
+        }
         public IActionResult ReportManagement()
         {
             return View();

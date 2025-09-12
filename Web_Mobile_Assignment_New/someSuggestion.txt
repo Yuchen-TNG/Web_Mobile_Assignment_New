@@ -3,27 +3,22 @@
 
 KaiZhen
 --admin没有index 剩下三个management✓
+(need to discussion)
 
 User Management
 -can view all user data ✓
 	(changing groping method)
--can configure user information ✓
--can ban/unban someone✓
+
 
 Property Management
--can see all property✓
--block property
--delete property✓
---property management 可以加show照片（在list）
+-can edit photo?
 
 extra
 -owner 只有update room 和add house
-admin没有index 剩下三个management✓
+
 
 yuchen gugubird
--还有就是，database要放多一个status就是他有没有被admin ban ✓
--add house 要加name. etc: Prima Setapak Condominium ✓
--家具在哪里？✓
+
 -出租时间 要有一个limit 
 -search boleh buat apa
 -when add house, house should auto assign valid value in houseStatus
@@ -34,7 +29,7 @@ extra
 
 
 leon
-login no need verify, only resetpassword and register need
+
 extra
 email 跳gmail 然后 auto fill recipient 的email
 

@@ -2,29 +2,26 @@
 
 
 KaiZhen
---admin没有index 剩下三个management
-What admin can do?
+--admin没有index 剩下三个management✓
+(need to discussion)
+
 User Management
 -can view all user data ✓
 	(changing groping method)
--can configure user information ✓
--can ban/unban someone
-	(if want to do ban database should add one more list which is status)✓
--owner 只有update room 和add house
+
 
 Property Management
--can see all property✓
--block property
--delete property✓
---property management 可以加show照片（在list）
+-can edit photo?
+
+extra
+-owner 只有update room 和add house
 
 
 yuchen gugubird
--还有就是，database要放多一个status就是他有没有被admin ban ✓
--add house 要加name. etc: Prima Setapak Condominium ✓
--家具在哪里？✓
+
 -出租时间 要有一个limit 
 -search boleh buat apa
+-when add house, house should auto assign valid value in houseStatus
 extra
 -owner上传的property全部都要等admin accept才可以(这个就是要开新的database，然后pending他是否被accept了)
 -multiple photo for house photo
@@ -32,20 +29,19 @@ extra
 
 
 leon
-login no need verify only resetpassword and register need
 
-
+extra
+email 跳gmail 然后 auto fill recipient 的email
 
 
 
 additional:
 address link google map
 phone number link whatsapp but 不一定要开进whatsapp acc
-email 跳gmail 然后 auto fill recipient 的email
 payment link paypal third api
 problem:
 if got payment should we need payment method?
 paging
 searching
-admin没有index 剩下三个management
+
 

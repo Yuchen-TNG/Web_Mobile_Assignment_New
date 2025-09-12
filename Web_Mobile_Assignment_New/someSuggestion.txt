@@ -1,34 +1,51 @@
 ﻿Suggestion 1 :
 
 
-
+KaiZhen
+--admin没有index 剩下三个management
 What admin can do?
 User Management
 -can view all user data ✓
 	(changing groping method)
--can ban/unban someone
-	(if want to do ban database should add one more list which is status)
 -can configure user information ✓
-
-
+-can ban/unban someone
+	(if want to do ban database should add one more list which is status)✓
+-owner 只有update room 和add house
 
 Property Management
--can see all property
+-can see all property✓
 -block property
--delete property
--can't change
-
+-delete property✓
+--property management 可以加show照片（在list）
 
 
 yuchen gugubird
--owner上传的property全部都要等admin accept才可以(这个就是要开新的database，然后pending他是否被accept了)
 -还有就是，database要放多一个status就是他有没有被admin ban ✓
--出租时间 要有一个limit 
 -add house 要加name. etc: Prima Setapak Condominium ✓
 -家具在哪里？✓
--partiton (no need)
+-出租时间 要有一个limit 
 -search boleh buat apa
+extra
+-owner上传的property全部都要等admin accept才可以(这个就是要开新的database，然后pending他是否被accept了)
+-multiple photo for house photo
+-property management 可以加show照片（在list）
+
+
+leon
+login no need verify only resetpassword and register need
 
 
 
+
+
+additional:
+address link google map
+phone number link whatsapp but 不一定要开进whatsapp acc
+email 跳gmail 然后 auto fill recipient 的email
+payment link paypal third api
+problem:
 if got payment should we need payment method?
+paging
+searching
+admin没有index 剩下三个management
+

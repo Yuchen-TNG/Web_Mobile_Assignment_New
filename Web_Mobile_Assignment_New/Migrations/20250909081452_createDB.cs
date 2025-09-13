@@ -24,7 +24,12 @@ namespace Web_Mobile_Assignment_New.Migrations
                     Sqft = table.Column<int>(type: "int", nullable: false),
                     Address = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Other = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Other = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    RoomName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    RoomStatus = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Furnishing = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {

@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System;
+using System.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
 using Web_Mobile_Assignment_New.Models;
 
 namespace Web_Mobile_Assignment_New.Controllers
@@ -17,9 +18,15 @@ namespace Web_Mobile_Assignment_New.Controllers
 
         public IActionResult Index()
         {
-            Console.WriteLine(_context.Database.GetDbConnection().ConnectionString);
-            var houses = _context.Houses.ToList(); // 拿所有房子
-            return View(houses);
+            if (User.IsInRole("Admin"))
+                {
+                return View("Admin");
+                 }
+            else {
+                Console.WriteLine(_context.Database.GetDbConnection().ConnectionString);
+                var houses = _context.Houses.ToList(); // 拿所有房子
+                return View(houses);
+            }
         }
 
         public IActionResult Filter(int? minPrice, int? maxPrice, string? type)
@@ -172,6 +179,11 @@ namespace Web_Mobile_Assignment_New.Controllers
 
         // GET: Home/Tenant
         [Authorize(Roles = "Tenant")]
+        public IActionResult Tenant()
+        {
+            return View();
+        }
+
         public IActionResult Rent(int id)
         {
             var house = _context.Houses.FirstOrDefault(h => h.Id == id);

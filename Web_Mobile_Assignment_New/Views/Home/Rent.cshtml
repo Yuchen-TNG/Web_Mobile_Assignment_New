@@ -4,16 +4,34 @@
     ViewData["Title"] = "Rent Room";
 }
 
-<!-- Add in your _Layout.cshtml or directly in Rent.cshtml -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
-<h2>Rent Room</h2>
-<p>You are about to rent: <strong>@Model.RoomType</strong></p>
-<p>Price: RM @Model.Price</p>
+<h2 class="mb-4">Rent Room</h2>
+
+<!-- 房间名称大字 -->
+<h1 style="font-size:2rem; font-weight:bold; margin-bottom:20px;">
+    You are about to Rent: "@Model.RoomName"
+</h1>
+
+<!-- 房间详细信息 -->
+<div style="font-size:1.2rem; margin-bottom:20px; line-height:1.8;">
+    <p><strong>Room Type:</strong> @Model.RoomType</p>
+    <p><strong>Furnishing:</strong> @Model.Furnishing</p>
+    <p><strong>Address:</strong> @Model.Address</p>
+    <p><strong>Price per day:</strong> RM @Model.Price</p>
+</div>
+
+@if (Model.EndDate.HasValue)
+{
+    <p style="color:red; font-weight:bold; font-size:1.1rem;">
+        📅 Available until: @Model.EndDate.Value.ToString("yyyy-MM-dd")
+    </p>
+}
 
 <form asp-action="ConfirmRent" asp-controller="Home" method="post">
     <input type="hidden" name="Id" value="@Model.Id" />
+
     <div class="mb-3">
         <label for="StartDate" class="form-label">Start Date</label>
         <input type="text" class="form-control" id="StartDate" name="StartDate" required autocomplete="off" />
@@ -22,12 +40,19 @@
         <label for="EndDate" class="form-label">End Date</label>
         <input type="text" class="form-control" id="EndDate" name="EndDate" required autocomplete="off" />
     </div>
+
+    <!-- 总价显示 -->
+    <h1 id="TotalPriceDisplay" style="font-size:2rem; font-weight:bold; color:#4e73df; margin:30px 0;">
+        Total Price: RM 0
+    </h1>
+
     <a class="btn btn-secondary" asp-action="Details" asp-controller="Home" asp-route-id="@Model.Id">Back</a>
     <button type="submit" class="btn btn-success">Confirm Rent</button>
 </form>
 
+
 <script>
-    // Dates that are unpickable (YYYY-MM-DD format)
+    var houseEndDate = "@Model.EndDate?.ToString("yyyy-MM-dd")"; // 房子最大租期日期
     var unpickableDates = [
         "2025-09-10",
         "2025-09-12",
@@ -36,19 +61,85 @@
 
     var minSelectableDate = new Date().toISOString().split('T')[0];
 
+    var endPicker = flatpickr("#EndDate", {
+        dateFormat: "Y-m-d",
+        disable: unpickableDates,
+        minDate: minSelectableDate,
+        maxDate: houseEndDate || null,   // ⬅️ 限制到房子 EndDate
+        onChange: function(selectedDates, dateStr, instance) {
+            calculateTotal();
+        }
+    });
+
     flatpickr("#StartDate", {
         dateFormat: "Y-m-d",
         disable: unpickableDates,
         minDate: minSelectableDate,
+        maxDate: houseEndDate || null,   // ⬅️ StartDate 也不能超过 House EndDate
         onChange: function(selectedDates, dateStr, instance) {
-            // Set minDate for EndDate based on StartDate
-            endPicker.set('minDate', dateStr);
+            if (selectedDates.length > 0) {
+                var startDate = new Date(selectedDates[0]);
+                var nextDay = new Date(startDate);
+                nextDay.setDate(nextDay.getDate() + 1);
+                var nextDayStr = nextDay.toISOString().split('T')[0];
+
+                // 找第一个不可选的日期
+                var maxDate = houseEndDate ? new Date(houseEndDate) : null;
+                for (var i = 0; i < unpickableDates.length; i++) {
+                    var unpickable = new Date(unpickableDates[i]);
+                    if (unpickable > startDate && (!maxDate || unpickable < maxDate)) {
+                        maxDate = new Date(unpickable);
+                        maxDate.setDate(maxDate.getDate() - 1);
+                        break;
+                    }
+                }
+                var maxDateStr = maxDate ? maxDate.toISOString().split('T')[0] : null;
+
+                // 更新 EndDate picker
+                if (maxDateStr) {
+                    endPicker.set('minDate', nextDayStr);
+                    endPicker.set('maxDate', maxDateStr);
+                } else {
+                    endPicker.set('minDate', nextDayStr);
+                    endPicker.set('maxDate', houseEndDate || null);
+                }
+
+                // 校验 EndDate
+                var endInput = document.getElementById("EndDate");
+                if (endInput.value) {
+                    var endDateStr = endInput.value;
+                    if (endDateStr <= nextDayStr || (houseEndDate && endDateStr > houseEndDate)) {
+                        endInput.value = "";
+                        alert("End Date must be within the allowed rent period.");
+                        calculateTotal();
+                    }
+                }
+            }
+            calculateTotal();
         }
     });
 
-    var endPicker = flatpickr("#EndDate", {
-        dateFormat: "Y-m-d",
-        disable: unpickableDates,
-        minDate: minSelectableDate
-    });
+    function calculateTotal() {
+        var start = document.getElementById("StartDate").value;
+        var end = document.getElementById("EndDate").value;
+        var pricePerDay = @Model.Price;
+        var display = document.getElementById("TotalPriceDisplay");
+
+        if (start && end) {
+            var startDate = new Date(start);
+            var endDate = new Date(end);
+
+            var diffTime = endDate - startDate;
+            var diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            var totalDays = diffDays + 1;
+
+            if (totalDays > 0) {
+                display.textContent = "Total Price: RM " + (totalDays * pricePerDay);
+                display.style.color = "#4e73df";
+            }
+        } else {
+            display.textContent = "Total Price: RM 0";
+            display.style.color = "#4e73df";
+        }
+    }
 </script>

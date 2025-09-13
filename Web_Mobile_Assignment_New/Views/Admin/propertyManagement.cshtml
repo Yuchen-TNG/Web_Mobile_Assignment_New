@@ -1,27 +1,29 @@
-﻿@model List<Web_Mobile_Assignment_New.Models.User>
+﻿@model List<Web_Mobile_Assignment_New.Models.House>
 
 @{
-    ViewData["Title"] = "User Management";
+    ViewData["Title"] = "Property Management";
 }
 
 @if (TempData["Message"] != null)
 {
-    <script>
-        alert("@TempData["Message"]");
-    </script>
+    var type = TempData["MessageType"]?.ToString() ?? "success";
+    <div class="alert @(type == "success" ? "alert-success" : "alert-error")">
+        @TempData["Message"]
+    </div>
 }
 
 <div class="header-container">
-    <h1>User Management</h1>
-    <a asp-controller="Admin" asp-action="Admin" class="back-btn">⬅ Back</a>
+    <h1>Property Management</h1>
+    <a asp-controller="Home" asp-action="Admin" class="back-btn">⬅ Back</a>
 </div>
 
 <style>
+    /* header */
     .header-container {
         display: flex;
-        justify-content: center; /* 标题居中 */
+        justify-content: center;
         align-items: center;
-        margin-bottom: 20px;
+        margin-bottom: 25px;
         position: relative;
     }
 
@@ -36,72 +38,124 @@
     .back-btn {
         position: absolute;
         left: 0;
-        padding: 8px 15px;
-        background-color: #4CAF50;
-        color: white;
+        padding: 8px 16px;
+        background-color: #4a90e2;
+        color: #fff;
         text-decoration: none;
-        border-radius: 5px;
+        border-radius: 6px;
         font-weight: bold;
         transition: background-color 0.3s, transform 0.2s;
     }
 
         .back-btn:hover {
-            background-color: #45a049;
+            background-color: #357ab8;
             transform: scale(1.05);
         }
 
-    table {
-        width: 80%;
-        margin: 20px auto;
-        border-collapse: collapse;
+    /* 卡片容器 */
+    .card-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        width: 95%;
+        margin: 0 auto;
+    }
+
+    .property-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        overflow: hidden;
+        transition: transform 0.2s;
+    }
+
+        .property-card:hover {
+            transform: scale(1.02);
+        }
+
+    .property-image {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+    }
+
+    .property-body {
+        padding: 15px;
         font-family: Arial, sans-serif;
     }
 
-    th, td {
-        padding: 12px 15px;
-        text-align: left;
-        border-bottom: 1px solid #ddd;
+    .property-title {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 8px;
     }
 
-    th {
-        background-color: #4CAF50;
-        color: white;
+    .property-price {
+        font-size: 16px;
+        font-weight: bold;
+        color: #4a90e2;
+        margin-bottom: 10px;
     }
 
-    tr:hover {
-        background-color: #f5f5f5;
+    .property-info {
+        font-size: 14px;
+        margin-bottom: 8px;
+        color: #555;
     }
 
-    .details {
-        color: cornflowerblue
+    .status-valid {
+        color: #4caf50;
+        font-weight: bold;
     }
+
+    .status-restricted {
+        color: #f44336;
+        font-weight: bold;
+    }
+
+    .status-other {
+        color: #333;
+        font-weight: bold;
+    }
+
+    .details-btn {
+        display: inline-block;
+        margin-top: 10px;
+        padding: 8px 12px;
+        background: #4a90e2;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: bold;
+        transition: background-color 0.2s, transform 0.2s;
+    }
+
+        .details-btn:hover {
+            background: #357ab8;
+            transform: scale(1.05);
+        }
 </style>
 
-<table>
-    <thead>
-        <tr>
-            <th>Id</th>
-            <th>RoomType</th>
-            <th>Birthday</th>
-            <th>Role</th>
-            <th>Details</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var user in Model)
-        {
-            @if (user.Role == "Admin")
-                continue;
-            else
-            {
-                <tr>
-                    <td>@user.Email</td>
-                    <td>@user.Name</td>
-                    <td>@user.Birthday</td>
-                    <td>@user.Role</td>
-                    <td><a asp-controller="Admin" asp-action="UserDetails" class="details" asp-route-email="@user.Email">Details</a></td>
-                </tr>
-            }
+<div class="card-container">
+    @foreach (var house in Model)
+    {
+        <div class="property-card">
+            <img src="@house.ImageUrl" alt="House Image" class="property-image" />
+            <div class="property-body">
+                <div class="property-title">@house.RoomName (@house.RoomType)</div>
+                <div class="property-price">$@house.Price</div>
+                <div class="property-info">Rooms: @house.Rooms | Sqft: @house.Sqft</div>
+                <div class="property-info">Address: @house.Address</div>
+                <div class="property-info @(house.RoomStatus?.ToLower() == "valid" ? "status-valid" :
+                                                                house.RoomStatus?.ToLower() == "restricted" ? "status-restricted" :
+                                                                "status-other")">
+                Status: @house.RoomStatus
+            </div>
+            <a asp-controller="Admin" asp-action="PropertyDetails" asp-route-id="@house.Id" class="details-btn">
+                Details
+            </a>
+        </div>
+    </div>
         }
-    </tbody>
-</table>
+</div>

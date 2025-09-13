@@ -65,9 +65,62 @@ public class Helper
 
     public void DeletePhoto(string file, string folder)
     {
+        if (string.IsNullOrWhiteSpace(file))
+            return;
+
         file = Path.GetFileName(file);
         var path = Path.Combine(en.WebRootPath, folder, file);
-        File.Delete(path);
+
+        if (!File.Exists(path))
+            return;
+
+        try
+        {
+            // 第一次尝试删除
+            File.Delete(path);
+        }
+        catch (IOException) // 文件被占用
+        {
+            // 重试机制（最多3次，每次间隔递增）
+            int maxRetries = 3;
+            int delayMs = 100;
+
+            for (int attempt = 1; attempt <= maxRetries; attempt++)
+            {
+                try
+                {
+                    Thread.Sleep(delayMs);
+                    File.Delete(path);
+                    return; // 删除成功
+                }
+                catch (IOException) when (attempt < maxRetries)
+                {
+                    // 增加等待时间（指数退避）
+                    delayMs *= 2;
+                    continue; // 继续重试
+                }
+                catch
+                {
+                    // 其他异常，直接返回
+                    return;
+                }
+            }
+
+            // 如果重试后仍然失败，尝试重命名文件
+            try
+            {
+                string backupPath = path + ".deleted_" + DateTime.Now.Ticks;
+                File.Move(path, backupPath);
+            }
+            catch
+            {
+                // 最终放弃
+            }
+        }
+        catch
+        {
+            // 其他异常处理
+        }
     }
 
 
@@ -76,7 +129,7 @@ public class Helper
     // Security Helper Functions
     // ------------------------------------------------------------------------
 
-    
+
     private readonly PasswordHasher<object> ph = new();
 
     public string HashPassword(string password)
@@ -86,14 +139,14 @@ public class Helper
 
     public bool VerifyPassword(string hash, string password)
     {
-        return ph.VerifyHashedPassword(0, hash, password) 
+        return ph.VerifyHashedPassword(0, hash, password)
             == PasswordVerificationResult.Success;
     }
 
     public void SignIn(string email, string role, bool rememberMe)
     {
         // (1) Claim, identity and principal
-        List<Claim> claims = 
+        List<Claim> claims =
             [
                   new(ClaimTypes.Name, email),
                   new(ClaimTypes.Role, role),
@@ -252,7 +305,7 @@ public class Helper
     /// </summary>
     public void SendVerificationCodeEmail(User u, string verificationCode)
     {
-        var mail = new MailMessage();
+        using var mail = new MailMessage();
         mail.To.Add(new MailAddress(u.Email, u.Name));
         mail.Subject = "Password Reset Verification Code";
         mail.IsBodyHtml = true;
@@ -265,22 +318,32 @@ public class Helper
             _ => "",
         };
 
+        if (!string.IsNullOrEmpty(path) && System.IO.File.Exists(path))
+        {
+            var att = new Attachment(path);
+            mail.Attachments.Add(att);
+            att.ContentId = "photo";
 
-        var att = new Attachment(path);
-        mail.Attachments.Add(att);
-        att.ContentId = "photo";
-
-
-        mail.Body = $@"
-            <img src='cid:photo' style='width: 200px; height: 200px;
-                                        border: 1px solid #333'>
+            mail.Body = $@"
+            <img src='cid:photo' style='width: 200px; height: 200px; border: 1px solid #333'>
             <p>Dear {u.Name},<p>
             <p>Your verification code is:</p>
-            <h1 style='color: red'>{verificationCode}</h1
+            <h1 style='color: red'>{verificationCode}</h1>
             <p>From, 🐱 Rental Management</p>
         ";
+        }
+        else
+        {
+            // 没有头像时 → 只发文字，不报错
+            mail.Body = $@"
+            <p>Dear {u.Name},<p>
+            <p>Your verification code is:</p>
+            <h1 style='color: red'>{verificationCode}</h1>
+            <p>From, 🐱 Rental Management</p>
+        ";
+        }
 
         SendEmail(mail);
-    }
 
+    }
 }

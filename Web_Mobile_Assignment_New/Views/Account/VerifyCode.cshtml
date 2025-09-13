@@ -21,6 +21,7 @@
 
                     @* 确保Email值被正确传递 *@
                     <input asp-for="Email" type="hidden" />
+                    <input asp-for="Purpose" type="hidden" />
 
                     <div class="form-group mb-4">
                         <label asp-for="VerificationCode" class="form-label text-center d-block">Enter Verification Code</label>
@@ -39,7 +40,7 @@
                         <button type="submit" class="btn btn-success btn-lg">
                             <i class="fas fa-check-circle me-2"></i>Verify & Reset Password
                         </button>
-                        <a href="@Url.Action("ResendCode", new { emails = Model.Email })" class="btn btn-outline-primary">
+                        <a href="@Url.Action("ResendCode", new { emails = Model.Email, purpose = Model.Purpose })" class="btn btn-outline-primary">
                             <i class="fas fa-redo me-2"></i>Resend Code
                         </a>
                         <a href="/Account/ResetPassword" class="btn btn-outline-secondary">

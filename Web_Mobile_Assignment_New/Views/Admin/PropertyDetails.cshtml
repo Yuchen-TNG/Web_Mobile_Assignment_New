@@ -1,0 +1,247 @@
+﻿@model Web_Mobile_Assignment_New.Models.House
+
+@if (TempData["Message"] != null)
+{
+    var type = TempData["MessageType"]?.ToString() ?? "success";
+    <div class="alert @(type == "success" ? "alert-success" : "alert-error")">
+        @TempData["Message"]
+    </div>
+}
+
+<style>
+    .house-card {
+        max-width: 650px; /* 缩小整体宽度 */
+        margin: 30px auto;
+        padding: 25px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+    }
+
+        .house-card img.house-img {
+            width: 100%;
+            max-height: 450px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .house-card .field {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+            .house-card .field label {
+                width: 140px;
+                font-size: 16px;
+                font-weight: bold;
+                color: #333;
+            }
+
+        .house-card input[type="text"],
+        .house-card input[type="number"],
+        .house-card input[type="date"],
+        .house-card select {
+            flex: 1;
+            padding: 8px 10px;
+            font-size: 15px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+            .house-card input:focus,
+            .house-card select:focus {
+                border-color: #4a90e2;
+                box-shadow: 0 0 4px rgba(74,144,226,0.4);
+            }
+
+        .house-card hr {
+            margin: 20px 0;
+            border: none;
+            border-top: 1px solid #eee;
+        }
+
+        /* 按钮组 */
+        .house-card .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+    .btn-submit {
+        padding: 12px 0;
+        font-size: 15px;
+        font-weight: bold;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.3s, transform 0.2s;
+        text-align: center;
+        color: #fff;
+        text-decoration: none;
+        flex: 1; /* 平分空间 */
+    }
+
+    .btn-save {
+        background: #4a90e2;
+    }
+
+        .btn-save:hover {
+            background: #357ab8;
+            transform: scale(1.03);
+        }
+
+    .btn-reset {
+        background: #9e9e9e;
+    }
+
+        .btn-reset:hover {
+            background: #757575;
+            transform: scale(1.03);
+        }
+
+    .btn-back {
+        background: #607d8b;
+    }
+
+        .btn-back:hover {
+            background: #455a64;
+            transform: scale(1.03);
+        }
+
+    .btn-delete {
+        background: #e53935;
+    }
+
+        .btn-delete:hover {
+            background: #c62828;
+            transform: scale(1.03);
+        }
+
+    .btn-valid {
+        background: #4caf50;
+    }
+
+        .btn-valid:hover {
+            background: #388e3c;
+            transform: scale(1.03);
+        }
+
+    .btn-restricted {
+        background: #f44336;
+    }
+
+        .btn-restricted:hover {
+            background: #d32f2f;
+            transform: scale(1.03);
+        }
+
+    /* 特别指定 Valid / Restricted / Delete 行大小一致 */
+    .btn-group-status .btn-submit {
+        flex: 1;
+    }
+</style>
+
+
+<form asp-action="UpdateProperty" asp-controller="Admin" method="post">
+    <div class="house-card">
+        <img src="@Model.ImageUrl" alt="House Image" class="house-img" />
+        <hr>
+
+        <input asp-for="ImageUrl" type="hidden" />
+
+        <div class="field">
+            <label>ID:</label>
+            <input asp-for="Id" type="text" readonly />
+        </div>
+
+        <div class="field">
+            <label>Room Name:</label>
+            <input asp-for="RoomName" type="text" />
+        </div>
+
+        <div class="field">
+            <label>Room Available:</label>
+            <input asp-for="Rooms" type="number" />
+        </div>
+
+        <div class="field">
+            <label>Bathrooms Available:</label>
+            <input asp-for="Bathrooms" type="number" />
+        </div>
+
+        <div class="field">
+            <label>Furnishing:</label>
+            <input asp-for="Furnishing" type="text" />
+        </div>
+
+        <div class="field">
+            <label>Room Type:</label>
+            <select asp-for="RoomType">
+                <option value="Whole Unit">Whole Unit</option>
+                <option value="Single Room">Single Room</option>
+                <option value="Master Room">Master Room</option>
+                <option value="Medium Room">Medium Room</option>
+                <option value="Small Room">Small Room</option>
+            </select>
+        </div>
+
+        <div class="field">
+            <label>Price:</label>
+            <input asp-for="Price" type="number" step="0.01" />
+        </div>
+
+        <div class="field">
+            <label>Date Start:</label>
+            <input asp-for="StartDate" type="date" />
+        </div>
+
+        <div class="field">
+            <label>Date End:</label>
+            <input asp-for="EndDate" type="date" />
+        </div>
+
+        <div class="field">
+            <label>Address:</label>
+            <input asp-for="Address" type="text" />
+        </div>
+
+        <div class="field">
+            <label>Sqft:</label>
+            <input asp-for="Sqft" type="number" />
+        </div>
+
+        <div class="field">
+            <label>Status:</label>
+		<input asp-for="RoomStatus" type="text" readonly />
+        </div>
+
+        <div class="btn-group">
+            <button type="submit" class="btn-submit btn-save">💾 Save</button>
+            <a asp-action="PropertyDetails" asp-controller="Admin" asp-route-id="@Model.Id" class="btn-submit btn-reset">↩ Reset</a>
+            <a asp-action="PropertyManagement" asp-controller="Admin" class="btn-submit btn-back">⬅ Back</a>
+        </div>
+
+        <div class="btn-group btn-group-status">
+            @if (Model.RoomStatus == "valid")
+            {
+                <a asp-controller="Admin" asp-action="RestrictedProperty" asp-route-id="@Model.Id" class="btn-submit btn-restricted">❌ Restricted Property</a>
+            }
+            else
+            {
+                <a asp-controller="Admin" asp-action="ValidProperty" asp-route-id="@Model.Id" class="btn-submit btn-valid">✅ Valid Property</a>
+            }
+
+            <button formaction="@Url.Action("PropertyDelete", "Admin")" formmethod="post" name="id" value="@Model.Id" class="btn-submit btn-delete">
+                🗑 Delete
+            </button>
+        </div>
+
+
+    </div>
+</form>

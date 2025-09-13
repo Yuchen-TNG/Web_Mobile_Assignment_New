@@ -6,22 +6,19 @@
 
 @if (TempData["Message"] != null)
 {
-    <script>
-        alert("@TempData["Message"]");
-    </script>
+    var type = TempData["MessageType"]?.ToString() ?? "success";
+    <div class="alert @(type == "success" ? "alert-success" : "alert-error")">
+        @TempData["Message"]
+    </div>
 }
 
-<div class="header-container">
-    <h1>User Management</h1>
-    <a asp-controller="Admin" asp-action="Admin" class="back-btn">⬅ Back</a>
-</div>
-
 <style>
+    /* Header 容器 */
     .header-container {
         display: flex;
-        justify-content: center; /* 标题居中 */
+        justify-content: center;
         align-items: center;
-        margin-bottom: 20px;
+        margin-bottom: 25px;
         position: relative;
     }
 
@@ -33,75 +30,120 @@
             color: #333;
         }
 
+    /* Back 按钮 */
     .back-btn {
         position: absolute;
-        left: 0; 
-        padding: 8px 15px;
-        background-color: #4CAF50;
-        color: white;
+        left: 0;
+        padding: 8px 16px;
+        background-color: #4a90e2;
+        color: #fff;
         text-decoration: none;
-        border-radius: 5px;
+        border-radius: 6px;
         font-weight: bold;
         transition: background-color 0.3s, transform 0.2s;
     }
 
         .back-btn:hover {
-            background-color: #45a049;
+            background-color: #357ab8;
             transform: scale(1.05);
         }
 
-    table {
-        width: 80%;
-        margin: 20px auto;
-        border-collapse: collapse;
+    /* 卡片容器 */
+    .card-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        width: 95%;
+        margin: 0 auto;
+    }
+
+    /* 卡片 */
+    .user-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        padding: 16px;
+        transition: transform 0.2s;
         font-family: Arial, sans-serif;
     }
 
-    th, td {
-        padding: 12px 15px;
-        text-align: left;
-        border-bottom: 1px solid #ddd;
+        .user-card:hover {
+            transform: scale(1.02);
+        }
+
+    .user-title {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 8px;
+        color: #333;
     }
 
-    th {
-        background-color: #4CAF50;
-        color: white;
+    .user-info {
+        font-size: 14px;
+        margin-bottom: 6px;
+        color: #555;
     }
 
-    tr:hover {
-        background-color: #f5f5f5;
+    .status-valid {
+        color: #4caf50;
+        font-weight: bold;
     }
 
-    .details {
-        color: cornflowerblue
+    .status-restricted {
+        color: #f44336;
+        font-weight: bold;
     }
+
+    .status-other {
+        color: #333;
+        font-weight: bold;
+    }
+
+    .details-btn {
+        display: inline-block;
+        margin-top: 10px;
+        padding: 8px 12px;
+        background: #4a90e2;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: bold;
+        transition: background-color 0.2s, transform 0.2s;
+    }
+
+        .details-btn:hover {
+            background: #357ab8;
+            transform: scale(1.05);
+        }
 </style>
 
-<table>
-    <thead>
-        <tr>
-            <th>Email</th>
-            <th>Name</th>
-            <th>Birthday</th>
-            <th>Role</th>
-            <th>Details</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var user in Model)
+<div class="header-container">
+    <h1>User Management</h1>
+    <a asp-controller="Home" asp-action="Admin" class="back-btn">⬅ Back</a>
+</div>
+
+<div class="card-container">
+    @foreach (var user in Model)
+    {
+        if (user.Role == "Admin") continue;
+
+        string statusClass = (user as OwnerTenant)?.Status?.ToLower() switch
         {
-            @if (user.Role == "Admin")
-                continue;
-            else
-            {
-                <tr>
-                    <td>@user.Email</td>
-                    <td>@user.Name</td>
-                    <td>@user.Birthday</td>
-                    <td>@user.Role</td>
-                    <td><a asp-controller="Admin" asp-action="UserDetails" class="details" asp-route-email="@user.Email">Details</a></td>
-                </tr>
-            }
-        }
-    </tbody>
-</table>
+            "valid" => "status-valid",
+            "restricted" => "status-restricted",
+            "res" => "status-restricted",
+            _ => "status-other"
+        };
+
+        <div class="user-card">
+            <div class="user-title">@user.Name (@user.Role)</div>
+            <div class="user-info">Email: @user.Email</div>
+            <div class="user-info">Birthday: @user.Birthday.ToString("yyyy-MM-dd")</div>
+            <div class="user-info @statusClass">Status: @((user as OwnerTenant)?.Status ?? "N/A")</div>
+            <a asp-controller="Admin" asp-action="UserDetails" asp-route-email="@user.Email" class="details-btn">
+                Details
+            </a>
+        </div>
+    }
+</div>

@@ -48,6 +48,20 @@ public class RegisterVM
     public DateOnly Birthday { get; set; }
 }
 
+public class PendingRegisterVM
+{
+    public string Email { get; set; }
+    public string Name { get; set; }
+    public string Password { get; set; }
+    public string Category { get; set; }
+    public DateOnly Birthday { get; set; }
+
+    // 临时存放上传的照片路径，而不是 IFormFile
+    public string TempPhotoPath { get; set; }
+
+}
+
+
 public class UpdatePasswordVM
 {
     [StringLength(100, MinimumLength = 5)]
@@ -105,6 +119,10 @@ public class VerifyCodeVM
 
     // 倒计时剩余秒数
     public int SecondsLeft { get; set; }
+
+    // 新增用途字段
+    public string Purpose { get; set; } = "";
+
 }
 
 

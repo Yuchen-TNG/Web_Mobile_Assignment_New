@@ -93,11 +93,60 @@ namespace Web_Mobile_Assignment_New.Controllers
             return View(house);
         }
 
+        // 🔹 房子详情 + 评论
         public IActionResult Details(int id)
         {
-            var house = _context.Houses.FirstOrDefault(h => h.Id == id);
+            var house = _context.Houses
+                .Include(h => h.Reviews)
+                .ThenInclude(r => r.User) // 关联用户
+                .FirstOrDefault(h => h.Id == id);
+
             if (house == null) return NotFound();
+
+            if (house.Reviews != null && house.Reviews.Any())
+            {
+                ViewBag.AvgRating = house.Reviews.Average(r => r.Rating);
+                ViewBag.TotalReviews = house.Reviews.Count;
+            }
+            else
+            {
+                ViewBag.AvgRating = 0;
+                ViewBag.TotalReviews = 0;
+            }
+
             return View(house);
+        }
+
+        // 🔹 提交评论
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddReview(int houseId, int rating, string? comment)
+        {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // 当前用户 email
+            var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                return Unauthorized();
+            }
+
+            var review = new HouseReview
+            {
+                HouseId = houseId,
+                UserEmail = userEmail,
+                Rating = rating,
+                Comment = comment,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.HouseReviews.Add(review);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("Details", new { id = houseId });
         }
 
         // GET: Home/Both

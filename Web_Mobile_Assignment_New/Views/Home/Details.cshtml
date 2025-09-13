@@ -56,3 +56,122 @@
     <h5 class="fw-semibold"><i class="fa-solid fa-map-marker-alt"></i> Address</h5>
     <p>@Model.Address</p>
 </div>
+
+<!-- ⭐ 评论与评分 -->
+<div class="mt-5">
+    <h4 class="fw-bold">Reviews & Ratings</h4>
+
+    <!-- 平均分 -->
+    <div class="mb-3">
+        @if (ViewBag.TotalReviews > 0)
+        {
+            <p>
+                <span class="text-warning">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        if (i <= Math.Round((double)ViewBag.AvgRating))
+                        {
+                            <i class="fa-solid fa-star"></i>
+                        }
+                        else
+                        {
+                            <i class="fa-regular fa-star"></i>
+                        }
+                    }
+                </span>
+                <strong>@Math.Round((double)ViewBag.AvgRating, 1)</strong> / 5.0
+                <span class="text-muted">(@ViewBag.TotalReviews reviews)</span>
+            </p>
+        }
+        else
+        {
+            <p class="text-muted">No reviews yet.</p>
+        }
+    </div>
+
+    <!-- 提交评论表单（需登录） -->
+    @if (User.Identity.IsAuthenticated)
+    {
+        <form asp-action="AddReview" asp-controller="Home" method="post" class="mb-4">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="houseId" value="@Model.Id" />
+
+            <div class="mb-3">
+                <label class="form-label">Your Rating</label><br />
+                <div class="star-rating">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        <input type="radio" id="star@i" name="rating" value="@i" class="d-none" />
+                        <label for="star@i" style="cursor:pointer;font-size:1.5rem;color:#ffc107;">
+                            <i class="fa-regular fa-star"></i>
+                        </label>
+                    }
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Your Comment</label>
+                <textarea name="comment" class="form-control" rows="3" placeholder="Write your comment..."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-success">Submit Review</button>
+        </form>
+    }
+    else
+    {
+        <p class="text-muted">Please <a href="/Account/Login">login</a> to leave a review.</p>
+    }
+
+    <!-- 评论列表 -->
+    <div class="review-list">
+        @if (Model.Reviews != null && Model.Reviews.Any())
+        {
+            foreach (var review in Model.Reviews.OrderByDescending(r => r.CreatedAt))
+            {
+                <div class="border-bottom mb-3 pb-2">
+                    <div class="d-flex justify-content-between">
+                        <span class="text-warning">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                if (i <= review.Rating)
+                                {
+                                    <i class="fa-solid fa-star"></i>
+                                }
+                                else
+                                {
+                                    <i class="fa-regular fa-star"></i>
+                                }
+                            }
+                        </span>
+                        <small class="text-muted">@review.CreatedAt.ToString("dd MMM yyyy")</small>
+                    </div>
+                    <p class="mb-1">@review.Comment</p>
+                    <small class="text-muted">
+                        by @(review.User != null ? review.User.Name : review.UserEmail)
+                    </small>
+                </div>
+            }
+        }
+        else
+        {
+            <p class="text-muted">No reviews yet. Be the first to review!</p>
+        }
+    </div>
+</div>
+
+<!-- JS 让选星星时变成实心 -->
+<script>
+    document.querySelectorAll('.star-rating input').forEach(radio => {
+        radio.addEventListener('change', function () {
+            let val = parseInt(this.value);
+            document.querySelectorAll('.star-rating label i').forEach((star, idx) => {
+                star.classList.remove('fa-solid');
+                star.classList.add('fa-regular');
+                if (idx < val) {
+                    star.classList.remove('fa-regular');
+                    star.classList.add('fa-solid');
+                }
+            });
+        });
+    });
+</script>

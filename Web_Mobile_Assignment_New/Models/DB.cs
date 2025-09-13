@@ -55,7 +55,7 @@ namespace Web_Mobile_Assignment_New.Models
 public class OwnerTenant : User
 {
     [MaxLength(100)]
-    public string? PhotoURL { get; set; }
+    public string PhotoURL { get; set; }
 
         [MaxLength(100)]
         public string Status { get; set; }

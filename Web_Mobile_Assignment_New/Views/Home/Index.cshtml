@@ -7,15 +7,6 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>Available Houses</h2>
 
-    <form class="d-flex search-form me-auto">
-        <div class="input-group">
-            <input class="form-control" type="search" placeholder="Search..." aria-label="Search">
-            <button class="btn btn-light" type="submit">
-                <i class="fas fa-search"></i>
-            </button>
-        </div>
-    </form>
-
     @if (User.IsInRole("Owner"))
     {
         <a class="btn btn-success" id="addHouse" href="@Url.Action("AddHouse", "Home")">+ Add House</a>
@@ -39,6 +30,7 @@
         <div class="col-md-3 mb-2">
             <label for="type" class="form-label">Type</label>
             <select class="form-select" id="type" name="type">
+                <option value="All">All</option>
                 <option value="Whole Unit">Whole Unit</option>
                 <option value="Single Room">Single Room</option>
                 <option value="Medium Room">Medium Room</option>

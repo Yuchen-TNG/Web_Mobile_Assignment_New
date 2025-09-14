@@ -44,10 +44,10 @@ namespace Web_Mobile_Assignment_New.Controllers
             if (maxPrice.HasValue)
                 houses = houses.Where(h => h.Price <= maxPrice.Value);
 
-            if (!string.IsNullOrEmpty(type) && type != "Whole Unit")
-                houses = houses.Where(h => h.RoomType == type);
+            if (!string.IsNullOrEmpty(type) && type != "All")
+            { houses = houses.Where(h => h.RoomType == type); }
 
-            return View("Index", await houses.ToListAsync());
+                return View("Index", await houses.ToListAsync());
         }
 
         // ================= HOUSE CRUD ==================

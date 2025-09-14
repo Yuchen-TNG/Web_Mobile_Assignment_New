@@ -12,8 +12,8 @@ using Web_Mobile_Assignment_New.Models;
 namespace Web_Mobile_Assignment_New.Migrations
 {
     [DbContext(typeof(DB))]
-    [Migration("20250909081452_createDB")]
-    partial class createDB
+    [Migration("20250914135631_meow")]
+    partial class meow
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,40 @@ namespace Web_Mobile_Assignment_New.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("Web_Mobile_Assignment_New.Models.Booking", b =>
+                {
+                    b.Property<int>("BookingId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BookingId"));
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("HouseId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("UserEmail")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("BookingId");
+
+                    b.HasIndex("HouseId");
+
+                    b.HasIndex("UserEmail");
+
+                    b.ToTable("Bookings");
+                });
 
             modelBuilder.Entity("Web_Mobile_Assignment_New.Models.House", b =>
                 {
@@ -79,6 +113,41 @@ namespace Web_Mobile_Assignment_New.Migrations
                     b.ToTable("Houses");
                 });
 
+            modelBuilder.Entity("Web_Mobile_Assignment_New.Models.Payment", b =>
+                {
+                    b.Property<int>("PaymentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PaymentId"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("BookingId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Method")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("PaymentDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("PaymentId");
+
+                    b.HasIndex("BookingId")
+                        .IsUnique();
+
+                    b.ToTable("Payments");
+                });
+
             modelBuilder.Entity("Web_Mobile_Assignment_New.Models.User", b =>
                 {
                     b.Property<string>("Email")
@@ -124,6 +193,7 @@ namespace Web_Mobile_Assignment_New.Migrations
                     b.HasBaseType("Web_Mobile_Assignment_New.Models.User");
 
                     b.Property<string>("PhotoURL")
+                        .IsRequired()
                         .ValueGeneratedOnUpdateSometimes()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -142,6 +212,7 @@ namespace Web_Mobile_Assignment_New.Migrations
                     b.HasBaseType("Web_Mobile_Assignment_New.Models.User");
 
                     b.Property<string>("PhotoURL")
+                        .IsRequired()
                         .ValueGeneratedOnUpdateSometimes()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -153,6 +224,41 @@ namespace Web_Mobile_Assignment_New.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.HasDiscriminator().HasValue("Tenant");
+                });
+
+            modelBuilder.Entity("Web_Mobile_Assignment_New.Models.Booking", b =>
+                {
+                    b.HasOne("Web_Mobile_Assignment_New.Models.House", "House")
+                        .WithMany()
+                        .HasForeignKey("HouseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Web_Mobile_Assignment_New.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserEmail")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("House");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Web_Mobile_Assignment_New.Models.Payment", b =>
+                {
+                    b.HasOne("Web_Mobile_Assignment_New.Models.Booking", "Booking")
+                        .WithOne("Payment")
+                        .HasForeignKey("Web_Mobile_Assignment_New.Models.Payment", "BookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Booking");
+                });
+
+            modelBuilder.Entity("Web_Mobile_Assignment_New.Models.Booking", b =>
+                {
+                    b.Navigation("Payment");
                 });
 #pragma warning restore 612, 618
         }

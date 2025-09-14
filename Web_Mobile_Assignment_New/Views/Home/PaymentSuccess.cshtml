@@ -1,0 +1,18 @@
+﻿@model Web_Mobile_Assignment_New.Models.Booking
+
+@{
+    ViewData["Title"] = "Payment Success";
+}
+
+<h2 style="color:green;">✅ Payment Successful</h2>
+
+<p>Thank you for your payment!</p>
+
+<div>
+    <p><strong>Room:</strong> @Model.House.RoomName</p>
+    <p><strong>Rental Period:</strong> @Model.StartDate.ToString("yyyy-MM-dd") → @Model.EndDate.ToString("yyyy-MM-dd")</p>
+    <p><strong>Total Paid:</strong> RM @Model.TotalPrice</p>
+    <p><strong>Status:</strong> Confirmed</p>
+</div>
+
+<a asp-action="Index" asp-controller="Home" class="btn btn-success">Back to Home</a>

@@ -45,3 +45,17 @@ paging
 searching
 -histrory
 
+在 House Rental System 里 “举报 (Report)” 按钮可以怎么设计
+
+举报房源 (Report Listing)
+
+如果房东发布了虚假房源、照片不符、价格欺诈，用户可以点这个按钮举报。
+
+举报房东/租客 (Report User)
+
+用户觉得对方行为不当（例如：骚扰、诈骗、违约），可以点按钮举报。
+
+举报问题 (Report Issue)
+
+针对合同、付款、维修服务等异常情况提交举报。
+

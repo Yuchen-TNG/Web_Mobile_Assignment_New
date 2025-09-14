@@ -52,14 +52,10 @@
 
 
 <script>
-    var houseEndDate = "@Model.EndDate?.ToString("yyyy-MM-dd")"; // 房子最大租期日期
-    var unpickableDates = [
-        "2025-09-10",
-        "2025-09-12",
-        "2025-09-15"
-    ];
-
+    var houseEndDate = "@Model.EndDate?.ToString("yyyy-MM-dd")";
+    var unpickableDates = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.BookedDates));
     var minSelectableDate = new Date().toISOString().split('T')[0];
+
 
     var endPicker = flatpickr("#EndDate", {
         dateFormat: "Y-m-d",

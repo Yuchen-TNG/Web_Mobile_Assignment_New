@@ -1,5 +1,7 @@
 ﻿using System;
-using System.Data;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -45,6 +47,7 @@ namespace Web_Mobile_Assignment_New.Controllers
             return View("Index", await houses.ToListAsync());
         }
 
+        // ================= HOUSE CRUD ==================
         [HttpGet]
         public IActionResult AddHouse()
         {
@@ -139,35 +142,44 @@ namespace Web_Mobile_Assignment_New.Controllers
         }
 
         [Authorize]
-        public IActionResult Both()
-        {
-            return View();
-        }
+        public IActionResult Both() => View();
 
         [Authorize(Roles = "Owner")]
-        public IActionResult Owner()
-        {
-            return View();
-        }
+        public IActionResult Owner() => View();
 
         [Authorize(Roles = "Admin")]
-        public IActionResult Admin()
-        {
-            return View();
-        }
+        public IActionResult Admin() => View();
 
         [Authorize(Roles = "Tenant")]
-        public IActionResult Tenant()
-        {
-            return View();
-        }
+        public IActionResult Tenant() => View();
 
-        public async Task<IActionResult> Rent(int id)
+        // ================= RENTING ==================
+        public IActionResult Rent(int id)
         {
             var house = await _context.Houses.FirstOrDefaultAsync(h => h.Id == id);
             if (house == null) return NotFound();
+
+            // Pull booked ranges for this house
+            var bookedRanges = _context.Bookings
+                .Where(b => b.HouseId == id)
+                .Select(b => new { b.StartDate, b.EndDate })
+                .ToList();
+
+            // Flatten into individual dates (so frontend can disable them)
+            var bookedDates = new List<string>();
+            foreach (var range in bookedRanges)
+            {
+                for (var date = range.StartDate.Date; date <= range.EndDate.Date; date = date.AddDays(1))
+                {
+                    bookedDates.Add(date.ToString("yyyy-MM-dd"));
+                }
+            }
+
+            ViewBag.BookedDates = bookedDates;
+
             return View(house);
         }
+
 
         [HttpPost]
         public async Task<IActionResult> ConfirmRent(int id, DateTime startDate, DateTime endDate)
@@ -179,9 +191,159 @@ namespace Web_Mobile_Assignment_New.Controllers
                 return View("Rent", house);
             }
 
-            // TODO: 保存租赁信息
+            // ✅ Check if dates are already booked
+            if (!IsDateAvailable(id, startDate, endDate))
+            {
+                ModelState.AddModelError("", "Selected dates are not available.");
+                var house = _context.Houses.FirstOrDefault(h => h.Id == id);
+                return View("Rent", house);
+            }
 
-            return RedirectToAction("Index");
+            var houseData = _context.Houses.Find(id);
+            if (houseData == null) return NotFound();
+
+            int totalDays = (endDate - startDate).Days + 1;
+            decimal totalPrice = totalDays * houseData.Price;
+
+            var booking = new Booking
+            {
+                HouseId = houseData.Id,
+                UserEmail = User.Identity?.Name ?? "guest@example.com",
+                StartDate = startDate,
+                EndDate = endDate,
+                TotalPrice = totalPrice
+            };
+
+            _context.Bookings.Add(booking);
+            _context.SaveChanges();
+
+            return RedirectToAction("Payment", new { bookingId = booking.BookingId });
+        }
+
+
+
+        public IActionResult Payment(int bookingId)
+        {
+            var booking = _context.Bookings
+                .Include(b => b.House)
+                .FirstOrDefault(b => b.BookingId == bookingId);
+
+            if (booking == null) return NotFound();
+
+            return View(booking); // Payment.cshtml
+        }
+
+        [HttpPost]
+        public IActionResult ProcessPayment(int bookingId, string paymentMethod)
+        {
+            var booking = _context.Bookings
+                .Include(b => b.House)
+                .FirstOrDefault(b => b.BookingId == bookingId);
+
+            if (booking == null) return NotFound();
+
+            // Insert/update payment
+            var existingPayment = _context.Payments.FirstOrDefault(p => p.BookingId == bookingId);
+            if (existingPayment != null)
+            {
+                existingPayment.Method = paymentMethod;
+                existingPayment.Amount = booking.TotalPrice;
+                existingPayment.PaymentDate = DateTime.Now;
+                existingPayment.Status = "Completed";
+            }
+            else
+            {
+                var payment = new Payment
+                {
+                    BookingId = bookingId,
+                    Method = paymentMethod,
+                    Amount = booking.TotalPrice,
+                    PaymentDate = DateTime.Now,
+                    Status = "Completed"
+                };
+                _context.Payments.Add(payment);
+            }
+
+            // ✅ Only mark house as "Rented" if ALL dates are booked
+            if (IsHouseFullyBooked(booking.HouseId))
+            {
+                var house = _context.Houses.FirstOrDefault(h => h.Id == booking.HouseId);
+                if (house != null)
+                {
+                    house.RoomStatus = "Rented";   // ✅ fully booked
+                    _context.SaveChanges();
+                }
+            }
+            else
+            {
+                var house = _context.Houses.FirstOrDefault(h => h.Id == booking.HouseId);
+                if (house != null)
+                {
+                    house.RoomStatus = "Available"; // ✅ still has free days
+                    _context.SaveChanges();
+                }
+            }
+
+            return RedirectToAction("PaymentSuccess", new { bookingId = bookingId });
+        }
+
+
+        private bool IsHouseFullyBooked(int houseId)
+        {
+            var house = _context.Houses.FirstOrDefault(h => h.Id == houseId);
+            if (house == null || !house.StartDate.HasValue || !house.EndDate.HasValue)
+                return false;
+
+            var bookings = _context.Bookings
+                .Where(b => b.HouseId == houseId)
+                .ToList();
+
+            if (!bookings.Any()) return false;
+
+            // Collect all booked dates
+            var bookedDays = new HashSet<DateTime>();
+            foreach (var b in bookings)
+            {
+                for (var date = b.StartDate.Date; date <= b.EndDate.Date; date = date.AddDays(1))
+                {
+                    bookedDays.Add(date);
+                }
+            }
+
+            // Check if every day in the house's availability is covered
+            for (var d = house.StartDate.Value.Date; d <= house.EndDate.Value.Date; d = d.AddDays(1))
+            {
+                if (!bookedDays.Contains(d))
+                {
+                    return false; // At least one day not booked → still Available
+                }
+            }
+
+            return true; // ✅ All days booked → fully rented
+        }
+
+
+
+
+        private bool IsDateAvailable(int houseId, DateTime startDate, DateTime endDate)
+        {
+            return !_context.Bookings
+                .Any(b => b.HouseId == houseId &&
+                          ((startDate >= b.StartDate && startDate <= b.EndDate) ||
+                           (endDate >= b.StartDate && endDate <= b.EndDate) ||
+                           (startDate <= b.StartDate && endDate >= b.EndDate)));
+        }
+
+
+        public IActionResult PaymentSuccess(int bookingId)
+        {
+            var booking = _context.Bookings
+                .Include(b => b.House)
+                .FirstOrDefault(b => b.BookingId == bookingId);
+
+            if (booking == null) return NotFound();
+
+            return View(booking); // PaymentSuccess.cshtml
         }
     }
 }

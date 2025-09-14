@@ -14,7 +14,8 @@ public class DB : DbContext
     public DbSet<Owner> Owners { get; set; }
     public DbSet<Admin> Admins { get; set; }
     public DbSet<House> Houses { get; set; }
-
+    public DbSet<Booking> Bookings { get; set; }
+    public DbSet<Payment> Payments { get; set; }
 }
 
 #nullable disable warnings

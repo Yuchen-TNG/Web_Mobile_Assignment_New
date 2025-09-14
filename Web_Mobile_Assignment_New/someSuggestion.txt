@@ -17,7 +17,7 @@ extra
 -owner 只有update room 和add house
 
 
-yuchen gugubird
+yuchen 
 
 -出租时间 要有一个limit 
 -search boleh buat apa
@@ -43,5 +43,5 @@ problem:
 if got payment should we need payment method?
 paging
 searching
-
+-histrory
 

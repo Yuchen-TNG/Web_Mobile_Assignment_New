@@ -1,0 +1,27 @@
+﻿@model Web_Mobile_Assignment_New.Models.Booking
+
+@{
+    ViewData["Title"] = "Payment";
+}
+
+<h2>Payment</h2>
+
+<div>
+    <p><strong>Room:</strong> @Model.House.RoomName</p>
+    <p><strong>Period:</strong> @Model.StartDate.ToString("yyyy-MM-dd") → @Model.EndDate.ToString("yyyy-MM-dd")</p>
+    <p><strong>Total Price:</strong> RM @Model.TotalPrice</p>
+</div>
+
+<form asp-action="ProcessPayment" asp-controller="Home" method="post">
+    <input type="hidden" name="bookingId" value="@Model.BookingId" />
+
+    <label for="PaymentMethod">Choose Payment Method:</label>
+    <select id="PaymentMethod" name="paymentMethod" class="form-control" required>
+        <option value="">-- Select --</option>
+        <option value="CreditCard">Credit Card</option>
+        <option value="QRPayment">QRPayment</option>
+    </select>
+
+    <br />
+    <button type="submit" class="btn btn-primary">Confirm Payment</button>
+</form>

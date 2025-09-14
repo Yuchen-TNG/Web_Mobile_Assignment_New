@@ -61,7 +61,8 @@
             <!-- 图片 -->
             <div class="col-md-12">
                 <label class="form-label">Upload Image</label>
-                <input type="file" name="ImageFile" class="form-control" />
+                <input type="file" name="ImageFile" class="form-control" required />
+                <span asp-validation-for="ImageUrl" class="text-danger"></span>
             </div>
 
             <!-- 备注 -->
@@ -106,25 +107,30 @@
     </form>
 </div>
 
-@section Scripts {
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const roomTypeSelect = document.getElementById("RoomType");
-            const roomsInput = document.getElementById("Rooms");
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const startDateInput = document.querySelector("input[name='StartDate']");
+        const endDateInput = document.querySelector("input[name='EndDate']");
 
-            function updateRoomsField() {
-                if (roomTypeSelect.value === "Whole Unit") {
-                    roomsInput.removeAttribute("readonly");
-                    roomsInput.setAttribute("min", "1");
-                    roomsInput.setAttribute("max", "8");
-                } else {
-                    roomsInput.value = 1;
-                    roomsInput.setAttribute("readonly", "readonly");
+        function validateDates() {
+            let start = new Date(startDateInput.value);
+            let end = new Date(endDateInput.value);
+            let today = new Date();
+            today.setHours(0,0,0,0); // ignore time part
+
+            if (start && end) {
+                if (start < today) {
+                    alert("Start Date cannot be in the past.");
+                    startDateInput.value = "";
+                } else if (end < start) {
+                    alert("End Date must be after Start Date.");
+                    endDateInput.value = "";
                 }
             }
+        }
 
-            roomTypeSelect.addEventListener("change", updateRoomsField);
-            updateRoomsField();
-        });
-    </script>
-}
+        startDateInput.addEventListener("change", validateDates);
+        endDateInput.addEventListener("change", validateDates);
+    });
+</script>
+

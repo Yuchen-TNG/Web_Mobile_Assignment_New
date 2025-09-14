@@ -1,0 +1,98 @@
+﻿@model Web_Mobile_Assignment_New.Models.Booking
+
+@{
+    ViewData["Title"] = "QR Payment";
+}
+
+<h2 class="mb-4">QR Payment</h2>
+
+<!-- 🏠 House Details with Image Right -->
+<div class="row align-items-center mt-4">
+    <!-- Left side: Details -->
+    <div class="col-md-7">
+        <div class="card p-4 shadow-sm h-100">
+            <h3 class="fw-bold mb-3">@Model.House.RoomName</h3>
+            <p><strong>Type:</strong> @Model.House.RoomType</p>
+            <p><strong>Furnishing:</strong> @Model.House.Furnishing</p>
+            <p><strong>Address:</strong> @Model.House.Address</p>
+            <p><strong>Period:</strong> 
+                @Model.StartDate.ToString("yyyy-MM-dd") →
+                @Model.EndDate.ToString("yyyy-MM-dd")
+            </p>
+            <p><strong>Total Price:</strong> <span class="text-success fw-bold">RM @Model.TotalPrice</span></p>
+        </div>
+    </div>
+
+    <!-- Right side: Image -->
+    <div class="col-md-5 text-center">
+        <div class="card shadow-sm">
+            @if (!string.IsNullOrEmpty(Model.House.ImageUrl))
+            {
+                <img src="@Model.House.ImageUrl" alt="House photo" class="img-fluid rounded" style="max-height:400px; object-fit:cover;" />
+            }
+            else
+            {
+                <p class="text-muted p-3">No image available</p>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- 📷 Scan Section -->
+<h4 id="scan-title" class="text-center mb-3">Scan QR Code using your webcam:</h4>
+<div id="qr-reader" style="width:350px; margin:0 auto;"></div>
+
+<!-- ✅ Success Message -->
+<div id="success-message" class="text-center mt-4" style="display:none;">
+    <span style="font-size: 28px; font-weight: bold; color: green;">✅ Payment Confirmed!</span>
+</div>
+
+<!-- 🔙 Back Button -->
+<div id="back-container" class="text-center mt-4">
+    <a id="back-button" class="btn btn-secondary"
+       href="@Url.Action("Payment", "Home", new { bookingId = Model.BookingId })">
+        Back
+    </a>
+</div>
+
+@section Scripts {
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script>
+        function onScanSuccess(decodedText, decodedResult) {
+            // ✅ Stop scanning after first success
+            html5QrcodeScanner.clear();
+
+            // Send confirm request to server
+            fetch('@Url.Action("ConfirmQRPayment", "Home")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bookingId: @Model.BookingId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Hide scanner + title
+                    document.getElementById("scan-title").style.display = "none";
+                    document.getElementById("qr-reader").style.display = "none";
+
+                    // Show Payment Confirmed
+                    document.getElementById("success-message").style.display = "block";
+                    document.getElementById("success-message").innerHTML =
+                        "<h2 class='text-success fw-bold'>Payment Completed ✅</h2>";
+
+                    // Change Back button to "Return to Home"
+                    let backButton = document.getElementById("back-button");
+                    backButton.textContent = "Return to Home";
+                    backButton.href = "@Url.Action("Index", "Home")";
+                } else {
+                    alert("Failed to confirm payment. Please try again.");
+                }
+            });
+        }
+
+        var html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: 250 });
+        html5QrcodeScanner.render(onScanSuccess);
+    </script>
+}
+
+}

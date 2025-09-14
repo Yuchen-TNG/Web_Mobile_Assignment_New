@@ -22,6 +22,7 @@ yuchen
 -出租时间 要有一个limit 
 -search boleh buat apa
 -when add house, house should auto assign valid value in houseStatus
+
 extra
 -owner上传的property全部都要等admin accept才可以(这个就是要开新的database，然后pending他是否被accept了)
 -multiple photo for house photo

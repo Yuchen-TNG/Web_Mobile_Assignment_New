@@ -35,5 +35,7 @@ namespace Web_Mobile_Assignment_New.Models
         public DateTime? EndDate { get; set; }    // 租期结束
 
         public string? Furnishing { get; set; }   // 家具配置（Fully / Semi / Unfurnished）
+        public ICollection<HouseReview>? Reviews { get; set; }
+
     }
 }

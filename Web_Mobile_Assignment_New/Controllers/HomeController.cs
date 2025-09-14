@@ -18,8 +18,7 @@ namespace Web_Mobile_Assignment_New.Controllers
             _context = context;
         }
 
-        // ================= HOME / FILTER ==================
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             if (User.IsInRole("Admin"))
             {
@@ -27,12 +26,12 @@ namespace Web_Mobile_Assignment_New.Controllers
             }
             else
             {
-                var houses = _context.Houses.ToList();
+                var houses = await _context.Houses.ToListAsync();
                 return View(houses);
             }
         }
 
-        public IActionResult Filter(int? minPrice, int? maxPrice, string? type)
+        public async Task<IActionResult> Filter(int? minPrice, int? maxPrice, string? type)
         {
             var houses = _context.Houses.AsQueryable();
 
@@ -45,7 +44,7 @@ namespace Web_Mobile_Assignment_New.Controllers
             if (!string.IsNullOrEmpty(type) && type != "Whole Unit")
                 houses = houses.Where(h => h.RoomType == type);
 
-            return View("Index", houses.ToList());
+            return View("Index", await houses.ToListAsync());
         }
 
         // ================= HOUSE CRUD ==================
@@ -67,7 +66,7 @@ namespace Web_Mobile_Assignment_New.Controllers
             }
             else
             {
-                house.Rooms = 1; // force single room
+                house.Rooms = 1;
             }
 
             if (ModelState.IsValid)
@@ -99,14 +98,49 @@ namespace Web_Mobile_Assignment_New.Controllers
             return View(house);
         }
 
-        public IActionResult Details(int id)
+        // 房子详情 + 评论
+        public async Task<IActionResult> Details(int id)
         {
-            var house = _context.Houses.FirstOrDefault(h => h.Id == id);
+            var house = await _context.Houses
+                .Include(h => h.Reviews) // 加载评论
+                .FirstOrDefaultAsync(h => h.Id == id);
+
             if (house == null) return NotFound();
+
+            ViewBag.AvgRating = (house.Reviews != null && house.Reviews.Any())
+                ? house.Reviews.Average(r => r.Rating)
+                : 0;
+
+            ViewBag.TotalReviews = house.Reviews?.Count ?? 0;
+
             return View(house);
         }
 
-        // ================= ROLES ==================
+        // 提交评论
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddReview(int houseId, int rating, string comment)
+        {
+            if (rating < 1 || rating > 5)
+            {
+                TempData["Error"] = "Invalid rating value.";
+                return RedirectToAction("Details", new { id = houseId });
+            }
+
+            var review = new HouseReview
+            {
+                HouseId = houseId,
+                Rating = rating,
+                Comment = comment,
+                UserEmail = User.Identity?.Name
+            };
+
+            _context.HouseReviews.Add(review);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("Details", new { id = houseId });
+        }
+
         [Authorize]
         public IActionResult Both() => View();
 
@@ -122,7 +156,7 @@ namespace Web_Mobile_Assignment_New.Controllers
         // ================= RENTING ==================
         public IActionResult Rent(int id)
         {
-            var house = _context.Houses.FirstOrDefault(h => h.Id == id);
+            var house = await _context.Houses.FirstOrDefaultAsync(h => h.Id == id);
             if (house == null) return NotFound();
 
             // Pull booked ranges for this house
@@ -148,12 +182,12 @@ namespace Web_Mobile_Assignment_New.Controllers
 
 
         [HttpPost]
-        public IActionResult ConfirmRent(int id, DateTime startDate, DateTime endDate)
+        public async Task<IActionResult> ConfirmRent(int id, DateTime startDate, DateTime endDate)
         {
             if (startDate > endDate)
             {
                 ModelState.AddModelError("", "Start date must be before or equal to end date.");
-                var house = _context.Houses.FirstOrDefault(h => h.Id == id);
+                var house = await _context.Houses.FirstOrDefaultAsync(h => h.Id == id);
                 return View("Rent", house);
             }
 

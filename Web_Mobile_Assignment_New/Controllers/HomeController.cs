@@ -1,11 +1,14 @@
 ﻿using System;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using QRCoder;
 using Web_Mobile_Assignment_New.Models;
+using ZXing.QrCode.Internal;
 
 namespace Web_Mobile_Assignment_New.Controllers
 {
@@ -156,7 +159,7 @@ namespace Web_Mobile_Assignment_New.Controllers
         // ================= RENTING ==================
         public IActionResult Rent(int id)
         {
-            var house = await _context.Houses.FirstOrDefaultAsync(h => h.Id == id);
+            var house = _context.Houses.FirstOrDefault(h => h.Id == id);
             if (house == null) return NotFound();
 
             // Pull booked ranges for this house
@@ -191,7 +194,7 @@ namespace Web_Mobile_Assignment_New.Controllers
                 return View("Rent", house);
             }
 
-            // ✅ Check if dates are already booked
+            // Check if dates are available
             if (!IsDateAvailable(id, startDate, endDate))
             {
                 ModelState.AddModelError("", "Selected dates are not available.");
@@ -205,6 +208,7 @@ namespace Web_Mobile_Assignment_New.Controllers
             int totalDays = (endDate - startDate).Days + 1;
             decimal totalPrice = totalDays * houseData.Price;
 
+            // Create booking
             var booking = new Booking
             {
                 HouseId = houseData.Id,
@@ -215,10 +219,23 @@ namespace Web_Mobile_Assignment_New.Controllers
             };
 
             _context.Bookings.Add(booking);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
+
+            // Create payment record with status "Pending"
+            var payment = new Payment
+            {
+                BookingId = booking.BookingId,
+                Method = "",               // will be chosen later in Payment page
+                Amount = totalPrice,
+                PaymentDate = DateTime.Now,
+                Status = "Pending"
+            };
+            _context.Payments.Add(payment);
+            await _context.SaveChangesAsync();
 
             return RedirectToAction("Payment", new { bookingId = booking.BookingId });
         }
+
 
 
 
@@ -249,7 +266,11 @@ namespace Web_Mobile_Assignment_New.Controllers
                 existingPayment.Method = paymentMethod;
                 existingPayment.Amount = booking.TotalPrice;
                 existingPayment.PaymentDate = DateTime.Now;
-                existingPayment.Status = "Completed";
+
+                if (paymentMethod == "QRPayment")
+                    existingPayment.Status = "Pending";   // pending for QR
+                else
+                    existingPayment.Status = "Completed"; // immediate for CreditCard
             }
             else
             {
@@ -259,33 +280,33 @@ namespace Web_Mobile_Assignment_New.Controllers
                     Method = paymentMethod,
                     Amount = booking.TotalPrice,
                     PaymentDate = DateTime.Now,
-                    Status = "Completed"
+                    Status = paymentMethod == "QRPayment" ? "Pending" : "Completed"
                 };
                 _context.Payments.Add(payment);
             }
 
-            // ✅ Only mark house as "Rented" if ALL dates are booked
-            if (IsHouseFullyBooked(booking.HouseId))
+            _context.SaveChanges();
+
+            // ✅ Only mark house as "Rented" if ALL dates are booked and payment is completed
+            if (paymentMethod != "QRPayment" && IsHouseFullyBooked(booking.HouseId))
             {
                 var house = _context.Houses.FirstOrDefault(h => h.Id == booking.HouseId);
                 if (house != null)
                 {
-                    house.RoomStatus = "Rented";   // ✅ fully booked
-                    _context.SaveChanges();
-                }
-            }
-            else
-            {
-                var house = _context.Houses.FirstOrDefault(h => h.Id == booking.HouseId);
-                if (house != null)
-                {
-                    house.RoomStatus = "Available"; // ✅ still has free days
+                    house.RoomStatus = "Rented";
                     _context.SaveChanges();
                 }
             }
 
+            // Redirect based on payment method
+            if (paymentMethod == "QRPayment")
+            {
+                return RedirectToAction("QRPayment", new { bookingId = bookingId });
+            }
+
             return RedirectToAction("PaymentSuccess", new { bookingId = bookingId });
         }
+
 
 
         private bool IsHouseFullyBooked(int houseId)
@@ -345,5 +366,83 @@ namespace Web_Mobile_Assignment_New.Controllers
 
             return View(booking); // PaymentSuccess.cshtml
         }
+
+        [HttpPost]
+        public IActionResult CancelPayment(int bookingId)
+        {
+            var booking = _context.Bookings
+                .Include(b => b.House)
+                .FirstOrDefault(b => b.BookingId == bookingId);
+
+            if (booking == null) return NotFound();
+
+            // Remove payment if exists
+            var payment = _context.Payments.FirstOrDefault(p => p.BookingId == bookingId);
+            if (payment != null)
+            {
+                _context.Payments.Remove(payment);
+            }
+
+            // Remove booking
+            _context.Bookings.Remove(booking);
+            _context.SaveChanges();
+
+            // Update house status if needed
+            var house = booking.House;
+            if (house != null)
+            {
+                if (IsHouseFullyBooked(house.Id))
+                {
+                    house.RoomStatus = "Rented";
+                }
+                else
+                {
+                    house.RoomStatus = "Available";
+                }
+                _context.SaveChanges();
+            }
+
+            TempData["Message"] = "Booking has been cancelled successfully.";
+            return RedirectToAction("Index");
+        }
+
+        public IActionResult QRPayment(int bookingId)
+        {
+            var booking = _context.Bookings
+                .Include(b => b.House)
+                .FirstOrDefault(b => b.BookingId == bookingId);
+
+            if (booking == null) return NotFound();
+
+            return View(booking); // QRPayment.cshtml
+        }
+
+        [HttpPost]
+        public IActionResult ConfirmQRPayment([FromBody] ConfirmQRPaymentRequest request)
+        {
+            var payment = _context.Payments
+                .FirstOrDefault(p => p.BookingId == request.BookingId && p.Status == "Pending");
+
+            if (payment == null)
+                return Json(new { success = false });
+
+            payment.Status = "Completed";
+            _context.SaveChanges();
+
+            // Update house status if fully booked
+            var booking = _context.Bookings.FirstOrDefault(b => b.BookingId == request.BookingId);
+            if (booking != null && IsHouseFullyBooked(booking.HouseId))
+            {
+                var house = _context.Houses.FirstOrDefault(h => h.Id == booking.HouseId);
+                if (house != null)
+                {
+                    house.RoomStatus = "Rented";
+                    _context.SaveChanges();
+                }
+            }
+
+            return Json(new { success = true });
+        }
+
     }
 }

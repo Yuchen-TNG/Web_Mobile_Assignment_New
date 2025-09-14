@@ -52,16 +52,16 @@
 
 
 <script>
+
     var houseEndDate = "@Model.EndDate?.ToString("yyyy-MM-dd")";
     var unpickableDates = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.BookedDates));
     var minSelectableDate = new Date().toISOString().split('T')[0];
-
 
     var endPicker = flatpickr("#EndDate", {
         dateFormat: "Y-m-d",
         disable: unpickableDates,
         minDate: minSelectableDate,
-        maxDate: houseEndDate || null,   // ⬅️ 限制到房子 EndDate
+        maxDate: houseEndDate || null,
         onChange: function(selectedDates, dateStr, instance) {
             calculateTotal();
         }
@@ -71,7 +71,7 @@
         dateFormat: "Y-m-d",
         disable: unpickableDates,
         minDate: minSelectableDate,
-        maxDate: houseEndDate || null,   // ⬅️ StartDate 也不能超过 House EndDate
+        maxDate: houseEndDate || null,
         onChange: function(selectedDates, dateStr, instance) {
             if (selectedDates.length > 0) {
                 var startDate = new Date(selectedDates[0]);
@@ -79,7 +79,6 @@
                 nextDay.setDate(nextDay.getDate() + 1);
                 var nextDayStr = nextDay.toISOString().split('T')[0];
 
-                // 找第一个不可选的日期
                 var maxDate = houseEndDate ? new Date(houseEndDate) : null;
                 for (var i = 0; i < unpickableDates.length; i++) {
                     var unpickable = new Date(unpickableDates[i]);
@@ -91,7 +90,6 @@
                 }
                 var maxDateStr = maxDate ? maxDate.toISOString().split('T')[0] : null;
 
-                // 更新 EndDate picker
                 if (maxDateStr) {
                     endPicker.set('minDate', nextDayStr);
                     endPicker.set('maxDate', maxDateStr);
@@ -100,7 +98,6 @@
                     endPicker.set('maxDate', houseEndDate || null);
                 }
 
-                // 校验 EndDate
                 var endInput = document.getElementById("EndDate");
                 if (endInput.value) {
                     var endDateStr = endInput.value;
@@ -138,4 +135,15 @@
             display.style.color = "#4e73df";
         }
     }
+
+    // ✅ Added: Must select both dates before submitting
+    document.querySelector("form").addEventListener("submit", function(event) {
+        var start = document.getElementById("StartDate").value;
+        var end = document.getElementById("EndDate").value;
+
+        if (!start || !end) {
+            alert("Please select both Start Date and End Date before confirming rent.");
+            event.preventDefault(); // Stop form submission
+        }
+    });
 </script>

@@ -12,7 +12,7 @@
     <p><strong>Total Price:</strong> RM @Model.TotalPrice</p>
 </div>
 
-<form asp-action="ProcessPayment" asp-controller="Home" method="post">
+<form asp-action="ProcessPayment" asp-controller="Home" method="post" id="paymentForm">
     <input type="hidden" name="bookingId" value="@Model.BookingId" />
 
     <label for="PaymentMethod">Choose Payment Method:</label>
@@ -22,6 +22,81 @@
         <option value="QRPayment">QRPayment</option>
     </select>
 
+    <!-- Credit Card Fields -->
+    <div id="creditCardFields" style="display:none; margin-top:15px;">
+        <div class="mb-3">
+            <label for="CardNumber">Card Number</label>
+            <input type="text" class="form-control" id="CardNumber" name="CardNumber" placeholder="1234 5678 9012 3456" />
+        </div>
+        <div class="mb-3">
+            <label for="ExpiryDate">Expiry Date</label>
+            <input type="text" class="form-control" id="ExpiryDate" name="ExpiryDate" placeholder="MM/YY" />
+        </div>
+        <div class="mb-3">
+            <label for="CVC">CVC</label>
+            <input type="text" class="form-control" id="CVC" name="CVC" placeholder="123" />
+        </div>
+    </div>
+
     <br />
     <button type="submit" class="btn btn-primary">Confirm Payment</button>
 </form>
+
+<br />
+
+<form asp-action="CancelPayment" asp-controller="Home" method="post" onsubmit="return confirm('Are you sure you want to cancel this booking?');">
+    <input type="hidden" name="bookingId" value="@Model.BookingId" />
+    <button type="submit" class="btn btn-danger">Cancel Booking</button>
+</form>
+
+<script>
+    var paymentMethodSelect = document.getElementById("PaymentMethod");
+    var ccFields = document.getElementById("creditCardFields");
+
+    // Show/hide credit card fields
+    paymentMethodSelect.addEventListener("change", function() {
+        if (this.value === "CreditCard") {
+            ccFields.style.display = "block";
+        } else {
+            ccFields.style.display = "none";
+        }
+    });
+
+    // Validate credit card fields before submitting
+    document.getElementById("paymentForm").addEventListener("submit", function(event) {
+        if (paymentMethodSelect.value === "CreditCard") {
+            var cardNumber = document.getElementById("CardNumber").value.trim();
+            var expiry = document.getElementById("ExpiryDate").value.trim();
+            var cvc = document.getElementById("CVC").value.trim();
+
+            if (!cardNumber || !expiry || !cvc) {
+                alert("Please fill in all credit card fields.");
+                event.preventDefault(); // Stop form submission
+                return;
+            }
+
+            // Optional: basic validation
+            var cardNumberRegex = /^[0-9]{13,19}$/; // simple number check
+            var expiryRegex = /^(0[1-9]|1[0-2])\/\d{2}$/; // MM/YY
+            var cvcRegex = /^[0-9]{3,4}$/;
+
+            if (!cardNumberRegex.test(cardNumber)) {
+                alert("Invalid card number format.");
+                event.preventDefault();
+                return;
+            }
+
+            if (!expiryRegex.test(expiry)) {
+                alert("Expiry date must be in MM/YY format.");
+                event.preventDefault();
+                return;
+            }
+
+            if (!cvcRegex.test(cvc)) {
+                alert("Invalid CVC.");
+                event.preventDefault();
+                return;
+            }
+        }
+    });
+</script>

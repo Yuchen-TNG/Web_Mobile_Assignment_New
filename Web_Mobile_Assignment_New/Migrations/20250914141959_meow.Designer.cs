@@ -12,7 +12,7 @@ using Web_Mobile_Assignment_New.Models;
 namespace Web_Mobile_Assignment_New.Migrations
 {
     [DbContext(typeof(DB))]
-    [Migration("20250914135631_meow")]
+    [Migration("20250914141959_meow")]
     partial class meow
     {
         /// <inheritdoc />
@@ -111,6 +111,41 @@ namespace Web_Mobile_Assignment_New.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Houses");
+                });
+
+            modelBuilder.Entity("Web_Mobile_Assignment_New.Models.HouseReview", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Comment")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("HouseId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserEmail")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HouseId");
+
+                    b.HasIndex("UserEmail");
+
+                    b.ToTable("HouseReviews");
                 });
 
             modelBuilder.Entity("Web_Mobile_Assignment_New.Models.Payment", b =>
@@ -245,6 +280,25 @@ namespace Web_Mobile_Assignment_New.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Web_Mobile_Assignment_New.Models.HouseReview", b =>
+                {
+                    b.HasOne("Web_Mobile_Assignment_New.Models.House", "House")
+                        .WithMany("Reviews")
+                        .HasForeignKey("HouseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Web_Mobile_Assignment_New.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserEmail")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("House");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Web_Mobile_Assignment_New.Models.Payment", b =>
                 {
                     b.HasOne("Web_Mobile_Assignment_New.Models.Booking", "Booking")
@@ -259,6 +313,11 @@ namespace Web_Mobile_Assignment_New.Migrations
             modelBuilder.Entity("Web_Mobile_Assignment_New.Models.Booking", b =>
                 {
                     b.Navigation("Payment");
+                });
+
+            modelBuilder.Entity("Web_Mobile_Assignment_New.Models.House", b =>
+                {
+                    b.Navigation("Reviews");
                 });
 #pragma warning restore 612, 618
         }

@@ -14,6 +14,9 @@ namespace Web_Mobile_Assignment_New.Models
         public DbSet<Admin> Admins { get; set; }
         public DbSet<House> Houses { get; set; }
         public DbSet<HouseReview> HouseReviews { get; set; }
+        public DbSet<Booking> Bookings { get; set; }
+        public DbSet<Payment> Payments { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -52,10 +55,10 @@ namespace Web_Mobile_Assignment_New.Models
         public string Role => GetType().Name;
     }
 
-public class OwnerTenant : User
-{
-    [MaxLength(100)]
-    public string PhotoURL { get; set; }
+    public class OwnerTenant : User
+    {
+        [MaxLength(100)]
+        public string PhotoURL { get; set; }
 
         [MaxLength(100)]
         public string Status { get; set; }

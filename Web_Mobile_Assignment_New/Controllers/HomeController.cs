@@ -41,10 +41,10 @@ namespace Web_Mobile_Assignment_New.Controllers
             if (maxPrice.HasValue)
                 houses = houses.Where(h => h.Price <= maxPrice.Value);
 
-            if (!string.IsNullOrEmpty(type) && type != "Whole Unit")
-                houses = houses.Where(h => h.RoomType == type);
+            if (!string.IsNullOrEmpty(type) && type != "All")
+            { houses = houses.Where(h => h.RoomType == type); }
 
-            return View("Index", await houses.ToListAsync());
+                return View("Index", await houses.ToListAsync());
         }
 
         // ================= HOUSE CRUD ==================
@@ -156,7 +156,7 @@ namespace Web_Mobile_Assignment_New.Controllers
         // ================= RENTING ==================
         public IActionResult Rent(int id)
         {
-            var house = await _context.Houses.FirstOrDefaultAsync(h => h.Id == id);
+            var house = _context.Houses.FirstOrDefaultAsync(h => h.Id == id);
             if (house == null) return NotFound();
 
             // Pull booked ranges for this house

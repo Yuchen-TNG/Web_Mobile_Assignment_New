@@ -2,8 +2,10 @@
 
 
 KaiZhen
---admin没有index 剩下三个management✓
-(need to discussion)
+
+report
+owner 
+
 
 User Management
 -can view all user data ✓

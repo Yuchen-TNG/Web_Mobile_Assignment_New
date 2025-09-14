@@ -145,8 +145,13 @@ namespace Web_Mobile_Assignment_New.Controllers
         public IActionResult Both() => View();
 
         [Authorize(Roles = "Owner")]
-        public IActionResult Owner() => View();
-
+        public IActionResult Owner()
+        {
+            var UserEmail = User.Identity?.Name ?? "guest@example.com";
+            var value = _context.Houses.Where(h => h.Id == 4).ToList();
+            return View(value);
+        }
+        
         [Authorize(Roles = "Admin")]
         public IActionResult Admin() => View();
 
@@ -345,5 +350,77 @@ namespace Web_Mobile_Assignment_New.Controllers
 
             return View(booking); // PaymentSuccess.cshtml
         }
+        public IActionResult OwnerDetails(int id)
+        {
+            var ID = _context.Houses.Where(h => h.Id == id).FirstOrDefault();
+            return View(ID);
+
+        }
+
+        public IActionResult PropertyDelete(int id)
+        {
+            House? house = _context.Houses.FirstOrDefault(h => h.Id == id);
+            if (house != null)
+            {
+                _context.Houses.Remove(house);
+                _context.SaveChanges();
+                TempData["Message"] = "Deleted Susscesful.";
+            }
+            else
+            {
+                TempData["Message"] = "Deleted Failed, no releted house.";
+            }
+            return RedirectToAction("OwnerDetails");
+        }
+
+        public IActionResult PropertyDetails(int id)
+        {
+            if (id is 0) return NotFound();
+
+            House? house = _context.Houses.FirstOrDefault(h => h.Id == id);
+            if (house == null) return NotFound();
+
+            return View(house);
+        }
+        public IActionResult UpdateProperty(House model)
+        {
+            var existing = _context.Houses.FirstOrDefault(h => h.Id == model.Id);
+            if (existing == null)
+            {
+                TempData["Message"] = "House not found";
+                return RedirectToAction("Owner");
+            }
+                
+            // 更新允许修改的字段
+            existing.RoomName = model.RoomName;
+            existing.RoomType = model.RoomType;
+            existing.Rooms = model.Rooms;
+            existing.Bathrooms = model.Bathrooms;
+            existing.Furnishing = model.Furnishing;
+            existing.Price = model.Price;
+            existing.StartDate = model.StartDate;
+            existing.EndDate = model.EndDate;
+            existing.Address = model.Address;
+            existing.Sqft = model.Sqft;
+            existing.RoomStatus = model.RoomStatus;
+
+            // 如果你希望图片也可以修改，需要确保前端有 Hidden Input
+            if (!string.IsNullOrEmpty(model.ImageUrl))
+                existing.ImageUrl = model.ImageUrl;
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                              .Select(e => e.ErrorMessage)
+                                              .ToList();
+                TempData["Message"] = string.Join("; ", errors);
+                return RedirectToAction("OwnerDetails", new { id = model.Id });
+            }
+
+            _context.SaveChanges();
+            TempData["Message"] = "Property Change Successful";
+            return RedirectToAction("OwnerDetails", new { id = model.Id });
+        }
     }
+
 }

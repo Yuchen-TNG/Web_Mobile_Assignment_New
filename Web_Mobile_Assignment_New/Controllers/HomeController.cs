@@ -467,7 +467,7 @@ namespace Web_Mobile_Assignment_New.Controllers
             TempData["Message"] = "Property Change Successful";
             return RedirectToAction("OwnerDetails", new { id = model.Id });
         }
-    }
+    
 
 
         [HttpPost]

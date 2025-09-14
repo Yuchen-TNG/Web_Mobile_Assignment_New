@@ -21,7 +21,8 @@ extra
 
 yuchen 
 
--出租时间 要有一个limit 
+-出租时间 要有一个limit
+ 也要validation（比如说时间今天开始，不能以前开始）（start date 31/06/2025,end date不可以是start date以前的比如说30/06/2025）
 -search boleh buat apa
 -when add house, house should auto assign valid value in houseStatus
 extra

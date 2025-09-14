@@ -60,6 +60,7 @@ namespace Web_Mobile_Assignment_New.Controllers
         [HttpPost]
         public async Task<IActionResult> AddHouse(House house, IFormFile ImageFile)
         {
+            // Rooms validation
             if (house.RoomType == "Whole Unit")
             {
                 if (house.Rooms < 1 || house.Rooms > 8)
@@ -72,26 +73,47 @@ namespace Web_Mobile_Assignment_New.Controllers
                 house.Rooms = 1;
             }
 
+            // Rental period validation
+            if (house.StartDate.HasValue && house.EndDate.HasValue)
+            {
+                if (house.StartDate > house.EndDate)
+                {
+                    ModelState.AddModelError("EndDate", "End Date must be later than Start Date.");
+                }
+                else if (house.StartDate < DateTime.Today)
+                {
+                    ModelState.AddModelError("StartDate", "Start Date cannot be in the past.");
+                }
+            }
+            else
+            {
+                ModelState.AddModelError("StartDate", "Both Start Date and End Date are required.");
+            }
+
+            // ✅ Image required
+            if (ImageFile == null || ImageFile.Length == 0)
+            {
+                ModelState.AddModelError("ImageFile", "An image is required.");
+            }
+
             if (ModelState.IsValid)
             {
-                if (ImageFile != null && ImageFile.Length > 0)
+                // Save image
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images");
+                if (!Directory.Exists(uploadsFolder))
                 {
-                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images");
-                    if (!Directory.Exists(uploadsFolder))
-                    {
-                        Directory.CreateDirectory(uploadsFolder);
-                    }
-
-                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(ImageFile.FileName);
-                    var filePath = Path.Combine(uploadsFolder, fileName);
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await ImageFile.CopyToAsync(stream);
-                    }
-
-                    house.ImageUrl = "/images/" + fileName;
+                    Directory.CreateDirectory(uploadsFolder);
                 }
+
+                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(ImageFile.FileName);
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await ImageFile.CopyToAsync(stream);
+                }
+
+                house.ImageUrl = "/images/" + fileName;
 
                 _context.Houses.Add(house);
                 await _context.SaveChangesAsync();
@@ -100,6 +122,8 @@ namespace Web_Mobile_Assignment_New.Controllers
 
             return View(house);
         }
+
+
 
         // 房子详情 + 评论
         public async Task<IActionResult> Details(int id)
@@ -157,6 +181,7 @@ namespace Web_Mobile_Assignment_New.Controllers
         public IActionResult Tenant() => View();
 
         // ================= RENTING ==================
+        [Authorize(Roles = "Tenant")]
         public IActionResult Rent(int id)
         {
             var house = _context.Houses.FirstOrDefault(h => h.Id == id);

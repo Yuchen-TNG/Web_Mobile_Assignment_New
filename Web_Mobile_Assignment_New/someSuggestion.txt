@@ -25,6 +25,7 @@ yuchen
  也要validation（比如说时间今天开始，不能以前开始）（start date 31/06/2025,end date不可以是start date以前的比如说30/06/2025）
 -search boleh buat apa
 -when add house, house should auto assign valid value in houseStatus
+
 extra
 -owner上传的property全部都要等admin accept才可以(这个就是要开新的database，然后pending他是否被accept了)
 -multiple photo for house photo

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using QRCoder;
 using Web_Mobile_Assignment_New.Models;
 using ZXing.QrCode.Internal;
@@ -566,6 +567,36 @@ namespace Web_Mobile_Assignment_New.Controllers
 
             return Json(new { success = true });
         }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ReportHouse(Report report,int propretyId,string ReportType,string Details)
+        {
+
+            // 填充必需字段
+            try
+            {
+                report.Who = User.Identity.Name; // 当前登录用户
+                report.TargetProperty = propretyId;
+                report.ReportType = ReportType;
+                report.Details = Details;
+                report.TargetEmail = null;       // 因为是举报房源
+                report.CreatedAt = DateTime.UtcNow;
+                report.Status = "Pending";
+            }catch(Exception ex)
+            {
+                TempData["Message"] = "Report submitted failed!";
+                return RedirectToAction("Details", new { id = report.TargetProperty });
+            }
+            _context.Reports.Add(report);
+            _context.SaveChanges();
+
+            TempData["Message"] = "Report submitted successfully!";
+            return RedirectToAction("Details", new { id = report.TargetProperty });
+        }
+
+
 
     }
 }

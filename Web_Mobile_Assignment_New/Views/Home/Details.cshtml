@@ -47,7 +47,7 @@
 
     <!-- 右边详情 -->
     <div class="col-md-5">
-        <h3 class="fw-bold">@Model.RoomType - @Model.Address</h3>
+        <h3 class="fw-bold">@Model.RoomName - @Model.RoomType</h3>
         <p class="text-muted">
             <i class="fa-solid fa-ruler-combined"></i> @Model.Sqft sqft |
             <i class="fa-solid fa-bed"></i> @Model.Rooms Rooms |
@@ -76,12 +76,33 @@
             <p>Flexible</p>
         }
 
-        <a href="@Url.Action("Rent", "Home", new { id = Model.Id })" class="btn btn-primary btn-lg w-100 mt-3">
-            <i class="fa-solid fa-key"></i> Rent This House
-        </a>
-        <button type="button" class="btn btn-danger btn-lg w-100 mt-2" data-bs-toggle="modal" data-bs-target="#reportModal">
-            <i class="fa-solid fa-flag"></i> Report This House
-        </button>
+        @{
+            var returnUrl = Url.Action("Details", "Home", new { id = Model.Id });
+        }
+
+        @if (User.Identity.IsAuthenticated && !User.IsInRole("Owner"))
+        {
+            <!-- Rent button -->
+            <a href="@Url.Action("Rent", "Home", new { id = Model.Id })" class="btn btn-primary btn-lg w-100 mt-3">
+                <i class="fa-solid fa-key"></i> Rent This House
+            </a>
+
+            <!-- Report button triggers modal -->
+            <button type="button" class="btn btn-danger btn-lg w-100 mt-2" data-bs-toggle="modal" data-bs-target="#reportModal">
+                <i class="fa-solid fa-flag"></i> Report This House
+            </button>
+        }
+        else
+        {
+            <!-- Not logged in or Owner: send to login with ReturnUrl -->
+            <a href="@Url.Action("Login", "Account", new { ReturnUrl = returnUrl })" class="btn btn-primary btn-lg w-100 mt-3">
+                <i class="fa-solid fa-key"></i> Rent This House
+            </a>
+            <a href="@Url.Action("Login", "Account", new { ReturnUrl = returnUrl })" class="btn btn-danger btn-lg w-100 mt-2">
+                <i class="fa-solid fa-flag"></i> Report This House
+            </a>
+        }
+
 
     </div>
 </div>
@@ -89,7 +110,16 @@
 <div class="mt-4 p-3 bg-light rounded shadow-sm">
     <h5 class="fw-semibold"><i class="fa-solid fa-map-marker-alt"></i> Address</h5>
     <p>@Model.Address</p>
+    @if (!string.IsNullOrEmpty(Model.Address))
+    {
+        <a href="https://www.google.com/maps/search/?api=1&query=@Uri.EscapeDataString(Model.Address)"
+           target="_blank" class="btn btn-outline-primary btn-sm mt-2">
+            <i class="fa-brands fa-google"></i> View on Google Maps
+        </a>
+    }
 </div>
+
+
 
 <!-- ⭐ 评论区 -->
 <div class="mt-5">

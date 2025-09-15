@@ -36,8 +36,8 @@
             <div class="col-md-6">
                 <label asp-for="RoomName" class="form-label">Room Name</label>
                 <input asp-for="RoomName" class="form-control" />
+                <span asp-validation-for="RoomName" class="text-danger"></span>
             </div>
-
             <!-- 房间数 -->
             <div class="col-md-6">
                 <label asp-for="Rooms" class="form-label">Rooms</label>

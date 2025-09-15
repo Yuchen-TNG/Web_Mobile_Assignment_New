@@ -66,6 +66,8 @@ namespace Web_Mobile_Assignment_New.Controllers
         [HttpPost]
         public async Task<IActionResult> AddHouse(House house, List<IFormFile> ImageFiles)
         {
+            house.Email = User.Identity?.Name ?? "guest@example.com";
+
             // Rooms validation
             if (house.RoomType == "Whole Unit")
             {
@@ -131,6 +133,7 @@ namespace Web_Mobile_Assignment_New.Controllers
                     // 如果只存一张图 → 也可以设置默认封面
                     if (string.IsNullOrEmpty(house.ImageUrl))
                         house.ImageUrl = "/images/" + fileName;
+
                 }
 
                 _context.Houses.Add(house);
@@ -197,7 +200,7 @@ namespace Web_Mobile_Assignment_New.Controllers
         public IActionResult Owner()
         {
             var UserEmail = User.Identity?.Name ?? "guest@example.com";
-            var value = _context.Houses.Where(h => h.Id == 4).ToList();
+            var value = _context.Houses.Where(h => h.Email == UserEmail).ToList();
             return View(value);
         }
         
@@ -432,11 +435,6 @@ namespace Web_Mobile_Assignment_New.Controllers
             {
                 _context.Houses.Remove(house);
                 _context.SaveChanges();
-                TempData["Message"] = "Deleted Susscesful.";
-            }
-            else
-            {
-                TempData["Message"] = "Deleted Failed, no releted house.";
             }
             return RedirectToAction("OwnerDetails");
         }

@@ -1,6 +1,5 @@
 ﻿@model Web_Mobile_Assignment_New.Models.House
 
-
 @{
     ViewData["Title"] = "Add House";
 }
@@ -18,7 +17,6 @@
     <form asp-action="AddHouse" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
         <div class="row g-3">
             <!-- 房屋类型 -->
-
             <div class="col-md-6">
                 <label asp-for="RoomType" class="form-label">Room Type</label>
                 <select asp-for="RoomType" class="form-select" id="RoomType" required>
@@ -38,11 +36,13 @@
                 <input asp-for="RoomName" class="form-control" />
                 <span asp-validation-for="RoomName" class="text-danger"></span>
             </div>
+
             <!-- 房间数 -->
             <div class="col-md-6">
                 <label asp-for="Rooms" class="form-label">Rooms</label>
                 <input asp-for="Rooms" class="form-control" id="Rooms" type="number" min="1" max="8" required />
                 <span asp-validation-for="Rooms" class="text-danger"></span>
+                <div id="rooms-error" class="text-danger mt-1"></div>
             </div>
 
             <!-- 卫生间 -->
@@ -50,12 +50,15 @@
                 <label asp-for="Bathrooms" class="form-label">Bathrooms</label>
                 <input asp-for="Bathrooms" class="form-control" id="Bathrooms" type="number" min="1" max="6" required />
                 <span asp-validation-for="Bathrooms" class="text-danger"></span>
+                <div id="bathrooms-error" class="text-danger mt-1"></div>
             </div>
+
             <!-- 面积 -->
             <div class="col-md-6">
                 <label asp-for="Sqft" class="form-label">Area (sqft)</label>
                 <input asp-for="Sqft" class="form-control" type="number" min="700" />
                 <span asp-validation-for="Sqft" class="text-danger"></span>
+                <div id="sqft-error" class="text-danger mt-1"></div>
             </div>
 
             <!-- 图片 (允许多张) -->
@@ -63,13 +66,15 @@
                 <label class="form-label">Upload Images</label>
                 <input type="file" name="ImageFiles" class="form-control" multiple required />
                 <span asp-validation-for="ImageUrl" class="text-danger"></span>
+                <div id="image-error" class="text-danger mt-1"></div>
             </div>
 
             <!-- 价格 -->
             <div class="col-md-6">
                 <label asp-for="Price" class="form-label">Price</label>
-                <input asp-for="Price" class="form-control" type="number" step="0.01" />
+                <input asp-for="Price" class="form-control" type="number" step="0.01" id="Price" />
                 <span asp-validation-for="Price" class="text-danger"></span>
+                <div id="price-error" class="text-danger mt-1"></div>
             </div>
 
             <!-- 地址 -->
@@ -83,6 +88,7 @@
             <div class="col-md-12">
                 <label asp-for="Other" class="form-label">Other Info</label>
                 <textarea asp-for="Other" class="form-control"></textarea>
+                <span asp-validation-for="Other" class="text-danger"></span>
             </div>
 
             <!-- 租期开始 -->
@@ -90,13 +96,15 @@
                 <label for="StartDate" class="form-label">Start Date</label>
                 <input type="date" class="form-control" id="StartDate" name="StartDate"
                        min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                <span asp-validation-for="StartDate" class="text-danger"></span>
             </div>
 
+            <!-- 租期结束 -->
             <div class="mb-3">
                 <label for="EndDate" class="form-label">End Date</label>
                 <input type="date" class="form-control" id="EndDate" name="EndDate"
                        min="@DateTime.Now.ToString("yyyy-MM-dd")" />
-                <!-- 🔥 这里放错误提示 -->
+                <span asp-validation-for="EndDate" class="text-danger"></span>
                 <div id="date-error" class="text-danger mt-1"></div>
             </div>
 
@@ -108,6 +116,7 @@
                     <option value="Semi">Semi Furnished</option>
                     <option value="Unfurnished">Unfurnished</option>
                 </select>
+                <span asp-validation-for="Furnishing" class="text-danger"></span>
             </div>
         </div>
 
@@ -119,6 +128,11 @@
 </div>
 
 @section Scripts {
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.min.js"></script>
+
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const roomTypeSelect = document.getElementById("RoomType");
@@ -127,8 +141,10 @@
             const startDateInput = document.getElementById("StartDate");
             const endDateInput = document.getElementById("EndDate");
             const dateError = document.getElementById("date-error");
+            const priceInput = document.getElementById("Price");
+            const priceError = document.getElementById("price-error");
 
-            // ✅ 限制租期（Whole Unit 最多 2 年，其他最多 1 年）
+            // ✅ 租期限制（Whole Unit 最多 2 年，其他 1 年）
             function updateDateLimit() {
                 if (!startDateInput.value) {
                     endDateInput.removeAttribute("max");
@@ -140,43 +156,45 @@
                 let maxEnd = new Date(start);
 
                 if (roomTypeSelect.value === "Whole Unit") {
-                    maxEnd.setFullYear(maxEnd.getFullYear() + 2); // 最多 2 年
+                    maxEnd.setFullYear(maxEnd.getFullYear() + 2);
                 } else {
-                    maxEnd.setFullYear(maxEnd.getFullYear() + 1); // 最多 1 年
+                    maxEnd.setFullYear(maxEnd.getFullYear() + 1);
                 }
 
                 let maxDateStr = maxEnd.toISOString().split("T")[0];
                 endDateInput.max = maxDateStr;
 
-                // 🔥 超出时在输入框下方显示错误提示
                 if (endDateInput.value && endDateInput.value > maxDateStr) {
                     dateError.textContent = roomTypeSelect.value === "Whole Unit"
                         ? "Whole Unit rental cannot exceed 2 years."
                         : "Rental for this room type cannot exceed 1 year.";
-                    endDateInput.value = ""; // 清空非法值
+                    endDateInput.value = "";
                 } else {
-                    dateError.textContent = ""; // ✅ 清除错误提示
+                    dateError.textContent = "";
                 }
             }
 
-            // ✅ 房间数/卫生间输入逻辑
+            // ✅ 房间数/卫生间逻辑
             function updateFields() {
                 if (roomTypeSelect.value === "Whole Unit") {
                     roomsInput.removeAttribute("readonly");
-                    roomsInput.setAttribute("min", "1");
-                    roomsInput.setAttribute("max", "8");
-
                     bathroomsInput.removeAttribute("readonly");
-                    bathroomsInput.setAttribute("min", "1");
-                    bathroomsInput.setAttribute("max", "6");
                 } else {
                     roomsInput.value = 1;
                     roomsInput.setAttribute("readonly", "readonly");
-
                     bathroomsInput.value = 1;
                     bathroomsInput.setAttribute("readonly", "readonly");
                 }
             }
+
+            // ✅ 价格验证
+            priceInput.addEventListener("input", () => {
+                if (priceInput.value <= 0) {
+                    priceError.textContent = "Price must be a positive number.";
+                } else {
+                    priceError.textContent = "";
+                }
+            });
 
             // 绑定事件
             roomTypeSelect.addEventListener("change", () => {
@@ -186,7 +204,7 @@
             startDateInput.addEventListener("change", updateDateLimit);
             endDateInput.addEventListener("change", updateDateLimit);
 
-            // 初始化时执行一次
+            // 初始化
             updateFields();
             updateDateLimit();
         });

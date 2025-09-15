@@ -59,8 +59,8 @@
             </div>
 
             <div class="col-md-12">
-                <label class="form-label">Upload Images</label>
-                <input type="file" name="ImageFiles" class="form-control" multiple />
+                <label class="form-label">Upload Image</label>
+                <input type="file" name="ImageFile" class="form-control" />
             </div>
 
             <!-- 备注 -->
@@ -110,45 +110,20 @@
         document.addEventListener("DOMContentLoaded", function () {
             const roomTypeSelect = document.getElementById("RoomType");
             const roomsInput = document.getElementById("Rooms");
-            const bathroomsInput = document.getElementById("Bathrooms");
-            const sqftInput = document.getElementById("Sqft");
 
-            function updateFields() {
+            function updateRoomsField() {
                 if (roomTypeSelect.value === "Whole Unit") {
-                    // ✅ Whole Unit: 房间 & 厕所自由调整
                     roomsInput.removeAttribute("readonly");
                     roomsInput.setAttribute("min", "1");
                     roomsInput.setAttribute("max", "8");
-
-                    bathroomsInput.removeAttribute("readonly");
-                    bathroomsInput.setAttribute("min", "1");
-                    bathroomsInput.setAttribute("max", "6");
                 } else {
-                    // ✅ 其它房型: 固定 = 1
                     roomsInput.value = 1;
                     roomsInput.setAttribute("readonly", "readonly");
-
-                    bathroomsInput.value = 1;
-                    bathroomsInput.setAttribute("readonly", "readonly");
                 }
-
-                // ✅ Sqft 最小值 700
-                if (sqftInput.value < 700) {
-                    sqftInput.value = 700;
-                }
-                sqftInput.setAttribute("min", "700");
             }
 
-            roomTypeSelect.addEventListener("change", updateFields);
-
-            sqftInput.addEventListener("input", function () {
-                if (sqftInput.value < 700) {
-                    sqftInput.value = 700;
-                }
-            });
-
-            // 初始化运行一次
-            updateFields();
+            roomTypeSelect.addEventListener("change", updateRoomsField);
+            updateRoomsField();
         });
     </script>
 }

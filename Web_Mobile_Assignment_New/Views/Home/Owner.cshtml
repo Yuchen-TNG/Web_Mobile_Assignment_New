@@ -1,5 +1,139 @@
-﻿@{
+﻿@model List<Web_Mobile_Assignment_New.Models.House>
+@{
     ViewBag.Title = "Home | Owner";
 }
 
-<p>Only [Owner] role can access this page.</p>
+@if (TempData["Message"] != null)
+{
+    var type = TempData["MessageType"]?.ToString() ?? "success";
+    <div class="alert @(type == "success" ? "alert-success" : "alert-error")">
+        @TempData["Message"]
+    </div>
+}
+
+
+<style>
+    /* 页面整体 */
+    body {
+        font-family: "Segoe UI", Arial, sans-serif;
+        background-color: #f9fafb;
+        margin: 0;
+    }
+
+    /* 卡片容器 */
+    .card-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    /* 房源卡片：固定左右布局 */
+    .property-card {
+        display: flex;
+        flex-direction: row;
+        background: #fff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        min-height: 180px;
+        text-decoration: none; /* 去掉整卡片的下划线 */
+        color: inherit; /* 继承文字颜色 */
+    }
+
+        .property-card * {
+            text-decoration: none; /* 去掉子元素的下划线 */
+            color: inherit; /* 确保颜色不被 <a> 默认蓝色覆盖 */
+        }
+
+    /* 左边图片 */
+    .property-image {
+        width: 400px;
+        height: auto;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+    /* 右边文字 */
+    .property-body {
+        flex: 1;
+        padding: 15px 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    /* 标题、价格、信息 */
+    .property-title {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 8px;
+    }
+
+    .property-price {
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #2c7a7b;
+        margin-bottom: 10px;
+    }
+
+    .property-info {
+        font-size: 0.9rem;
+        color: #555;
+        margin: 4px 0;
+    }
+
+    /* 状态颜色 */
+    .status-valid {
+        color: #16a34a;
+        font-weight: bold;
+    }
+
+    .status-restricted {
+        color: #dc2626;
+        font-weight: bold;
+    }
+
+    .status-other {
+        color: #6b7280;
+        font-weight: bold;
+    }
+
+    /* 按钮 */
+    .details-btn {
+        margin-top: 12px;
+        padding: 8px 15px;
+        background: #2563eb;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        transition: background 0.2s ease;
+        display: inline-block;
+    }
+
+        .details-btn:hover {
+            background: #1d4ed8;
+        }
+
+</style>
+<div class="card-container">
+    @foreach (var house in Model)
+    {
+        <a asp-controller="Home" asp-action="OwnerDetails" asp-route-id="@house.Id" class="property-card">
+            <img src="@house.ImageUrl" alt="House Image" class="property-image" />
+            <div class="property-body">
+                <div class="property-title">@house.RoomName (@house.RoomType)</div>
+                <div class="property-price">$@house.Price</div>
+                <div class="property-info">Rooms: @house.Rooms | Sqft: @house.Sqft</div>
+                <div class="property-info">Address: @house.Address</div>
+                <div class="property-info @(house.RoomStatus?.ToLower() == "valid" ? "status-valid" :
+                                                                                                  house.RoomStatus?.ToLower() == "restricted" ? "status-restricted" :
+                                                                                                  "status-other")">
+                Status: @house.RoomStatus
+            </div>
+        </div>
+    </a>
+        }
+</div>

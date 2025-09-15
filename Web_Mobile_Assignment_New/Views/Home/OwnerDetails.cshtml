@@ -148,17 +148,13 @@
 </style>
 
 
-<form asp-action="UpdateProperty" asp-controller="Admin" method="post">
+<form asp-action="UpdateProperty" asp-controller="Home" method="post">
     <div class="house-card">
         <img src="@Model.ImageUrl" alt="House Image" class="house-img" />
         <hr>
 
+        <input asp-for="Id" type="hidden"  />
         <input asp-for="ImageUrl" type="hidden" />
-
-        <div class="field">
-            <label>ID:</label>
-            <input asp-for="Id" type="text" readonly />
-        </div>
 
         <div class="field">
             <label>Room Name:</label>
@@ -216,28 +212,16 @@
             <input asp-for="Sqft" type="number" />
         </div>
 
-        <div class="field">
-            <label>Status:</label>
-		<input asp-for="RoomStatus" type="text" readonly />
-        </div>
 
         <div class="btn-group">
             <button type="submit" class="btn-submit btn-save">💾 Save</button>
-            <a asp-action="PropertyDetails" asp-controller="Admin" asp-route-id="@Model.Id" class="btn-submit btn-reset">↩ Reset</a>
-            <a asp-action="PropertyManagement" asp-controller="Admin" class="btn-submit btn-back">⬅ Back</a>
+            <a asp-action="OwnerDetails" asp-controller="Home" asp-route-id="@Model.Id" class="btn-submit btn-reset">↩ Reset</a>
+            <a asp-action="Owner" asp-controller="Home" class="btn-submit btn-back">⬅ Back</a>
         </div>
 
         <div class="btn-group btn-group-status">
-            @if (Model.RoomStatus == "valid")
-            {
-                <a asp-controller="Admin" asp-action="RestrictedProperty" asp-route-id="@Model.Id" class="btn-submit btn-restricted">❌ Restricted Property</a>
-            }
-            else
-            {
-                <a asp-controller="Admin" asp-action="ValidProperty" asp-route-id="@Model.Id" class="btn-submit btn-valid">✅ Valid Property</a>
-            }
 
-            <button formaction="@Url.Action("PropertyDelete", "Admin")"
+            <button formaction="@Url.Action("PropertyDelete", "Home")"
                     formmethod="post"
                     name="id"
                     value="@Model.Id"
@@ -245,6 +229,7 @@
                     onclick="return confirm('Are you sure you want to delete this property?');">
                 🗑 Delete
             </button>
+
         </div>
 
 

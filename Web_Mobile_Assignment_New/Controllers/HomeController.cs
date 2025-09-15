@@ -1,12 +1,14 @@
 ﻿using System;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using QRCoder;
 using Web_Mobile_Assignment_New.Models;
-using System.Collections.Generic;
+using ZXing.QrCode.Internal;
 
 namespace Web_Mobile_Assignment_New.Controllers
 {
@@ -64,6 +66,7 @@ namespace Web_Mobile_Assignment_New.Controllers
         [HttpPost]
         public async Task<IActionResult> AddHouse(House house, List<IFormFile> ImageFiles)
         {
+            // Rooms validation
             if (house.RoomType == "Whole Unit")
             {
                 if (house.Rooms < 1 || house.Rooms > 8)
@@ -76,40 +79,48 @@ namespace Web_Mobile_Assignment_New.Controllers
                 house.Rooms = 1;
             }
 
+            // Rental period validation
+            if (house.StartDate.HasValue && house.EndDate.HasValue)
+            {
+                if (ImageFile != null && ImageFile.Length > 0)
+                {
+                    ModelState.AddModelError("EndDate", "End Date must be later than Start Date.");
+                }
+                else if (house.StartDate < DateTime.Today)
+                {
+                    ModelState.AddModelError("StartDate", "Start Date cannot be in the past.");
+                }
+            }
+            else
+            {
+                ModelState.AddModelError("StartDate", "Both Start Date and End Date are required.");
+            }
+
+            // ✅ Image required
+            if (ImageFile == null || ImageFile.Length == 0)
+            {
+                ModelState.AddModelError("ImageFile", "An image is required.");
+            }
+
             if (ModelState.IsValid)
             {
-                _context.Houses.Add(house);
-                await _context.SaveChangesAsync();
-
-                if (ImageFiles != null && ImageFiles.Count > 0)
+                // Save image
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images");
+                if (!Directory.Exists(uploadsFolder))
                 {
-                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images");
-                    if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(ImageFile.FileName);
+                    var filePath = Path.Combine(uploadsFolder, fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
                     {
-                        Directory.CreateDirectory(uploadsFolder);
+                        await ImageFile.CopyToAsync(stream);
                     }
 
-                    foreach (var file in ImageFiles)
-                    {
-                        if (file.Length > 0)
-                        {
-                            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-                            var filePath = Path.Combine(uploadsFolder, fileName);
-
-                            using (var stream = new FileStream(filePath, FileMode.Create))
-                            {
-                                await file.CopyToAsync(stream);
-                            }
-
-                            var houseImage = new HouseImage
-                            {
-                                HouseId = house.Id,
-                                ImageUrl = "/images/" + fileName
-                            };
-
-                            _context.HouseImages.Add(houseImage);
-                        }
-                    }
+                    house.ImageUrl = "/images/" + fileName;
+                }
 
                     await _context.SaveChangesAsync();
                 }
@@ -119,6 +130,8 @@ namespace Web_Mobile_Assignment_New.Controllers
 
             return View(house);
         }
+
+
 
         // 房子详情 + 评论
         public async Task<IActionResult> Details(int id)
@@ -169,8 +182,13 @@ namespace Web_Mobile_Assignment_New.Controllers
         public IActionResult Both() => View();
 
         [Authorize(Roles = "Owner")]
-        public IActionResult Owner() => View();
-
+        public IActionResult Owner()
+        {
+            var UserEmail = User.Identity?.Name ?? "guest@example.com";
+            var value = _context.Houses.Where(h => h.Id == 4).ToList();
+            return View(value);
+        }
+        
         [Authorize(Roles = "Admin")]
         public IActionResult Admin() => View();
 
@@ -178,9 +196,10 @@ namespace Web_Mobile_Assignment_New.Controllers
         public IActionResult Tenant() => View();
 
         // ================= RENTING ==================
+        [Authorize(Roles = "Tenant")]
         public IActionResult Rent(int id)
         {
-            var house = _context.Houses.FirstOrDefaultAsync(h => h.Id == id);
+            var house = _context.Houses.FirstOrDefault(h => h.Id == id);
             if (house == null) return NotFound();
 
             // Pull booked ranges for this house
@@ -215,7 +234,7 @@ namespace Web_Mobile_Assignment_New.Controllers
                 return View("Rent", house);
             }
 
-            // ✅ Check if dates are already booked
+            // Check if dates are available
             if (!IsDateAvailable(id, startDate, endDate))
             {
                 ModelState.AddModelError("", "Selected dates are not available.");
@@ -229,6 +248,7 @@ namespace Web_Mobile_Assignment_New.Controllers
             int totalDays = (endDate - startDate).Days + 1;
             decimal totalPrice = totalDays * houseData.Price;
 
+            // Create booking
             var booking = new Booking
             {
                 HouseId = houseData.Id,
@@ -239,10 +259,23 @@ namespace Web_Mobile_Assignment_New.Controllers
             };
 
             _context.Bookings.Add(booking);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
+
+            // Create payment record with status "Pending"
+            var payment = new Payment
+            {
+                BookingId = booking.BookingId,
+                Method = "",               // will be chosen later in Payment page
+                Amount = totalPrice,
+                PaymentDate = DateTime.Now,
+                Status = "Pending"
+            };
+            _context.Payments.Add(payment);
+            await _context.SaveChangesAsync();
 
             return RedirectToAction("Payment", new { bookingId = booking.BookingId });
         }
+
 
 
 
@@ -273,7 +306,11 @@ namespace Web_Mobile_Assignment_New.Controllers
                 existingPayment.Method = paymentMethod;
                 existingPayment.Amount = booking.TotalPrice;
                 existingPayment.PaymentDate = DateTime.Now;
-                existingPayment.Status = "Completed";
+
+                if (paymentMethod == "QRPayment")
+                    existingPayment.Status = "Pending";   // pending for QR
+                else
+                    existingPayment.Status = "Completed"; // immediate for CreditCard
             }
             else
             {
@@ -283,33 +320,33 @@ namespace Web_Mobile_Assignment_New.Controllers
                     Method = paymentMethod,
                     Amount = booking.TotalPrice,
                     PaymentDate = DateTime.Now,
-                    Status = "Completed"
+                    Status = paymentMethod == "QRPayment" ? "Pending" : "Completed"
                 };
                 _context.Payments.Add(payment);
             }
 
-            // ✅ Only mark house as "Rented" if ALL dates are booked
-            if (IsHouseFullyBooked(booking.HouseId))
+            _context.SaveChanges();
+
+            // ✅ Only mark house as "Rented" if ALL dates are booked and payment is completed
+            if (paymentMethod != "QRPayment" && IsHouseFullyBooked(booking.HouseId))
             {
                 var house = _context.Houses.FirstOrDefault(h => h.Id == booking.HouseId);
                 if (house != null)
                 {
-                    house.RoomStatus = "Rented";   // ✅ fully booked
-                    _context.SaveChanges();
-                }
-            }
-            else
-            {
-                var house = _context.Houses.FirstOrDefault(h => h.Id == booking.HouseId);
-                if (house != null)
-                {
-                    house.RoomStatus = "Available"; // ✅ still has free days
+                    house.RoomStatus = "Rented";
                     _context.SaveChanges();
                 }
             }
 
+            // Redirect based on payment method
+            if (paymentMethod == "QRPayment")
+            {
+                return RedirectToAction("QRPayment", new { bookingId = bookingId });
+            }
+
             return RedirectToAction("PaymentSuccess", new { bookingId = bookingId });
         }
+
 
 
         private bool IsHouseFullyBooked(int houseId)
@@ -369,5 +406,156 @@ namespace Web_Mobile_Assignment_New.Controllers
 
             return View(booking); // PaymentSuccess.cshtml
         }
+        public IActionResult OwnerDetails(int id)
+        {
+            var ID = _context.Houses.Where(h => h.Id == id).FirstOrDefault();
+            return View(ID);
+
+        }
+
+        public IActionResult PropertyDelete(int id)
+        {
+            House? house = _context.Houses.FirstOrDefault(h => h.Id == id);
+            if (house != null)
+            {
+                _context.Houses.Remove(house);
+                _context.SaveChanges();
+                TempData["Message"] = "Deleted Susscesful.";
+            }
+            else
+            {
+                TempData["Message"] = "Deleted Failed, no releted house.";
+            }
+            return RedirectToAction("OwnerDetails");
+        }
+
+        public IActionResult PropertyDetails(int id)
+        {
+            if (id is 0) return NotFound();
+
+            House? house = _context.Houses.FirstOrDefault(h => h.Id == id);
+            if (house == null) return NotFound();
+
+            return View(house);
+        }
+        public IActionResult UpdateProperty(House model)
+        {
+            var existing = _context.Houses.FirstOrDefault(h => h.Id == model.Id);
+            if (existing == null)
+            {
+                TempData["Message"] = "House not found";
+                return RedirectToAction("Owner");
+            }
+                
+            // 更新允许修改的字段
+            existing.RoomName = model.RoomName;
+            existing.RoomType = model.RoomType;
+            existing.Rooms = model.Rooms;
+            existing.Bathrooms = model.Bathrooms;
+            existing.Furnishing = model.Furnishing;
+            existing.Price = model.Price;
+            existing.StartDate = model.StartDate;
+            existing.EndDate = model.EndDate;
+            existing.Address = model.Address;
+            existing.Sqft = model.Sqft;
+            existing.RoomStatus = model.RoomStatus;
+
+            // 如果你希望图片也可以修改，需要确保前端有 Hidden Input
+            if (!string.IsNullOrEmpty(model.ImageUrl))
+                existing.ImageUrl = model.ImageUrl;
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                              .Select(e => e.ErrorMessage)
+                                              .ToList();
+                TempData["Message"] = string.Join("; ", errors);
+                return RedirectToAction("OwnerDetails", new { id = model.Id });
+            }
+
+            _context.SaveChanges();
+            TempData["Message"] = "Property Change Successful";
+            return RedirectToAction("OwnerDetails", new { id = model.Id });
+        }
+    }
+
+
+        [HttpPost]
+        public IActionResult CancelPayment(int bookingId)
+        {
+            var booking = _context.Bookings
+                .Include(b => b.House)
+                .FirstOrDefault(b => b.BookingId == bookingId);
+
+            if (booking == null) return NotFound();
+
+            // Remove payment if exists
+            var payment = _context.Payments.FirstOrDefault(p => p.BookingId == bookingId);
+            if (payment != null)
+            {
+                _context.Payments.Remove(payment);
+            }
+
+            // Remove booking
+            _context.Bookings.Remove(booking);
+            _context.SaveChanges();
+
+            // Update house status if needed
+            var house = booking.House;
+            if (house != null)
+            {
+                if (IsHouseFullyBooked(house.Id))
+                {
+                    house.RoomStatus = "Rented";
+                }
+                else
+                {
+                    house.RoomStatus = "Available";
+                }
+                _context.SaveChanges();
+            }
+
+            TempData["Message"] = "Booking has been cancelled successfully.";
+            return RedirectToAction("Index");
+        }
+
+        public IActionResult QRPayment(int bookingId)
+        {
+            var booking = _context.Bookings
+                .Include(b => b.House)
+                .FirstOrDefault(b => b.BookingId == bookingId);
+
+            if (booking == null) return NotFound();
+
+            return View(booking); // QRPayment.cshtml
+        }
+
+        [HttpPost]
+        public IActionResult ConfirmQRPayment([FromBody] ConfirmQRPaymentRequest request)
+        {
+            var payment = _context.Payments
+                .FirstOrDefault(p => p.BookingId == request.BookingId && p.Status == "Pending");
+
+            if (payment == null)
+                return Json(new { success = false });
+
+            payment.Status = "Completed";
+            _context.SaveChanges();
+
+            // Update house status if fully booked
+            var booking = _context.Bookings.FirstOrDefault(b => b.BookingId == request.BookingId);
+            if (booking != null && IsHouseFullyBooked(booking.HouseId))
+            {
+                var house = _context.Houses.FirstOrDefault(h => h.Id == booking.HouseId);
+                if (house != null)
+                {
+                    house.RoomStatus = "Rented";
+                    _context.SaveChanges();
+                }
+            }
+
+            return Json(new { success = true });
+        }
+
     }
 }

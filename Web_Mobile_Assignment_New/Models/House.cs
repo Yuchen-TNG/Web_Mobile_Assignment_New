@@ -28,7 +28,10 @@ namespace Web_Mobile_Assignment_New.Models
 
         public string? ImageUrl { get; set; }
         public string? Other { get; set; }
+
+        [Required(ErrorMessage = "Room Name is required.")]
         public string? RoomName { get; set; }
+
         public string RoomStatus { get; set; } = "Valid"; // 默认值
 
         [DataType(DataType.Date)]

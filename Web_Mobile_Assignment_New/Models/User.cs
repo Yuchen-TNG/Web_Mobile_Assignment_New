@@ -125,6 +125,12 @@ public class VerifyCodeVM
 
 }
 
+public class ReportHouseViewModel
+{
+    public Report Reports { get; set; }
+    public House Houses { get; set; }
+}
+
 
 
 

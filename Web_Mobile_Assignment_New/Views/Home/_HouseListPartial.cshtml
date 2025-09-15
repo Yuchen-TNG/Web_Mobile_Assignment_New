@@ -1,0 +1,28 @@
+﻿@model List<Web_Mobile_Assignment_New.Models.House>
+
+<div class="row">
+    @foreach (var house in Model)
+    {
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5>@house.RoomType</h5>
+                    <p>@house.Address</p>
+                    <p><strong>RM @house.Price</strong></p>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- 分页按钮 -->
+<nav>
+    <ul class="pagination justify-content-center">
+        @for (int i = 1; i <= ViewBag.TotalPages; i++)
+        {
+            <li class="page-item @(ViewBag.Page == i ? "active" : "")">
+                <a href="#" class="page-link page-btn" data-page="@i">@i</a>
+            </li>
+        }
+    </ul>
+</nav>

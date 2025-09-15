@@ -33,14 +33,14 @@
             <!-- 卫生间 -->
             <div class="col-md-6">
                 <label asp-for="Bathrooms" class="form-label">Bathrooms</label>
-                <input asp-for="Bathrooms" class="form-control" type="number" min="1" />
+                <input asp-for="Bathrooms" class="form-control" id="Bathrooms" type="number" min="1" max="6" required />
                 <span asp-validation-for="Bathrooms" class="text-danger"></span>
             </div>
 
             <!-- 面积 -->
             <div class="col-md-6">
                 <label asp-for="Sqft" class="form-label">Sqft</label>
-                <input asp-for="Sqft" class="form-control" type="number" />
+                <input asp-for="Sqft" class="form-control" id="Sqft" type="number" min="700" required />
                 <span asp-validation-for="Sqft" class="text-danger"></span>
             </div>
 
@@ -58,10 +58,9 @@
                 <span asp-validation-for="Address" class="text-danger"></span>
             </div>
 
-            <!-- 图片 -->
             <div class="col-md-12">
-                <label class="form-label">Upload Image</label>
-                <input type="file" name="ImageFile" class="form-control" />
+                <label class="form-label">Upload Images</label>
+                <input type="file" name="ImageFiles" class="form-control" multiple />
             </div>
 
             <!-- 备注 -->
@@ -111,20 +110,45 @@
         document.addEventListener("DOMContentLoaded", function () {
             const roomTypeSelect = document.getElementById("RoomType");
             const roomsInput = document.getElementById("Rooms");
+            const bathroomsInput = document.getElementById("Bathrooms");
+            const sqftInput = document.getElementById("Sqft");
 
-            function updateRoomsField() {
+            function updateFields() {
                 if (roomTypeSelect.value === "Whole Unit") {
+                    // ✅ Whole Unit: 房间 & 厕所自由调整
                     roomsInput.removeAttribute("readonly");
                     roomsInput.setAttribute("min", "1");
                     roomsInput.setAttribute("max", "8");
+
+                    bathroomsInput.removeAttribute("readonly");
+                    bathroomsInput.setAttribute("min", "1");
+                    bathroomsInput.setAttribute("max", "6");
                 } else {
+                    // ✅ 其它房型: 固定 = 1
                     roomsInput.value = 1;
                     roomsInput.setAttribute("readonly", "readonly");
+
+                    bathroomsInput.value = 1;
+                    bathroomsInput.setAttribute("readonly", "readonly");
                 }
+
+                // ✅ Sqft 最小值 700
+                if (sqftInput.value < 700) {
+                    sqftInput.value = 700;
+                }
+                sqftInput.setAttribute("min", "700");
             }
 
-            roomTypeSelect.addEventListener("change", updateRoomsField);
-            updateRoomsField();
+            roomTypeSelect.addEventListener("change", updateFields);
+
+            sqftInput.addEventListener("input", function () {
+                if (sqftInput.value < 700) {
+                    sqftInput.value = 700;
+                }
+            });
+
+            // 初始化运行一次
+            updateFields();
         });
     </script>
 }

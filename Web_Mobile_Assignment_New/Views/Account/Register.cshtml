@@ -200,7 +200,7 @@
 
                 <div class="form-group">
                     <label asp-for="Birthday">Birthday</label>
-                    <input asp-for="Birthday" type="date">
+                    <input asp-for="Birthday" type="date" max="@DateTime.Now.ToString("yyyy-MM-dd")">
                 </div>
                 <span asp-validation-for="Birthday"></span>
 

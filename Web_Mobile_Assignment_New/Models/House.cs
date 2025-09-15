@@ -56,6 +56,10 @@ namespace Web_Mobile_Assignment_New.Models
         public ICollection<HouseReview> Reviews { get; set; } = new List<HouseReview>();
         public ICollection<HouseImage> Images { get; set; } = new List<HouseImage>();
 
-        public string Email { get; set; } = "";
+        // 🔑 外键，指向 Owner
+        [Required]
+        public string Email { get; set; }
+        public Owner Owner { get; set; }
+
     }
 }

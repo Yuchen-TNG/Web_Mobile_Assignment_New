@@ -131,6 +131,7 @@ namespace Web_Mobile_Assignment_New.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RoomStatus")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RoomType")

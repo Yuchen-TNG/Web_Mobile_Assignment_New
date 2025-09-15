@@ -23,24 +23,14 @@ extra
 
 yuchen 
 
--出租时间 要有一个limit
- 也要validation（比如说时间今天开始，不能以前开始）（start date 31/06/2025,end date不可以是start date以前的比如说30/06/2025）
--search boleh buat apa
--when add house, house should auto assign valid value in houseStatus
--每次添加新的database的时候，一定要赋予email（这是获得session email的code{var UserEmail = User.Identity?.Name ?? "guest@example.com";}）
-
 extra
 -owner上传的property全部都要等admin accept才可以(这个就是要开新的database，然后pending他是否被accept了)
--multiple photo for house photo
 -property management 可以加show照片（在list）
 
 
 leon
-
 extra
 email 跳gmail 然后 auto fill recipient 的email
-
-
 
 additional:
 address link google map
@@ -63,13 +53,3 @@ searching
 举报问题 (Report Issue)
 针对合同、付款、维修服务等异常情况提交举报。
 
-
-
-
-
-
-
-kz users database
-tankaizhen2006@gmail.com	tan	AQAAAAIAAYagAAAAEJFfhpNF2Ufp3j7f/a9Gn/XVgAwga/UrY80c44wtRyGXJHnQNYwh/GxN89xYzFYbhw==	9/9/2025	Admin		valid
-chenkaizhen2006@gmail.com	tan	AQAAAAIAAYagAAAAEJFfhpNF2Ufp3j7f/a9Gn/XVgAwga/UrY80c44wtRyGXJHnQNYwh/GxN89xYzFYbhw==	9/9/2025	Owner	254fe160bf20451ebda621f3148c2ef5.jpg	valid
-chankaizhen2006@gmail.com	tan	AQAAAAIAAYagAAAAEJFfhpNF2Ufp3j7f/a9Gn/XVgAwga/UrY80c44wtRyGXJHnQNYwh/GxN89xYzFYbhw==	9/9/2025	Tenant	254fe160bf20451ebda621f3148c2ef5.jpg	valid4fe160bf20451ebda621f3148c2ef5.jpg	valid

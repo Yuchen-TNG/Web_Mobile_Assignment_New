@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Web_Mobile_Assignment_New.Migrations
 {
     /// <inheritdoc />
-    public partial class tandb : Migration
+    public partial class meow : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -26,7 +26,7 @@ namespace Web_Mobile_Assignment_New.Migrations
                     ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Other = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     RoomName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    RoomStatus = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    RoomStatus = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Furnishing = table.Column<string>(type: "nvarchar(max)", nullable: true),

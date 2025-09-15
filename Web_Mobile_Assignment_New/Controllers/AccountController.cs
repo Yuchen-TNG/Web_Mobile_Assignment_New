@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Net.Mail;
@@ -552,6 +553,15 @@ public class AccountController : Controller
         ";
 
         hp.SendEmail(mail);
+    }
+
+    // AccountController.cs
+    [Authorize]
+    public async Task<IActionResult> DeletedAccount()
+    {
+        await HttpContext.SignOutAsync();
+        TempData["Error"] = "This account has been deleted from the system.";
+        return RedirectToAction("Login");
     }
 
 

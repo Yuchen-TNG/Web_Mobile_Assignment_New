@@ -76,12 +76,15 @@
             <p>Flexible</p>
         }
 
-        <a href="@Url.Action("Rent", "Home", new { id = Model.Id })" class="btn btn-primary btn-lg w-100 mt-3">
-            <i class="fa-solid fa-key"></i> Rent This House
-        </a>
-        <button type="button" class="btn btn-danger btn-lg w-100 mt-2" data-bs-toggle="modal" data-bs-target="#reportModal">
-            <i class="fa-solid fa-flag"></i> Report This House
-        </button>
+        @if (!User.IsInRole("Owner"))
+        {
+            <a href="@Url.Action("Rent", "Home", new { id = Model.Id })" class="btn btn-primary btn-lg w-100 mt-3">
+                <i class="fa-solid fa-key"></i> Rent This House
+            </a>
+            <button type="button" class="btn btn-danger btn-lg w-100 mt-2" data-bs-toggle="modal" data-bs-target="#reportModal">
+                <i class="fa-solid fa-flag"></i> Report This House
+            </button>
+        }
 
     </div>
 </div>
@@ -89,7 +92,16 @@
 <div class="mt-4 p-3 bg-light rounded shadow-sm">
     <h5 class="fw-semibold"><i class="fa-solid fa-map-marker-alt"></i> Address</h5>
     <p>@Model.Address</p>
+    @if (!string.IsNullOrEmpty(Model.Address))
+    {
+        <a href="https://www.google.com/maps/search/?api=1&query=@Uri.EscapeDataString(Model.Address)"
+           target="_blank" class="btn btn-outline-primary btn-sm mt-2">
+            <i class="fa-brands fa-google"></i> View on Google Maps
+        </a>
+    }
 </div>
+
+
 
 <!-- ⭐ 评论区 -->
 <div class="mt-5">
@@ -101,10 +113,10 @@
         <form asp-action="AddReview" asp-controller="Home" method="post" class="mb-4">
             @Html.AntiForgeryToken()
             <input type="hidden" name="houseId" value="@Model.Id" />
-
             <div class="mb-3">
-                <label class="form-label">Your Rating</label><br />
+                <label class="form-label">Your Rating (optional)</label><br />
                 <div class="star-rating d-flex justify-content-start">
+                    <input type="radio" id="star0" name="rating" value="0" style="display:none;" checked />
                     @for (int i = 1; i <= 5; i++)
                     {
                         <input type="radio" id="star@i" name="rating" value="@i" style="display:none;" />
@@ -114,6 +126,7 @@
                     }
                 </div>
             </div>
+
 
             <div class="mb-3">
                 <label class="form-label">Your Comment</label>

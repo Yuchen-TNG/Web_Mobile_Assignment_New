@@ -289,10 +289,9 @@
 
                 if (user == null)
                 {
-                    <div class="alert alert-danger text-center" style="margin-top:20px;">
-                        This account has been deleted from the system.
-                        <a href="/Account/Logout" class="btn btn-sm btn-danger ms-2">Logout</a>
-                    </div>
+                    <script>
+                        window.location.href = '/Account/DeletedAccount';
+                    </script>
                 }
                 else
                 {

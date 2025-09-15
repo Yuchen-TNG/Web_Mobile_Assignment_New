@@ -63,13 +63,14 @@ namespace Web_Mobile_Assignment_New.Controllers
         {
             return View();
         }
-
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddHouse(House house, List<IFormFile> ImageFiles)
         {
-            house.Email = User.Identity?.Name ?? "guest@example.com";
+            // ✅ 自动设置状态为 "Available"
+            house.RoomStatus = "Valid";
 
-            // Rooms validation
+            // ✅ 房间数验证
             if (house.RoomType == "Whole Unit")
             {
                 if (house.Rooms < 1 || house.Rooms > 8)
@@ -79,24 +80,50 @@ namespace Web_Mobile_Assignment_New.Controllers
             }
             else
             {
-                house.Rooms = 1;
+                house.Rooms = 1; // 单间固定 1
             }
 
-            // Rental period validation
-            if (house.StartDate.HasValue && house.EndDate.HasValue)
+            // ✅ Bathrooms 验证
+            if (house.RoomType == "Whole Unit")
             {
-                if (house.EndDate <= house.StartDate)
+                if (house.Bathrooms < 1 || house.Bathrooms > 6)
                 {
-                    ModelState.AddModelError("EndDate", "End Date must be later than Start Date.");
-                }
-                else if (house.StartDate < DateTime.Today)
-                {
-                    ModelState.AddModelError("StartDate", "Start Date cannot be in the past.");
+                    ModelState.AddModelError("Bathrooms", "For Whole Unit, bathrooms must be between 1 and 6.");
                 }
             }
             else
             {
+                house.Bathrooms = 1;
+            }
+
+            // ✅ 租期验证
+            if (!house.StartDate.HasValue || !house.EndDate.HasValue)
+            {
                 ModelState.AddModelError("StartDate", "Both Start Date and End Date are required.");
+            }
+            else
+            {
+                if (house.StartDate < DateTime.Today)
+                {
+                    ModelState.AddModelError("StartDate", "Start Date cannot be in the past.");
+                }
+
+                if (house.EndDate <= house.StartDate)
+                {
+                    ModelState.AddModelError("EndDate", "End Date must be later than Start Date.");
+                }
+
+                // 🔥 限制租期：Whole Unit 最长 2 年，其他最多 1 年
+                var maxDuration = house.RoomType == "Whole Unit" ? 730 : 365; // 天数
+                var duration = (house.EndDate.Value - house.StartDate.Value).TotalDays;
+
+                if (duration > maxDuration)
+                {
+                    ModelState.AddModelError("EndDate",
+                        house.RoomType == "Whole Unit"
+                            ? "Whole Unit rental cannot exceed 2 years."
+                            : "Rental for this room type cannot exceed 1 year.");
+                }
             }
 
             // ✅ 至少要有一张图片
@@ -105,68 +132,76 @@ namespace Web_Mobile_Assignment_New.Controllers
                 ModelState.AddModelError("ImageFiles", "At least one image is required.");
             }
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images");
-                if (!Directory.Exists(uploadsFolder))
+                return View(house);
+            }
+
+            // ✅ 保存房源（先存 House 才能拿到 Id）
+            _context.Houses.Add(house);
+            await _context.SaveChangesAsync();
+
+            // ✅ 上传图片
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images");
+            if (!Directory.Exists(uploadsFolder))
+            {
+                Directory.CreateDirectory(uploadsFolder);
+            }
+
+            bool isFirstImage = true;
+
+            foreach (var file in ImageFiles)
+            {
+                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
                 {
-                    Directory.CreateDirectory(uploadsFolder);
+                    await file.CopyToAsync(stream);
                 }
 
-                foreach (var file in ImageFiles)
+                var houseImage = new HouseImage
                 {
-                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-                    var filePath = Path.Combine(uploadsFolder, fileName);
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await file.CopyToAsync(stream);
-                    }
-
-                    // 如果 House 有 Images 表（多图）
-                    var houseImage = new HouseImage
-                    {
-                        House = house,
-                        ImageUrl = "/images/" + fileName
-                    };
-                    _context.HouseImages.Add(houseImage);
+                    HouseId = house.Id,
+                    ImageUrl = "/images/" + fileName
+                };
+                _context.HouseImages.Add(houseImage);
 
                     // 如果只存一张图 → 也可以设置默认封面
                     if (string.IsNullOrEmpty(house.ImageUrl))
                         house.ImageUrl = "/images/" + fileName;
-
                 }
 
-                _context.Houses.Add(house);
-                await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
 
-                return RedirectToAction("Index");
-            }
-
-            return View(house);
+            return RedirectToAction("Index");
         }
-
-
-
 
         // 房子详情 + 评论
         public async Task<IActionResult> Details(int id)
         {
             var house = await _context.Houses
-                .Include(h => h.Images)   // 加载图片
-                .Include(h => h.Reviews)  // 加载评论
+                .Include(h => h.Images)
+                .Include(h => h.Reviews)
                 .FirstOrDefaultAsync(h => h.Id == id);
 
             if (house == null) return NotFound();
 
+            // Determine if current user is owner
+            var userEmail = User.Identity.IsAuthenticated ? User.Identity.Name : null;
+            bool isOwner = userEmail != null && userEmail == house.Email;
+
+            ViewBag.IsOwner = isOwner;
+
             ViewBag.AvgRating = (house.Reviews != null && house.Reviews.Any())
                 ? house.Reviews.Average(r => r.Rating)
                 : 0;
-
             ViewBag.TotalReviews = house.Reviews?.Count ?? 0;
 
             return View(house);
         }
+
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]

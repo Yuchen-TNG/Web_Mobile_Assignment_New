@@ -4,6 +4,25 @@
     ViewBag.Title = "Account | Login";
 }
 
+@if (TempData["Error"] is string errorMessage)
+{
+    <div id="tempAlert" class="alert alert-danger alert-dismissible fade show text-center shadow"
+         style="max-width: 500px; margin: 20px auto;" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>@errorMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <script>
+        setTimeout(() => {
+            let alertBox = document.getElementById("tempAlert");
+            if (alertBox) {
+                let bsAlert = bootstrap.Alert.getOrCreateInstance(alertBox);
+                bsAlert.close();
+            }
+        }, 4000); // 4 秒后自动关闭
+    </script>
+}
+
 @section head {
     <style>
         body {

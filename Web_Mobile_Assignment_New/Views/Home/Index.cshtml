@@ -63,9 +63,18 @@
         {
             <div class="col-md-3 mb-4">
                 <div class="card shadow-sm" style="width: 100%; overflow: hidden;">
-                    @if (!string.IsNullOrEmpty(house.ImageUrl))
+
+                    @* ✅ 优先显示 House.Images 的第一张 *@
+                    @if (house.Images != null && house.Images.Any())
                     {
-                        <img src="@house.ImageUrl" alt="House Image"
+                        <img src="@house.Images.First().ImageUrl"
+                             alt="House Image"
+                             style="width: 100%; height: 180px; object-fit: cover;" />
+                    }
+                    else if (!string.IsNullOrEmpty(house.ImageUrl))
+                    {
+                        <img src="@house.ImageUrl"
+                             alt="House Image"
                              style="width: 100%; height: 180px; object-fit: cover;" />
                     }
                     else

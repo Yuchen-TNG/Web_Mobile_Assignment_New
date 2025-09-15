@@ -92,7 +92,16 @@
 <div class="mt-4 p-3 bg-light rounded shadow-sm">
     <h5 class="fw-semibold"><i class="fa-solid fa-map-marker-alt"></i> Address</h5>
     <p>@Model.Address</p>
+    @if (!string.IsNullOrEmpty(Model.Address))
+    {
+        <a href="https://www.google.com/maps/search/?api=1&query=@Uri.EscapeDataString(Model.Address)"
+           target="_blank" class="btn btn-outline-primary btn-sm mt-2">
+            <i class="fa-brands fa-google"></i> View on Google Maps
+        </a>
+    }
 </div>
+
+
 
 <!-- ⭐ 评论区 -->
 <div class="mt-5">

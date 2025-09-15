@@ -181,20 +181,26 @@ namespace Web_Mobile_Assignment_New.Controllers
         public async Task<IActionResult> Details(int id)
         {
             var house = await _context.Houses
-                .Include(h => h.Images)   // 加载图片
-                .Include(h => h.Reviews)  // 加载评论
+                .Include(h => h.Images)
+                .Include(h => h.Reviews)
                 .FirstOrDefaultAsync(h => h.Id == id);
 
             if (house == null) return NotFound();
 
+            // Determine if current user is owner
+            var userEmail = User.Identity.IsAuthenticated ? User.Identity.Name : null;
+            bool isOwner = userEmail != null && userEmail == house.Email;
+
+            ViewBag.IsOwner = isOwner;
+
             ViewBag.AvgRating = (house.Reviews != null && house.Reviews.Any())
                 ? house.Reviews.Average(r => r.Rating)
                 : 0;
-
             ViewBag.TotalReviews = house.Reviews?.Count ?? 0;
 
             return View(house);
         }
+
 
 
         [HttpPost]

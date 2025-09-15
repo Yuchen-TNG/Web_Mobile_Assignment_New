@@ -1,4 +1,4 @@
-﻿using Web_Mobile_Assignment_New.Models;
+﻿using Web_Mobile_Assignment_New.Modelss;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Web_Mobile_Assignment_New.Models;
@@ -280,5 +280,40 @@ namespace Web_Mobile_Assignment_New.Controllers
 
             return View(vm);
         }
+
+        public IActionResult ValidReport(int reportId, int houseId)
+        {
+            var report = _context.Reports.FirstOrDefault(r => r.Id == reportId);
+            if (report == null) return NotFound();
+
+            _context.Reports.Remove(report);   // ✅ 删除找到的对象
+            _context.SaveChanges();
+            var house = _context.Houses.FirstOrDefault(r => r.Id == houseId);
+            if (house == null) return NotFound();
+
+            house.RoomStatus = "Valid";
+            _context.SaveChanges();
+
+            TempData["Message"] = "Report deleted (marked as Valid).";
+            return RedirectToAction("ReportManagement"); // 删除后返回列表
+        }
+
+        public IActionResult RestrictedReport(int reportId,int houseId)
+        {
+            var report = _context.Reports.FirstOrDefault(r => r.Id == reportId);
+            if (report == null) return NotFound();
+
+            _context.Reports.Remove(report);   // ✅ 删除找到的对象
+            _context.SaveChanges();
+            var house = _context.Houses.FirstOrDefault(r => r.Id == houseId);
+            if (house == null) return NotFound();
+
+            house.RoomStatus= "Restricted";
+            _context.SaveChanges();
+
+            TempData["Message"] = "Report marked as Restricted.";
+            return RedirectToAction("ReportManagement");
+        }
+
     }
 }

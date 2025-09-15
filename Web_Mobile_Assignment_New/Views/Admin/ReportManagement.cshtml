@@ -3,7 +3,13 @@
 @{
     ViewData["Title"] = "Report Management";
 }
-
+@if (TempData["Message"] != null)
+{
+    var type = TempData["MessageType"]?.ToString() ?? "success";
+    <div class="alert @(type == "success" ? "alert-success" : "alert-error")">
+        @TempData["Message"]
+    </div>
+}
 <div class="report-page">
     <!-- 筛选按钮 -->
     <div class="filter-buttons">

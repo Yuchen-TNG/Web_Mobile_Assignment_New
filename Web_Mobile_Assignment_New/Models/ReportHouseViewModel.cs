@@ -1,4 +1,4 @@
-﻿namespace Web_Mobile_Assignment_New.Models
+﻿namespace Web_Mobile_Assignment_New.Modelss
 {
     // 用来把 Report + House 打包给 View 使用
     public class ReportHouseViewModel2

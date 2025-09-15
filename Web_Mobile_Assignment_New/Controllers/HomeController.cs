@@ -82,7 +82,7 @@ namespace Web_Mobile_Assignment_New.Controllers
             // Rental period validation
             if (house.StartDate.HasValue && house.EndDate.HasValue)
             {
-                if (ImageFile != null && ImageFile.Length > 0)
+                if (house.EndDate <= house.StartDate)
                 {
                     ModelState.AddModelError("EndDate", "End Date must be later than Start Date.");
                 }
@@ -96,40 +96,52 @@ namespace Web_Mobile_Assignment_New.Controllers
                 ModelState.AddModelError("StartDate", "Both Start Date and End Date are required.");
             }
 
-            // ✅ Image required
-            if (ImageFile == null || ImageFile.Length == 0)
+            // ✅ 至少要有一张图片
+            if (ImageFiles == null || !ImageFiles.Any())
             {
-                ModelState.AddModelError("ImageFile", "An image is required.");
+                ModelState.AddModelError("ImageFiles", "At least one image is required.");
             }
 
             if (ModelState.IsValid)
             {
-                // Save image
                 var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images");
                 if (!Directory.Exists(uploadsFolder))
                 {
                     Directory.CreateDirectory(uploadsFolder);
                 }
 
-                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(ImageFile.FileName);
+                foreach (var file in ImageFiles)
+                {
+                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
                     var filePath = Path.Combine(uploadsFolder, fileName);
 
                     using (var stream = new FileStream(filePath, FileMode.Create))
                     {
-                        await ImageFile.CopyToAsync(stream);
+                        await file.CopyToAsync(stream);
                     }
 
-                    house.ImageUrl = "/images/" + fileName;
+                    // 如果 House 有 Images 表（多图）
+                    var houseImage = new HouseImage
+                    {
+                        House = house,
+                        ImageUrl = "/images/" + fileName
+                    };
+                    _context.HouseImages.Add(houseImage);
+
+                    // 如果只存一张图 → 也可以设置默认封面
+                    if (string.IsNullOrEmpty(house.ImageUrl))
+                        house.ImageUrl = "/images/" + fileName;
                 }
 
-                    await _context.SaveChangesAsync();
-                }
+                _context.Houses.Add(house);
+                await _context.SaveChangesAsync();
 
                 return RedirectToAction("Index");
             }
 
             return View(house);
         }
+
 
 
 
@@ -477,7 +489,7 @@ namespace Web_Mobile_Assignment_New.Controllers
             TempData["Message"] = "Property Change Successful";
             return RedirectToAction("OwnerDetails", new { id = model.Id });
         }
-    }
+    
 
 
         [HttpPost]

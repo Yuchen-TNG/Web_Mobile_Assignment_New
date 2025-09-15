@@ -38,10 +38,11 @@
             </div>
 
             <!-- 面积 -->
-            <div class="col-md-6">
-                <label asp-for="Sqft" class="form-label">Sqft</label>
-                <input asp-for="Sqft" class="form-control" id="Sqft" type="number" min="700" required />
-                <span asp-validation-for="Sqft" class="text-danger"></span>
+            <!-- 图片 -->
+            <div class="col-md-12">
+                <label class="form-label">Upload Image</label>
+                <input type="file" name="ImageFile" class="form-control" required />
+                <span asp-validation-for="ImageUrl" class="text-danger"></span>
             </div>
 
             <!-- 价格 -->

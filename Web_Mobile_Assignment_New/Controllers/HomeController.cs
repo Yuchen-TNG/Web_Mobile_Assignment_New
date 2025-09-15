@@ -68,7 +68,7 @@ namespace Web_Mobile_Assignment_New.Controllers
         public async Task<IActionResult> AddHouse(House house, List<IFormFile> ImageFiles)
         {
             // ✅ 自动设置状态为 "Available"
-            house.RoomStatus = "Available";
+            house.RoomStatus = "Valid";
 
             // ✅ 房间数验证
             if (house.RoomType == "Whole Unit")

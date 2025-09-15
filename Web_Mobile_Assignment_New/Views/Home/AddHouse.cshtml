@@ -1,5 +1,6 @@
 ﻿@model Web_Mobile_Assignment_New.Models.House
 
+
 @{
     ViewData["Title"] = "Add House";
 }
@@ -50,7 +51,6 @@
                 <input asp-for="Bathrooms" class="form-control" id="Bathrooms" type="number" min="1" max="6" required />
                 <span asp-validation-for="Bathrooms" class="text-danger"></span>
             </div>
-
             <!-- 面积 -->
             <div class="col-md-6">
                 <label asp-for="Sqft" class="form-label">Area (sqft)</label>
@@ -77,11 +77,6 @@
                 <label asp-for="Address" class="form-label">Address</label>
                 <input asp-for="Address" class="form-control" />
                 <span asp-validation-for="Address" class="text-danger"></span>
-            </div>
-
-            <div class="col-md-12">
-                <label class="form-label">Upload Image</label>
-                <input type="file" name="ImageFile" class="form-control" />
             </div>
 
             <!-- 备注 -->

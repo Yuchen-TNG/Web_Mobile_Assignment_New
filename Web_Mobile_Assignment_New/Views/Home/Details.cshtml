@@ -93,10 +93,10 @@
         <form asp-action="AddReview" asp-controller="Home" method="post" class="mb-4">
             @Html.AntiForgeryToken()
             <input type="hidden" name="houseId" value="@Model.Id" />
-
             <div class="mb-3">
-                <label class="form-label">Your Rating</label><br />
+                <label class="form-label">Your Rating (optional)</label><br />
                 <div class="star-rating d-flex justify-content-start">
+                    <input type="radio" id="star0" name="rating" value="0" style="display:none;" checked />
                     @for (int i = 1; i <= 5; i++)
                     {
                         <input type="radio" id="star@i" name="rating" value="@i" style="display:none;" />
@@ -106,6 +106,7 @@
                     }
                 </div>
             </div>
+
 
             <div class="mb-3">
                 <label class="form-label">Your Comment</label>

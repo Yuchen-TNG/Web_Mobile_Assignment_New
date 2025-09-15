@@ -92,9 +92,9 @@
                 <i class="fa-solid fa-flag"></i> Report This House
             </button>
         }
-        else
+        else if (!User.Identity.IsAuthenticated)
         {
-            <!-- Not logged in or Owner: send to login with ReturnUrl -->
+            <!-- Not logged in: send to login with ReturnUrl -->
             <a href="@Url.Action("Login", "Account", new { ReturnUrl = returnUrl })" class="btn btn-primary btn-lg w-100 mt-3">
                 <i class="fa-solid fa-key"></i> Rent This House
             </a>
@@ -102,6 +102,7 @@
                 <i class="fa-solid fa-flag"></i> Report This House
             </a>
         }
+
 
 
     </div>

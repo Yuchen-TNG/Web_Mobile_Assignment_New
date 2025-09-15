@@ -53,7 +53,8 @@ namespace Web_Mobile_Assignment_New.Controllers
 
         public async Task<IActionResult> Filter(int? minPrice, int? maxPrice, string? type)
         {
-            var houses = _context.Houses.Include(h => h.ImageUrl).AsQueryable();
+            // 从 DbContext 里先拿出 IQueryable
+            var houses = _context.Houses.AsQueryable();
 
             if (minPrice.HasValue)
                 houses = houses.Where(h => h.Price >= minPrice.Value);

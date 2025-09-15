@@ -72,6 +72,7 @@
     .btn-delete {
         background: #f44336;
     }
+
     /* 红色 */
     .btn-reset {
         background: #9E9E9E;
@@ -162,7 +163,7 @@
     <div class="photo-delete-form">
         @if (Model is Web_Mobile_Assignment_New.Models.OwnerTenant photoUser && !string.IsNullOrEmpty(photoUser.PhotoURL))
         {
-            <img src="@photoUser.PhotoURL" alt="User Photo" class="user-photo" />
+            <img src="/photos/@photoUser.PhotoURL" alt="User Photo" class="user-photo" />
             <form asp-action="DeletePhoto" method="post" onsubmit="return confirm('Are you sure you want to delete photo？');">
                 <input type="hidden" name="email" value="@Model.Email" />
                 <button type="submit" class="btn-delete">🗑 Delete Photo</button>
@@ -230,7 +231,7 @@
         {
             <form asp-action="ValidUser" method="post">
                 <input type="hidden" name="email" value="@Model.Email" />
-                <button type="submit" class="btn-delete">⭕ Valid User</button>
+                <button type="submit" class="btn-valid">⭕ Valid User</button>
             </form>
         }
     </div>

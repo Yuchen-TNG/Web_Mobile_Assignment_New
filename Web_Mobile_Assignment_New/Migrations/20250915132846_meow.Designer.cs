@@ -12,8 +12,8 @@ using Web_Mobile_Assignment_New.Models;
 namespace Web_Mobile_Assignment_New.Migrations
 {
     [DbContext(typeof(DB))]
-    [Migration("20250915104044_CreateDB")]
-    partial class CreateDB
+    [Migration("20250915132846_meow")]
+    partial class meow
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -134,6 +134,7 @@ namespace Web_Mobile_Assignment_New.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RoomStatus")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RoomType")

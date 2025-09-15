@@ -36,6 +36,7 @@ namespace Web_Mobile_Assignment_New.Models
 
         public string? Furnishing { get; set; }   // 家具配置（Fully / Semi / Unfurnished）
         public ICollection<HouseReview>? Reviews { get; set; }
+        public ICollection<HouseImage>? Images { get; set; }
 
     }
 }

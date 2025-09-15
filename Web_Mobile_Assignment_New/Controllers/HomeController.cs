@@ -29,14 +29,18 @@ namespace Web_Mobile_Assignment_New.Controllers
             }
             else
             {
-                var houses = await _context.Houses.ToListAsync();
+                var houses = await _context.Houses
+                    .Include(h => h.Images)// 加载图片
+                    .Include(h => h.Reviews)
+
+                    .ToListAsync();
                 return View(houses);
             }
         }
 
         public async Task<IActionResult> Filter(int? minPrice, int? maxPrice, string? type)
         {
-            var houses = _context.Houses.AsQueryable();
+            var houses = _context.Houses.Include(h => h.ImageUrl).AsQueryable();
 
             if (minPrice.HasValue)
                 houses = houses.Where(h => h.Price >= minPrice.Value);
@@ -45,9 +49,11 @@ namespace Web_Mobile_Assignment_New.Controllers
                 houses = houses.Where(h => h.Price <= maxPrice.Value);
 
             if (!string.IsNullOrEmpty(type) && type != "All")
-            { houses = houses.Where(h => h.RoomType == type); }
+            {
+                houses = houses.Where(h => h.RoomType == type);
+            }
 
-                return View("Index", await houses.ToListAsync());
+            return View("Index", await houses.ToListAsync());
         }
 
         // ================= HOUSE CRUD ==================
@@ -58,7 +64,7 @@ namespace Web_Mobile_Assignment_New.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddHouse(House house, IFormFile ImageFile)
+        public async Task<IActionResult> AddHouse(House house, List<IFormFile> ImageFiles)
         {
             // Rooms validation
             if (house.RoomType == "Whole Unit")
@@ -76,7 +82,7 @@ namespace Web_Mobile_Assignment_New.Controllers
             // Rental period validation
             if (house.StartDate.HasValue && house.EndDate.HasValue)
             {
-                if (house.StartDate > house.EndDate)
+                if (house.EndDate <= house.StartDate)
                 {
                     ModelState.AddModelError("EndDate", "End Date must be later than Start Date.");
                 }
@@ -90,33 +96,46 @@ namespace Web_Mobile_Assignment_New.Controllers
                 ModelState.AddModelError("StartDate", "Both Start Date and End Date are required.");
             }
 
-            // ✅ Image required
-            if (ImageFile == null || ImageFile.Length == 0)
+            // ✅ 至少要有一张图片
+            if (ImageFiles == null || !ImageFiles.Any())
             {
-                ModelState.AddModelError("ImageFile", "An image is required.");
+                ModelState.AddModelError("ImageFiles", "At least one image is required.");
             }
 
             if (ModelState.IsValid)
             {
-                // Save image
                 var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images");
                 if (!Directory.Exists(uploadsFolder))
                 {
                     Directory.CreateDirectory(uploadsFolder);
                 }
 
-                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(ImageFile.FileName);
-                var filePath = Path.Combine(uploadsFolder, fileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
+                foreach (var file in ImageFiles)
                 {
-                    await ImageFile.CopyToAsync(stream);
-                }
+                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+                    var filePath = Path.Combine(uploadsFolder, fileName);
 
-                house.ImageUrl = "/images/" + fileName;
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+
+                    // 如果 House 有 Images 表（多图）
+                    var houseImage = new HouseImage
+                    {
+                        House = house,
+                        ImageUrl = "/images/" + fileName
+                    };
+                    _context.HouseImages.Add(houseImage);
+
+                    // 如果只存一张图 → 也可以设置默认封面
+                    if (string.IsNullOrEmpty(house.ImageUrl))
+                        house.ImageUrl = "/images/" + fileName;
+                }
 
                 _context.Houses.Add(house);
                 await _context.SaveChangesAsync();
+
                 return RedirectToAction("Index");
             }
 
@@ -125,11 +144,13 @@ namespace Web_Mobile_Assignment_New.Controllers
 
 
 
+
         // 房子详情 + 评论
         public async Task<IActionResult> Details(int id)
         {
             var house = await _context.Houses
-                .Include(h => h.Reviews) // 加载评论
+                .Include(h => h.Images)   // 加载图片
+                .Include(h => h.Reviews)  // 加载评论
                 .FirstOrDefaultAsync(h => h.Id == id);
 
             if (house == null) return NotFound();
@@ -143,7 +164,6 @@ namespace Web_Mobile_Assignment_New.Controllers
             return View(house);
         }
 
-        // 提交评论
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddReview(int houseId, int rating, string comment)
@@ -159,7 +179,8 @@ namespace Web_Mobile_Assignment_New.Controllers
                 HouseId = houseId,
                 Rating = rating,
                 Comment = comment,
-                UserEmail = User.Identity?.Name
+                UserEmail = User.Identity?.Name ?? "guest@example.com", // 防止为空
+                CreatedAt = DateTime.Now // 🔥 记得赋值时间
             };
 
             _context.HouseReviews.Add(review);
@@ -167,6 +188,7 @@ namespace Web_Mobile_Assignment_New.Controllers
 
             return RedirectToAction("Details", new { id = houseId });
         }
+
 
         [Authorize]
         public IActionResult Both() => View();

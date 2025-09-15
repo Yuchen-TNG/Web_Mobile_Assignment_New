@@ -33,15 +33,16 @@
             <!-- 卫生间 -->
             <div class="col-md-6">
                 <label asp-for="Bathrooms" class="form-label">Bathrooms</label>
-                <input asp-for="Bathrooms" class="form-control" type="number" min="1" />
+                <input asp-for="Bathrooms" class="form-control" id="Bathrooms" type="number" min="1" max="6" required />
                 <span asp-validation-for="Bathrooms" class="text-danger"></span>
             </div>
 
             <!-- 面积 -->
-            <div class="col-md-6">
-                <label asp-for="Sqft" class="form-label">Sqft</label>
-                <input asp-for="Sqft" class="form-control" type="number" />
-                <span asp-validation-for="Sqft" class="text-danger"></span>
+            <!-- 图片 -->
+            <div class="col-md-12">
+                <label class="form-label">Upload Image</label>
+                <input type="file" name="ImageFile" class="form-control" required />
+                <span asp-validation-for="ImageUrl" class="text-danger"></span>
             </div>
 
             <!-- 价格 -->
@@ -58,11 +59,9 @@
                 <span asp-validation-for="Address" class="text-danger"></span>
             </div>
 
-            <!-- 图片 -->
             <div class="col-md-12">
                 <label class="form-label">Upload Image</label>
-                <input type="file" name="ImageFile" class="form-control" required />
-                <span asp-validation-for="ImageUrl" class="text-danger"></span>
+                <input type="file" name="ImageFile" class="form-control" />
             </div>
 
             <!-- 备注 -->
@@ -107,30 +106,25 @@
     </form>
 </div>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const startDateInput = document.querySelector("input[name='StartDate']");
-        const endDateInput = document.querySelector("input[name='EndDate']");
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const roomTypeSelect = document.getElementById("RoomType");
+            const roomsInput = document.getElementById("Rooms");
 
-        function validateDates() {
-            let start = new Date(startDateInput.value);
-            let end = new Date(endDateInput.value);
-            let today = new Date();
-            today.setHours(0,0,0,0); // ignore time part
-
-            if (start && end) {
-                if (start < today) {
-                    alert("Start Date cannot be in the past.");
-                    startDateInput.value = "";
-                } else if (end < start) {
-                    alert("End Date must be after Start Date.");
-                    endDateInput.value = "";
+            function updateRoomsField() {
+                if (roomTypeSelect.value === "Whole Unit") {
+                    roomsInput.removeAttribute("readonly");
+                    roomsInput.setAttribute("min", "1");
+                    roomsInput.setAttribute("max", "8");
+                } else {
+                    roomsInput.value = 1;
+                    roomsInput.setAttribute("readonly", "readonly");
                 }
             }
-        }
 
-        startDateInput.addEventListener("change", validateDates);
-        endDateInput.addEventListener("change", validateDates);
-    });
-</script>
-
+            roomTypeSelect.addEventListener("change", updateRoomsField);
+            updateRoomsField();
+        });
+    </script>
+}

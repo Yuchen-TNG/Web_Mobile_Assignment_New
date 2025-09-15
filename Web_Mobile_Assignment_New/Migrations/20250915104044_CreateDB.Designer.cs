@@ -12,13 +12,8 @@ using Web_Mobile_Assignment_New.Models;
 namespace Web_Mobile_Assignment_New.Migrations
 {
     [DbContext(typeof(DB))]
-<<<<<<<< HEAD:Web_Mobile_Assignment_New/Migrations/20250915093339_CreateDB.Designer.cs
-    [Migration("20250915093339_CreateDB")]
+    [Migration("20250915104044_CreateDB")]
     partial class CreateDB
-========
-    [Migration("20250915102027_tandb")]
-    partial class tandb
->>>>>>>> 77e24049d421d6fb906b9213af297c1c4953cdee:Web_Mobile_Assignment_New/Migrations/20250915102027_tandb.Designer.cs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

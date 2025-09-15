@@ -6,11 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Web_Mobile_Assignment_New.Migrations
 {
     /// <inheritdoc />
-<<<<<<<< HEAD:Web_Mobile_Assignment_New/Migrations/20250915093339_CreateDB.cs
     public partial class CreateDB : Migration
-========
-    public partial class tandb : Migration
->>>>>>>> 77e24049d421d6fb906b9213af297c1c4953cdee:Web_Mobile_Assignment_New/Migrations/20250915102027_tandb.cs
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

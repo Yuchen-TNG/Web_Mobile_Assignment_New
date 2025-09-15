@@ -22,6 +22,43 @@ namespace Web_Mobile_Assignment_New.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("Report", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Details")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReportType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TargetEmail")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("TargetProperty")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Who")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Reports");
+                });
+
             modelBuilder.Entity("Web_Mobile_Assignment_New.Models.Booking", b =>
                 {
                     b.Property<int>("BookingId")
@@ -71,6 +108,10 @@ namespace Web_Mobile_Assignment_New.Migrations
                     b.Property<int>("Bathrooms")
                         .HasColumnType("int");
 
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
 
@@ -110,6 +151,28 @@ namespace Web_Mobile_Assignment_New.Migrations
                     b.ToTable("Houses");
                 });
 
+            modelBuilder.Entity("Web_Mobile_Assignment_New.Models.HouseImage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("HouseId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HouseId");
+
+                    b.ToTable("HouseImages");
+                });
+
             modelBuilder.Entity("Web_Mobile_Assignment_New.Models.HouseReview", b =>
                 {
                     b.Property<int>("Id")
@@ -128,7 +191,7 @@ namespace Web_Mobile_Assignment_New.Migrations
                     b.Property<int>("HouseId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Rating")
+                    b.Property<int?>("Rating")
                         .HasColumnType("int");
 
                     b.Property<string>("UserEmail")
@@ -277,6 +340,17 @@ namespace Web_Mobile_Assignment_New.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Web_Mobile_Assignment_New.Models.HouseImage", b =>
+                {
+                    b.HasOne("Web_Mobile_Assignment_New.Models.House", "House")
+                        .WithMany("Images")
+                        .HasForeignKey("HouseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("House");
+                });
+
             modelBuilder.Entity("Web_Mobile_Assignment_New.Models.HouseReview", b =>
                 {
                     b.HasOne("Web_Mobile_Assignment_New.Models.House", "House")
@@ -314,6 +388,8 @@ namespace Web_Mobile_Assignment_New.Migrations
 
             modelBuilder.Entity("Web_Mobile_Assignment_New.Models.House", b =>
                 {
+                    b.Navigation("Images");
+
                     b.Navigation("Reviews");
                 });
 #pragma warning restore 612, 618

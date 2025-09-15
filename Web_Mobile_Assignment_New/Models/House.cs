@@ -46,5 +46,6 @@ namespace Web_Mobile_Assignment_New.Models
         public ICollection<HouseReview>? Reviews { get; set; }
         public ICollection<HouseImage>? Images { get; set; }
 
+        public string Email { get; set; } = "";
     }
 }

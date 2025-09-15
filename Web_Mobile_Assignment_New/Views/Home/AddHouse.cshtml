@@ -3,6 +3,13 @@
 @{
     ViewData["Title"] = "Add House";
 }
+@if (TempData["Message"] != null)
+{
+    var type = TempData["MessageType"]?.ToString() ?? "success";
+    <div class="alert @(type == "success" ? "alert-success" : "alert-error")">
+        @TempData["Message"]
+    </div>
+}
 
 <div class="container mt-4">
     <h2 class="mb-4">Add New House</h2>
@@ -10,6 +17,7 @@
     <form asp-action="AddHouse" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
         <div class="row g-3">
             <!-- 房屋类型 -->
+
             <div class="col-md-6">
                 <label asp-for="RoomType" class="form-label">Room Type</label>
                 <select asp-for="RoomType" class="form-select" id="RoomType" required>
@@ -69,6 +77,11 @@
                 <label asp-for="Address" class="form-label">Address</label>
                 <input asp-for="Address" class="form-control" />
                 <span asp-validation-for="Address" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-12">
+                <label class="form-label">Upload Image</label>
+                <input type="file" name="ImageFile" class="form-control" />
             </div>
 
             <!-- 备注 -->

@@ -1,12 +1,7 @@
 ﻿@model Web_Mobile_Assignment_New.Models.House
 
-@if (TempData["Message"] != null)
-{
-    var type = TempData["MessageType"]?.ToString() ?? "success";
-    <div class="alert @(type == "success" ? "alert-success" : "alert-error")">
-        @TempData["Message"]
-    </div>
-}
+
+
 
 <style>
     .house-card {

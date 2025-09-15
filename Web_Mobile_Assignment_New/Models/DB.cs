@@ -17,6 +17,7 @@ namespace Web_Mobile_Assignment_New.Models
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<HouseImage> HouseImages { get; set; }
+        public DbSet<Report> Reports { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

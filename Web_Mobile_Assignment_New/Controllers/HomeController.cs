@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using QRCoder;
 using Web_Mobile_Assignment_New.Models;
 using ZXing.QrCode.Internal;
@@ -166,13 +167,10 @@ namespace Web_Mobile_Assignment_New.Controllers
                 };
                 _context.HouseImages.Add(houseImage);
 
-                // ✅ 设置封面图（只用第一张）
-                if (isFirstImage)
-                {
-                    house.ImageUrl = houseImage.ImageUrl;
-                    isFirstImage = false;
+                    // 如果只存一张图 → 也可以设置默认封面
+                    if (string.IsNullOrEmpty(house.ImageUrl))
+                        house.ImageUrl = "/images/" + fileName;
                 }
-            }
 
             await _context.SaveChangesAsync();
 
@@ -232,7 +230,7 @@ namespace Web_Mobile_Assignment_New.Controllers
         public IActionResult Owner()
         {
             var UserEmail = User.Identity?.Name ?? "guest@example.com";
-            var value = _context.Houses.Where(h => h.Id == 4).ToList();
+            var value = _context.Houses.Where(h => h.Email == UserEmail).ToList();
             return View(value);
         }
         
@@ -467,11 +465,6 @@ namespace Web_Mobile_Assignment_New.Controllers
             {
                 _context.Houses.Remove(house);
                 _context.SaveChanges();
-                TempData["Message"] = "Deleted Susscesful.";
-            }
-            else
-            {
-                TempData["Message"] = "Deleted Failed, no releted house.";
             }
             return RedirectToAction("OwnerDetails");
         }
@@ -603,6 +596,36 @@ namespace Web_Mobile_Assignment_New.Controllers
 
             return Json(new { success = true });
         }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ReportHouse(Report report,int propretyId,string ReportType,string Details)
+        {
+
+            // 填充必需字段
+            try
+            {
+                report.Who = User.Identity.Name; // 当前登录用户
+                report.TargetProperty = propretyId;
+                report.ReportType = ReportType;
+                report.Details = Details;
+                report.TargetEmail = null;       // 因为是举报房源
+                report.CreatedAt = DateTime.UtcNow;
+                report.Status = "Pending";
+            }catch(Exception ex)
+            {
+                TempData["Message"] = "Report submitted failed!";
+                return RedirectToAction("Details", new { id = report.TargetProperty });
+            }
+            _context.Reports.Add(report);
+            _context.SaveChanges();
+
+            TempData["Message"] = "Report submitted successfully!";
+            return RedirectToAction("Details", new { id = report.TargetProperty });
+        }
+
+
 
     }
 }

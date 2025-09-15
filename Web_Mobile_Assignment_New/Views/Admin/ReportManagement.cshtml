@@ -10,6 +10,13 @@
         @TempData["Message"]
     </div>
 }
+
+<!-- 顶部标题 + 返回按钮 -->
+<div class="header-container">
+    <h1>Report Management</h1>
+    <a asp-controller="Home" asp-action="Admin" class="back-btn">⬅ Back</a>
+</div>
+
 <div class="report-page">
     <!-- 筛选按钮 -->
     <div class="filter-buttons">
@@ -20,50 +27,92 @@
 
     <!-- 卡片容器 -->
     <div class="card-container">
-        @foreach (var rp in Model)
+        @if (Model == null || !Model.Any())
         {
-            @* 每条 report 卡片 *@
-            <div class="property-card">
-                <div class="property-body">
-                    <div class="property-title">Report ID: @rp.Id</div>
-                    <div class="property-reported">Reported: @rp.Who</div>
-
-                    @if (!string.IsNullOrEmpty(rp.TargetEmail))
-                    {
-                        <div class="property-info">Email: @rp.TargetEmail</div>
-                    }
-                    else                     {
-                        <div class="property-info">Property ID: @rp.TargetProperty</div>
-                    }
-
-                    <div class="property-info">Report Type: @rp.ReportType</div>
-                    <div class="property-info">
-                        Details: @(rp.Details?.Length > 30 ? rp.Details.Substring(0, 30) + "..." : rp.Details)
-                    </div>
-
-                    <div class="property-info">Date: @rp.CreatedAt.ToString("yyyy-MM-dd HH:mm")</div>
-
-                    @* 状态颜色 *@
-                    @{
-                        var statusClass = rp.Status?.ToLower() switch
-                        {
-                            "valid" => "status-valid",
-                            "restricted" => "status-restricted",
-                            _ => "status-other"
-                        };
-                    }
-                    <div class="property-info @statusClass">Status: @rp.Status</div>
-
-                    <a asp-controller="Admin" asp-action="ReportDetails" asp-route-id="@rp.Id" class="details-btn">
-                        Details
-                    </a>
-                </div>
+            <div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: gray; font-size: 1.1em;">
+                No Data Here
             </div>
+        }
+        else
+        {
+            @foreach (var rp in Model)
+            {
+                <div class="property-card">
+                    <div class="property-body">
+                        <div class="property-title">Report ID: @rp.Id</div>
+                        <div class="property-reported">Reported: @rp.Who</div>
+
+                        @if (!string.IsNullOrEmpty(rp.TargetEmail))
+                        {
+                            <div class="property-info">Email: @rp.TargetEmail</div>
+                        }
+                        else
+                        {
+                            <div class="property-info">Property ID: @rp.TargetProperty</div>
+                        }
+
+                        <div class="property-info">Report Type: @rp.ReportType</div>
+                        <div class="property-info">
+                            Details: @(rp.Details?.Length > 30 ? rp.Details.Substring(0, 30) + "..." : rp.Details)
+                        </div>
+
+                        <div class="property-info">Date: @rp.CreatedAt.ToString("yyyy-MM-dd HH:mm")</div>
+
+                        @{
+                            var statusClass = rp.Status?.ToLower() switch
+                            {
+                                "valid" => "status-valid",
+                                "restricted" => "status-restricted",
+                                _ => "status-other"
+                            };
+                        }
+                        <div class="property-info @statusClass">Status: @rp.Status</div>
+
+                        <a asp-controller="Admin" asp-action="ReportDetails" asp-route-id="@rp.Id" class="details-btn">
+                            Details
+                        </a>
+                    </div>
+                </div>
+            }
         }
     </div>
 </div>
 
 <style>
+    /* header */
+    .header-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 25px;
+        position: relative;
+    }
+
+        .header-container h1 {
+            margin: 0;
+            flex-grow: 1;
+            text-align: center;
+            font-size: 28px;
+            color: #333;
+        }
+
+    .back-btn {
+        position: absolute;
+        left: 0;
+        padding: 8px 16px;
+        background-color: #4a90e2;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: bold;
+        transition: background-color 0.3s, transform 0.2s;
+    }
+
+        .back-btn:hover {
+            background-color: #357ab8;
+            transform: scale(1.05);
+        }
+
     /* 页面整体 */
     .report-page {
         max-width: 1200px;
@@ -79,7 +128,7 @@
         margin-bottom: 20px;
     }
 
-        .filter-buttons button {
+        .filter-buttons .btn {
             padding: 8px 16px;
             border: none;
             background-color: #3498db;
@@ -87,9 +136,10 @@
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.2s;
+            text-decoration: none;
         }
 
-            .filter-buttons button:hover {
+            .filter-buttons .btn:hover {
                 background-color: #2980b9;
             }
 
@@ -100,7 +150,6 @@
         gap: 20px;
     }
 
-    /* 卡片样式 */
     .property-card {
         background-color: #fff;
         border-radius: 10px;
@@ -114,7 +163,6 @@
             box-shadow: 0 6px 15px rgba(0,0,0,0.15);
         }
 
-    /* 卡片内容 */
     .property-body {
         padding: 15px;
     }
@@ -135,7 +183,6 @@
         font-size: 0.95em;
     }
 
-    /* 状态颜色 */
     .status-valid {
         color: green;
         font-weight: bold;
@@ -151,7 +198,6 @@
         font-weight: bold;
     }
 
-    /* 详情按钮 */
     .details-btn {
         display: inline-block;
         margin-top: 10px;

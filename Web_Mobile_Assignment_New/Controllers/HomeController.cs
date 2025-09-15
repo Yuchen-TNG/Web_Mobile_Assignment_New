@@ -196,6 +196,7 @@ namespace Web_Mobile_Assignment_New.Controllers
         public async Task<IActionResult> Details(int id)
         {
             var house = await _context.Houses
+                .Include(h => h.Owner)
                 .Include(h => h.Images)
                 .Include(h => h.Reviews)
                 .FirstOrDefaultAsync(h => h.Id == id);

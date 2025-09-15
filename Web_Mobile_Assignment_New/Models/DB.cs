@@ -35,6 +35,13 @@ namespace Web_Mobile_Assignment_New.Models
                 .HasOne(r => r.House)
                 .WithMany(h => h.Reviews)
                 .HasForeignKey(r => r.HouseId);
+
+            // House → Owner
+            modelBuilder.Entity<House>()
+                .HasOne(h => h.Owner)
+                .WithMany()
+                .HasForeignKey(h => h.Email)
+                .HasPrincipalKey(o => o.Email);
         }
     }
 

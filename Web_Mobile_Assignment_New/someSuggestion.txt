@@ -53,23 +53,4 @@ searching
 举报问题 (Report Issue)
 针对合同、付款、维修服务等异常情况提交举报。
 
-// 🔑 外键，指向 Owner
-        [Required]
-        public string Email { get; set; }
-        public Owner Owner { get; set; }
 
-// House → Owner
-            modelBuilder.Entity<House>()
-                .HasOne(h => h.Owner)
-                .WithMany()
-                .HasForeignKey(h => h.Email)
-                .HasPrincipalKey(o => o.Email);
-
-@if (Model.Owner != null)
-            {
-                <a href="https://mail.google.com/mail/?view=cm&fs=1&to=@Model.Owner.Email"
-                   target="_blank"
-                   class="btn btn-outline-success btn-lg w-100 mt-2">
-                    <i class="fa-solid fa-envelope"></i> Contact Owner via Gmail
-                </a>
-            }

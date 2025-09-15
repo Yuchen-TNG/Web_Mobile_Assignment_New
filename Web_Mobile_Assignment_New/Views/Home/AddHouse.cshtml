@@ -1,5 +1,6 @@
 ﻿@model Web_Mobile_Assignment_New.Models.House
 
+
 @{
     ViewData["Title"] = "Add House";
 }
@@ -31,6 +32,12 @@
                 <span asp-validation-for="RoomType" class="text-danger"></span>
             </div>
 
+            <!-- 房间名称 -->
+            <div class="col-md-6">
+                <label asp-for="RoomName" class="form-label">Room Name</label>
+                <input asp-for="RoomName" class="form-control" />
+            </div>
+
             <!-- 房间数 -->
             <div class="col-md-6">
                 <label asp-for="Rooms" class="form-label">Rooms</label>
@@ -44,12 +51,17 @@
                 <input asp-for="Bathrooms" class="form-control" id="Bathrooms" type="number" min="1" max="6" required />
                 <span asp-validation-for="Bathrooms" class="text-danger"></span>
             </div>
-
             <!-- 面积 -->
-            <!-- 图片 -->
+            <div class="col-md-6">
+                <label asp-for="Sqft" class="form-label">Area (sqft)</label>
+                <input asp-for="Sqft" class="form-control" type="number" min="700" />
+                <span asp-validation-for="Sqft" class="text-danger"></span>
+            </div>
+
+            <!-- 图片 (允许多张) -->
             <div class="col-md-12">
-                <label class="form-label">Upload Image</label>
-                <input type="file" name="ImageFiles" class="form-control" required />
+                <label class="form-label">Upload Images</label>
+                <input type="file" name="ImageFiles" class="form-control" multiple required />
                 <span asp-validation-for="ImageUrl" class="text-danger"></span>
             </div>
 
@@ -67,33 +79,25 @@
                 <span asp-validation-for="Address" class="text-danger"></span>
             </div>
 
-            <div class="col-md-12">
-                <label class="form-label">Upload Image</label>
-                <input type="file" name="ImageFiles" class="form-control" />
-            </div>
-
             <!-- 备注 -->
             <div class="col-md-12">
                 <label asp-for="Other" class="form-label">Other Info</label>
                 <textarea asp-for="Other" class="form-control"></textarea>
             </div>
 
-            <!-- 房间名称 -->
-            <div class="col-md-6">
-                <label asp-for="RoomName" class="form-label">Room Name</label>
-                <input asp-for="RoomName" class="form-control" />
-            </div>
-
             <!-- 租期开始 -->
-            <div class="col-md-6">
-                <label asp-for="StartDate" class="form-label">Start Date</label>
-                <input asp-for="StartDate" class="form-control" type="date" />
+            <div class="mb-3">
+                <label for="StartDate" class="form-label">Start Date</label>
+                <input type="date" class="form-control" id="StartDate" name="StartDate"
+                       min="@DateTime.Now.ToString("yyyy-MM-dd")" />
             </div>
 
-            <!-- 租期结束 -->
-            <div class="col-md-6">
-                <label asp-for="EndDate" class="form-label">End Date</label>
-                <input asp-for="EndDate" class="form-control" type="date" />
+            <div class="mb-3">
+                <label for="EndDate" class="form-label">End Date</label>
+                <input type="date" class="form-control" id="EndDate" name="EndDate"
+                       min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                <!-- 🔥 这里放错误提示 -->
+                <div id="date-error" class="text-danger mt-1"></div>
             </div>
 
             <!-- 家具配置 -->
@@ -119,20 +123,72 @@
         document.addEventListener("DOMContentLoaded", function () {
             const roomTypeSelect = document.getElementById("RoomType");
             const roomsInput = document.getElementById("Rooms");
+            const bathroomsInput = document.getElementById("Bathrooms");
+            const startDateInput = document.getElementById("StartDate");
+            const endDateInput = document.getElementById("EndDate");
+            const dateError = document.getElementById("date-error");
 
-            function updateRoomsField() {
+            // ✅ 限制租期（Whole Unit 最多 2 年，其他最多 1 年）
+            function updateDateLimit() {
+                if (!startDateInput.value) {
+                    endDateInput.removeAttribute("max");
+                    dateError.textContent = "";
+                    return;
+                }
+
+                let start = new Date(startDateInput.value);
+                let maxEnd = new Date(start);
+
+                if (roomTypeSelect.value === "Whole Unit") {
+                    maxEnd.setFullYear(maxEnd.getFullYear() + 2); // 最多 2 年
+                } else {
+                    maxEnd.setFullYear(maxEnd.getFullYear() + 1); // 最多 1 年
+                }
+
+                let maxDateStr = maxEnd.toISOString().split("T")[0];
+                endDateInput.max = maxDateStr;
+
+                // 🔥 超出时在输入框下方显示错误提示
+                if (endDateInput.value && endDateInput.value > maxDateStr) {
+                    dateError.textContent = roomTypeSelect.value === "Whole Unit"
+                        ? "Whole Unit rental cannot exceed 2 years."
+                        : "Rental for this room type cannot exceed 1 year.";
+                    endDateInput.value = ""; // 清空非法值
+                } else {
+                    dateError.textContent = ""; // ✅ 清除错误提示
+                }
+            }
+
+            // ✅ 房间数/卫生间输入逻辑
+            function updateFields() {
                 if (roomTypeSelect.value === "Whole Unit") {
                     roomsInput.removeAttribute("readonly");
                     roomsInput.setAttribute("min", "1");
                     roomsInput.setAttribute("max", "8");
+
+                    bathroomsInput.removeAttribute("readonly");
+                    bathroomsInput.setAttribute("min", "1");
+                    bathroomsInput.setAttribute("max", "6");
                 } else {
                     roomsInput.value = 1;
                     roomsInput.setAttribute("readonly", "readonly");
+
+                    bathroomsInput.value = 1;
+                    bathroomsInput.setAttribute("readonly", "readonly");
                 }
             }
 
-            roomTypeSelect.addEventListener("change", updateRoomsField);
-            updateRoomsField();
+            // 绑定事件
+            roomTypeSelect.addEventListener("change", () => {
+                updateFields();
+                updateDateLimit();
+            });
+            startDateInput.addEventListener("change", updateDateLimit);
+            endDateInput.addEventListener("change", updateDateLimit);
+
+            // 初始化时执行一次
+            updateFields();
+            updateDateLimit();
         });
     </script>
 }

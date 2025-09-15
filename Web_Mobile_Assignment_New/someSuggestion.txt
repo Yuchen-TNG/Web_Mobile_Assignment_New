@@ -23,15 +23,8 @@ extra
 
 yuchen 
 
--出租时间 要有一个limit
- 也要validation（比如说时间今天开始，不能以前开始）（start date 31/06/2025,end date不可以是start date以前的比如说30/06/2025）
--search boleh buat apa
--when add house, house should auto assign valid value in houseStatus
--每次添加新的database的时候，一定要赋予email（这是获得session email的code{var UserEmail = User.Identity?.Name ?? "guest@example.com";}）
-
 extra
 -owner上传的property全部都要等admin accept才可以(这个就是要开新的database，然后pending他是否被accept了)
--multiple photo for house photo
 -property management 可以加show照片（在list）
 
 

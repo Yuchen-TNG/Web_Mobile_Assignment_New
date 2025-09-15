@@ -1,12 +1,220 @@
 ﻿@model Web_Mobile_Assignment_New.Models.ReportHouseViewModel
 
-<h2>Report</h2>
-<p>@Model.Reports.Who</p>
-<p>@Model.Reports.ReportType</p>
-
-@if (Model.Houses != null)
-{
-    <h2>House</h2>
-    <p>@Model.Houses.RoomName</p>
-    <p>@Model.Houses.Price</p>
+@{
+    ViewData["Title"] = "Reports Details";
 }
+@if (TempData["Message"] != null)
+{
+    var type = TempData["MessageType"]?.ToString() ?? "success";
+    <div class="alert @(type == "success" ? "alert-success" : "alert-error")">
+        @TempData["Message"]
+    </div>
+}
+<div class="details-page">
+    <h2 class="page-title">📋 Reports Details</h2>
+
+    <!-- Reports 信息 -->
+    <div class="report-card">
+        <h3>Reports Info</h3>
+        <p><strong>ID:</strong> @Model.Reports.Id</p>
+        <p><strong>Who Reported:</strong> @Model.Reports.Who</p>
+        <p><strong>Type:</strong> @Model.Reports.ReportType</p>
+        <p><strong>Details:</strong> @Model.Reports.Details</p>
+        <p><strong>Date:</strong> @Model.Reports.CreatedAt.ToString("yyyy-MM-dd HH:mm")</p>
+        <p>
+            <strong>Status:</strong>
+            <span class="status @Model.Reports.Status.ToLower()">
+                @Model.Reports.Status
+            </span>
+        </p>
+
+        @if (!string.IsNullOrEmpty(Model.Reports.TargetEmail))
+        {
+            <p><strong>Target User Email:</strong> @Model.Reports.TargetEmail</p>
+        }
+        else if (Model.Houses != null)
+        {
+            <p><strong>Target Property Id:</strong> @Model.Houses.Id</p>
+        }
+
+        <!-- 操作按钮 -->
+        <div class="action-buttons">
+            <a asp-controller="Admin" asp-action="ValidReport" asp-route-reportId="@Model.Reports.Id" asp-route-houseId="@Model.Houses.Id" class="btn btn-valid">✅ Mark Valid</a>
+            <a asp-controller="Admin" asp-action="RestrictedReport" asp-route-reportId="@Model.Reports.Id" asp-route-houseId="@Model.Houses.Id" class="btn btn-restricted">🚫 Restrict</a>
+        </div>
+    </div>
+
+    <!-- 如果有房子，显示房源 -->
+    @if (Model.Houses != null)
+    {
+        <div class="house-card">
+            <h3>🏠 Houses Info</h3>
+            <p><strong>Room Name:</strong> @Model.Houses.RoomName</p>
+            <p><strong>Type:</strong> @Model.Houses.RoomType</p>
+            <p><strong>Price:</strong> $@Model.Houses.Price</p>
+            <p><strong>Rooms:</strong> @Model.Houses.Rooms</p>
+            <p><strong>Bathrooms:</strong> @Model.Houses.Bathrooms</p>
+            <p><strong>Sqft:</strong> @Model.Houses.Sqft</p>
+            <p><strong>Address:</strong> @Model.Houses.Address</p>
+            <p>
+                <strong>Status:</strong>
+                <span class="status @Model.Houses.RoomStatus.ToLower()">
+                    @Model.Houses.RoomStatus
+                </span>
+            </p>
+
+            @if (!string.IsNullOrEmpty(Model.Houses.ImageUrl))
+            {
+                <img src="@Model.Houses.ImageUrl" alt="Houses Image" class="house-img" />
+            }
+        </div>
+    }
+
+    <!-- 返回按钮 -->
+    <div class="back-btn">
+        <a asp-controller="Admin" asp-action="ReportManagement" class="btn btn-back">← Back to Reports</a>
+    </div>
+</div>
+
+<style>
+    .details-page {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 30px;
+        font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #f5f7fa; /* 浅灰背景 */
+        color: #2c3e50;
+    }
+
+    /* 标题 */
+    .page-title {
+        text-align: center;
+        margin-bottom: 25px;
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #2c3e50;
+        letter-spacing: 0.5px;
+    }
+
+    /* 卡片 */
+    .report-card, .house-card {
+        background: #ffffff;
+        padding: 25px;
+        margin-bottom: 30px;
+        border-radius: 16px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+        .report-card:hover, .house-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+        }
+
+    /* 小标题 */
+    h3 {
+        font-size: 1.2rem;
+        font-weight: 600;
+        border-left: 4px solid #3498db;
+        padding-left: 12px;
+        margin-bottom: 18px;
+        color: #34495e;
+    }
+
+    /* 文本信息 */
+    p {
+        margin: 8px 0;
+        font-size: 0.97rem;
+        line-height: 1.5;
+    }
+
+    /* 状态标签 */
+    .status {
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: capitalize;
+    }
+
+        .status.valid {
+            background-color: #eafaf1;
+            color: #27ae60;
+        }
+
+        .status.restricted {
+            background-color: #fff3e6;
+            color: #e67e22;
+        }
+
+        .status.pending {
+            background-color: #f0f0f0;
+            color: #7f8c8d;
+        }
+
+    /* 图片 */
+    .house-img {
+        display: block;
+        margin-top: 15px;
+        max-width: 100%;
+        border-radius: 14px;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    }
+
+    /* 按钮区域 */
+    .action-buttons {
+        margin-top: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .btn {
+        display: inline-block;
+        padding: 10px 18px;
+        border-radius: 10px;
+        font-size: 0.92rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.25s ease;
+        color: white;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+        }
+
+    /* 按钮配色 */
+    .btn-valid {
+        background-color: #2ecc71;
+    }
+
+        .btn-valid:hover {
+            background-color: #27ae60;
+        }
+
+    .btn-restricted {
+        background-color: #e74c3c;
+    }
+
+        .btn-restricted:hover {
+            background-color: #c0392b;
+        }
+
+    .btn-back {
+        background-color: #3498db;
+    }
+
+        .btn-back:hover {
+            background-color: #2980b9;
+        }
+
+    /* 返回按钮单独居中 */
+    .back-btn {
+        text-align: center;
+        margin-top: 35px;
+    }
+
+    </style>

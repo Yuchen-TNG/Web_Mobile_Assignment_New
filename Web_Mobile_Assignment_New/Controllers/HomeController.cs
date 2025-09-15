@@ -22,7 +22,7 @@ namespace Web_Mobile_Assignment_New.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1, int pageSize = 8)
         {
             if (User.IsInRole("Admin"))
             {
@@ -30,14 +30,26 @@ namespace Web_Mobile_Assignment_New.Controllers
             }
             else
             {
-                var houses = await _context.Houses
-                    .Include(h => h.Images)// 加载图片
-                    .Include(h => h.Reviews)
+                // 计算总数
+                var totalHouses = await _context.Houses.CountAsync();
 
+                // 拿分页数据
+                var houses = await _context.Houses
+                    .Include(h => h.Images)
+                    .Include(h => h.Reviews)
+                    .OrderBy(h => h.Id)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
                     .ToListAsync();
+
+                // 传递分页数据给 View
+                ViewBag.Page = page;
+                ViewBag.TotalPages = (int)Math.Ceiling(totalHouses / (double)pageSize);
+
                 return View(houses);
             }
         }
+
 
         public async Task<IActionResult> Filter(int? minPrice, int? maxPrice, string? type)
         {
@@ -203,6 +215,24 @@ namespace Web_Mobile_Assignment_New.Controllers
 
             return View(house);
         }
+
+        public async Task<IActionResult> HouseList(int page = 1, int pageSize = 6)
+        {
+            var houses = await _context.Houses
+                .OrderBy(h => h.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var totalHouses = await _context.Houses.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalHouses / (double)pageSize);
+
+            ViewBag.Page = page;
+            ViewBag.TotalPages = totalPages;
+
+            return PartialView("_HouseListPartial", houses);
+        }
+
 
 
 

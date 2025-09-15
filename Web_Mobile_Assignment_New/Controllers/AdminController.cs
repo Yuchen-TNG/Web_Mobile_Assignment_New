@@ -247,7 +247,18 @@ namespace Web_Mobile_Assignment_New.Controllers
         }
         public IActionResult ReportManagement()
         {
-            return View();
+            var rp = _context.Reports.ToList();
+                return View(rp);
+        }
+        public IActionResult PropertyReport()
+        {
+            var rp = _context.Reports.Where(r => r.TargetProperty != null).ToList();
+            return View("ReportManagement",rp);
+        }
+        public IActionResult UserReport()
+        {   
+            var rp = _context.Reports.Where(r => r.TargetEmail != null).ToList();
+            return View("ReportManagement",rp);
         }
     }
 }

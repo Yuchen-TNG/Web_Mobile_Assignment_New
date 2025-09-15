@@ -1,5 +1,163 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model List<Web_Mobile_Assignment_New.Models.Report>
+
 @{
+    ViewData["Title"] = "Report Management";
 }
+
+<div class="report-page">
+    <!-- 筛选按钮 -->
+    <div class="filter-buttons">
+        <a asp-controller="Admin" asp-action="ReportManagement" class="btn">All</a>
+        <a asp-controller="Admin" asp-action="PropertyReport" class="btn">Property</a>
+        <a asp-controller="Admin" asp-action="UserReport" class="btn">User</a>
+    </div>
+
+    <!-- 卡片容器 -->
+    <div class="card-container">
+        @foreach (var rp in Model)
+        {
+            @* 每条 report 卡片 *@
+            <div class="property-card">
+                <div class="property-body">
+                    <div class="property-title">Report ID: @rp.Id</div>
+                    <div class="property-reported">Reported: @rp.Who</div>
+
+                    @if (!string.IsNullOrEmpty(rp.TargetEmail))
+                    {
+                        <div class="property-info">Email: @rp.TargetEmail</div>
+                    }
+                    else                     {
+                        <div class="property-info">Property ID: @rp.TargetProperty</div>
+                    }
+
+                    <div class="property-info">Report Type: @rp.ReportType</div>
+                    <div class="property-info">
+                        Details: @(rp.Details?.Length > 30 ? rp.Details.Substring(0, 30) + "..." : rp.Details)
+                    </div>
+
+                    <div class="property-info">Date: @rp.CreatedAt.ToString("yyyy-MM-dd HH:mm")</div>
+
+                    @* 状态颜色 *@
+                    @{
+                        var statusClass = rp.Status?.ToLower() switch
+                        {
+                            "valid" => "status-valid",
+                            "restricted" => "status-restricted",
+                            _ => "status-other"
+                        };
+                    }
+                    <div class="property-info @statusClass">Status: @rp.Status</div>
+
+                    <a asp-controller="Admin" asp-action="ReportDetails" asp-route-id="@rp.Id" class="details-btn">
+                        Details
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    /* 页面整体 */
+    .report-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        font-family: Arial, sans-serif;
+    }
+
+    /* 筛选按钮 */
+    .filter-buttons {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+        .filter-buttons button {
+            padding: 8px 16px;
+            border: none;
+            background-color: #3498db;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+            .filter-buttons button:hover {
+                background-color: #2980b9;
+            }
+
+    /* 卡片容器 */
+    .card-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    /* 卡片样式 */
+    .property-card {
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+        .property-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+        }
+
+    /* 卡片内容 */
+    .property-body {
+        padding: 15px;
+    }
+
+    .property-title {
+        font-weight: bold;
+        font-size: 1.2em;
+        margin-bottom: 5px;
+    }
+
+    .property-reported {
+        font-style: italic;
+        margin-bottom: 10px;
+    }
+
+    .property-info {
+        margin-bottom: 5px;
+        font-size: 0.95em;
+    }
+
+    /* 状态颜色 */
+    .status-valid {
+        color: green;
+        font-weight: bold;
+    }
+
+    .status-restricted {
+        color: orange;
+        font-weight: bold;
+    }
+
+    .status-other {
+        color: gray;
+        font-weight: bold;
+    }
+
+    /* 详情按钮 */
+    .details-btn {
+        display: inline-block;
+        margin-top: 10px;
+        padding: 6px 12px;
+        border-radius: 5px;
+        background-color: #2ecc71;
+        color: white;
+        text-decoration: none;
+        transition: background-color 0.2s;
+    }
+
+        .details-btn:hover {
+            background-color: #27ae60;
+        }
+</style>

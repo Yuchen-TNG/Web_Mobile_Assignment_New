@@ -67,6 +67,9 @@ namespace Web_Mobile_Assignment_New.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddHouse(House house, List<IFormFile> ImageFiles)
         {
+
+            var UserEmail = User.Identity?.Name ?? "guest@example.com";
+                house.Email = UserEmail;
             // ✅ 自动设置状态为 "Available"
             house.RoomStatus = "Valid";
 

@@ -19,7 +19,6 @@ namespace Web_Mobile_Assignment_New.Models
         public DbSet<HouseImage> HouseImages { get; set; }
         public DbSet<Report> Reports { get; set; }
 
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

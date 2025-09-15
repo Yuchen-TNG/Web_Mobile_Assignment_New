@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Web_Mobile_Assignment_New.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Web_Mobile_Assignment_New.Models;
-
 namespace Web_Mobile_Assignment_New.Controllers
 {
     public class AdminController : Controller
@@ -259,6 +259,26 @@ namespace Web_Mobile_Assignment_New.Controllers
         {   
             var rp = _context.Reports.Where(r => r.TargetEmail != null).ToList();
             return View("ReportManagement",rp);
+        }
+
+        public IActionResult ReportDetails(int id)
+        {
+            var report = _context.Reports.FirstOrDefault(r => r.Id == id);
+            if (report == null) return NotFound();
+
+            House? house = null;
+            if (report.TargetProperty.HasValue)
+            {
+                house = _context.Houses.FirstOrDefault(h => h.Id == report.TargetProperty.Value);
+            }
+
+            var vm = new ReportHouseViewModel
+            {
+                Reports = report,
+                Houses = house
+            };
+
+            return View(vm);
         }
     }
 }

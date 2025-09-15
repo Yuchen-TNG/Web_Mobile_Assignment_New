@@ -1,0 +1,12 @@
+﻿@model Web_Mobile_Assignment_New.Models.ReportHouseViewModel
+
+<h2>Report</h2>
+<p>@Model.Reports.Who</p>
+<p>@Model.Reports.ReportType</p>
+
+@if (Model.Houses != null)
+{
+    <h2>House</h2>
+    <p>@Model.Houses.RoomName</p>
+    <p>@Model.Houses.Price</p>
+}

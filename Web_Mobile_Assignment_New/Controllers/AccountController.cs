@@ -11,6 +11,8 @@ public class AccountController : Controller
     private readonly DB db;
     private readonly IWebHostEnvironment en;
     private readonly Helper hp;
+    private static Dictionary<string, (int FailedCount, DateTime? LockoutEnd)> _loginAttempts
+    = new Dictionary<string, (int, DateTime?)>();
 
     public AccountController(DB db,IWebHostEnvironment en, Helper hp)
     {
@@ -30,9 +32,24 @@ public class AccountController : Controller
     [HttpPost]
     public IActionResult Login(LoginVM vm, string? returnUrl)
     {
-        var u = db.Users.Find(vm.Email);
+        // 确保有记录
+        if (!_loginAttempts.ContainsKey(vm.Email))
+            _loginAttempts[vm.Email] = (0, null);
 
-        if (u == null || !hp.VerifyPassword(u.Hash, vm.Password))
+        var (failedCount, lockoutEnd) = _loginAttempts[vm.Email];
+
+        // 如果在锁定期
+        if (lockoutEnd.HasValue && lockoutEnd.Value > DateTime.Now)
+        {
+            var remaining = (lockoutEnd.Value - DateTime.Now).Seconds;
+            ModelState.AddModelError("", $"Too many failed attempts. Try again in {remaining} seconds.");
+        }
+        else
+        {
+            // --- 你原本的代码，保持不动 ---
+            var u = db.Users.Find(vm.Email);
+
+            if (u == null || !hp.VerifyPassword(u.Hash, vm.Password))
         {
             ModelState.AddModelError("", "Login credentials not matched.");
         }
@@ -43,7 +60,9 @@ public class AccountController : Controller
         }
 
         if (ModelState.IsValid)
-        { 
+        {
+            _loginAttempts[vm.Email] = (0, null);
+
             hp.SignIn(u!.Email, u.Role, vm.RememberMe);
             TempData["Info"] = "Login successfully.";
 
@@ -54,6 +73,21 @@ public class AccountController : Controller
             }
 
             return RedirectToAction("Index", "Home");
+            }
+            else
+            {
+                // 登录失败 → 增加计数
+                failedCount++;
+
+                if (failedCount >= 3)
+                {
+                    lockoutEnd = DateTime.Now.AddSeconds(30);
+                    failedCount = 0; // 重置失败次数
+                    ModelState.AddModelError("", "Too many failed attempts. Locked for 30 seconds.");
+                }
+
+                _loginAttempts[vm.Email] = (failedCount, lockoutEnd);
+            }
         }
 
         ViewData["ReturnUrl"] = returnUrl;

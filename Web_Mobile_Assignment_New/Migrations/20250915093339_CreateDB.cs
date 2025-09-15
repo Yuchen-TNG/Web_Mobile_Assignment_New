@@ -6,7 +6,11 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Web_Mobile_Assignment_New.Migrations
 {
     /// <inheritdoc />
+<<<<<<<< HEAD:Web_Mobile_Assignment_New/Migrations/20250915093339_CreateDB.cs
     public partial class CreateDB : Migration
+========
+    public partial class tandb : Migration
+>>>>>>>> 77e24049d421d6fb906b9213af297c1c4953cdee:Web_Mobile_Assignment_New/Migrations/20250915102027_tandb.cs
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -35,6 +39,25 @@ namespace Web_Mobile_Assignment_New.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Houses", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Reports",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Who = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TargetProperty = table.Column<int>(type: "int", nullable: true),
+                    ReportType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Details = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TargetEmail = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Reports", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -198,6 +221,9 @@ namespace Web_Mobile_Assignment_New.Migrations
 
             migrationBuilder.DropTable(
                 name: "Payments");
+
+            migrationBuilder.DropTable(
+                name: "Reports");
 
             migrationBuilder.DropTable(
                 name: "Bookings");

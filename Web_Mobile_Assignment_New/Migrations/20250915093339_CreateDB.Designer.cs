@@ -12,8 +12,13 @@ using Web_Mobile_Assignment_New.Models;
 namespace Web_Mobile_Assignment_New.Migrations
 {
     [DbContext(typeof(DB))]
+<<<<<<<< HEAD:Web_Mobile_Assignment_New/Migrations/20250915093339_CreateDB.Designer.cs
     [Migration("20250915093339_CreateDB")]
     partial class CreateDB
+========
+    [Migration("20250915102027_tandb")]
+    partial class tandb
+>>>>>>>> 77e24049d421d6fb906b9213af297c1c4953cdee:Web_Mobile_Assignment_New/Migrations/20250915102027_tandb.Designer.cs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +29,43 @@ namespace Web_Mobile_Assignment_New.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("Report", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Details")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReportType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TargetEmail")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("TargetProperty")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Who")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Reports");
+                });
 
             modelBuilder.Entity("Web_Mobile_Assignment_New.Models.Booking", b =>
                 {

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Web_Mobile_Assignment_New.Migrations
 {
     /// <inheritdoc />
-    public partial class meow : Migration
+    public partial class CreateDB : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -29,7 +29,8 @@ namespace Web_Mobile_Assignment_New.Migrations
                     RoomStatus = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    Furnishing = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Furnishing = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -51,6 +52,26 @@ namespace Web_Mobile_Assignment_New.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Email);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "HouseImages",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    HouseId = table.Column<int>(type: "int", nullable: false),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_HouseImages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_HouseImages_Houses_HouseId",
+                        column: x => x.HouseId,
+                        principalTable: "Houses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -90,7 +111,7 @@ namespace Web_Mobile_Assignment_New.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     HouseId = table.Column<int>(type: "int", nullable: false),
                     UserEmail = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Rating = table.Column<int>(type: "int", nullable: false),
+                    Rating = table.Column<int>(type: "int", nullable: true),
                     Comment = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -145,6 +166,11 @@ namespace Web_Mobile_Assignment_New.Migrations
                 column: "UserEmail");
 
             migrationBuilder.CreateIndex(
+                name: "IX_HouseImages_HouseId",
+                table: "HouseImages",
+                column: "HouseId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_HouseReviews_HouseId",
                 table: "HouseReviews",
                 column: "HouseId");
@@ -164,6 +190,9 @@ namespace Web_Mobile_Assignment_New.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "HouseImages");
+
             migrationBuilder.DropTable(
                 name: "HouseReviews");
 

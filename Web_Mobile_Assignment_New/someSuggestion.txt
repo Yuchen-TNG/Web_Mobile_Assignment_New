@@ -40,8 +40,6 @@ leon
 extra
 email 跳gmail 然后 auto fill recipient 的email
 
-
-
 additional:
 address link google map
 phone number link whatsapp but 不一定要开进whatsapp acc

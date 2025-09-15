@@ -71,6 +71,10 @@ namespace Web_Mobile_Assignment_New.Migrations
                     b.Property<int>("Bathrooms")
                         .HasColumnType("int");
 
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
 

@@ -25,3 +25,10 @@ extra
 email 跳gmail 然后 auto fill recipient 的email
 
 
+
+
+
+
+tankaizhen2006@gmail.com	tan	AQAAAAIAAYagAAAAEJFfhpNF2Ufp3j7f/a9Gn/XVgAwga/UrY80c44wtRyGXJHnQNYwh/GxN89xYzFYbhw==	9/9/2025	Admin		valid
+chenkaizhen2006@gmail.com	tan	AQAAAAIAAYagAAAAEJFfhpNF2Ufp3j7f/a9Gn/XVgAwga/UrY80c44wtRyGXJHnQNYwh/GxN89xYzFYbhw==	9/9/2025	Owner	254fe160bf20451ebda621f3148c2ef5.jpg	valid
+chankaizhen2006@gmail.com	tan	AQAAAAIAAYagAAAAEJFfhpNF2Ufp3j7f/a9Gn/XVgAwga/UrY80c44wtRyGXJHnQNYwh/GxN89xYzFYbhw==	9/9/2025	Tenant	254fe160bf20451ebda621f3148c2ef5.jpg	valid

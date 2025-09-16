@@ -528,6 +528,7 @@ house.Owner = owner;
         {
             var booking = _context.Bookings
                 .Include(b => b.House)
+                .Include(b => b.Payment)
                 .FirstOrDefault(b => b.BookingId == bookingId);
 
             if (booking == null) return NotFound();
@@ -639,6 +640,7 @@ house.Owner = owner;
         {
             var booking = _context.Bookings
                 .Include(b => b.House)
+                .Include(b => b.Payment)
                 .FirstOrDefault(b => b.BookingId == bookingId);
 
             if (booking == null) return NotFound();
@@ -670,7 +672,7 @@ house.Owner = owner;
                 }
             }
 
-            return Json(new { success = true });
+            return Json(new { success = true, paymentId = payment.PaymentId });
         }
 
         public IActionResult Receipt(int paymentId)

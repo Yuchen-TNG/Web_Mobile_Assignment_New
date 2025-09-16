@@ -1,33 +1,101 @@
-﻿@model Web_Mobile_Assignment_New.Models.Payment
+﻿@model Web_Mobile_Assignment_New.Models.Booking
 
 @{
-    Layout = null; // Optional if you want a standalone receipt
+    ViewData["Title"] = "QR Payment";
 }
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Receipt</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 30px; }
-        .receipt-box { border: 1px solid #ccc; padding: 20px; border-radius: 10px; width: 600px; margin: auto; }
-        h2 { text-align: center; }
-        .info { margin: 10px 0; }
-    </style>
-</head>
-<body>
-    <div class="receipt-box">
-        <h2>Payment Receipt</h2>
-        <div class="info"><b>Receipt No:</b> @Model.PaymentId</div>
-        <div class="info"><b>Date:</b> @Model.PaymentDate.ToString("yyyy-MM-dd HH:mm")</div>
-        <div class="info"><b>Method:</b> @Model.Method</div>
-        <div class="info"><b>Status:</b> @Model.Status</div>
-        <hr />
-        <h3>Booking Details</h3>
-        <div class="info"><b>House:</b> @Model.Booking.House.RoomName</div>
-        <div class="info"><b>Address:</b> @Model.Booking.House.Address</div>
-        <div class="info"><b>Stay:</b> @Model.Booking.StartDate.ToString("yyyy-MM-dd") → @Model.Booking.EndDate.ToString("yyyy-MM-dd")</div>
-        <div class="info"><b>Total Paid:</b> @Model.Amount.ToString("C")</div>
+<h2 class="mb-4">QR Payment</h2>
+
+<!-- 🏠 House Details -->
+<div class="row align-items-center mt-4">
+    <div class="col-md-7">
+        <div class="card p-4 shadow-sm h-100">
+            <h3 class="fw-bold mb-3">@Model.House.RoomName</h3>
+            <p><strong>Type:</strong> @Model.House.RoomType</p>
+            <p><strong>Furnishing:</strong> @Model.House.Furnishing</p>
+            <p><strong>Address:</strong> @Model.House.Address</p>
+            <p>
+                <strong>Period:</strong>
+                @Model.StartDate.ToString("yyyy-MM-dd") → @Model.EndDate.ToString("yyyy-MM-dd")
+            </p>
+            <p><strong>Total Price:</strong> <span class="text-success fw-bold">RM @Model.TotalPrice</span></p>
+        </div>
     </div>
-</body>
-</html>
+
+    <div class="col-md-5 text-center">
+        <div class="card shadow-sm">
+            @if (!string.IsNullOrEmpty(Model.House.ImageUrl))
+            {
+                <img src="@Model.House.ImageUrl" alt="House photo" class="img-fluid rounded" style="max-height:400px; object-fit:cover;" />
+            }
+            else
+            {
+                <p class="text-muted p-3">No image available</p>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- 📷 Scan Section -->
+<h4 id="scan-title" class="text-center mb-3">Scan QR Code using your webcam:</h4>
+<div id="qr-reader" style="width:350px; margin:0 auto;"></div>
+
+<!-- ✅ Success Message + Receipt -->
+<div id="success-message" class="text-center mt-4" style="display:none;"></div>
+
+<!-- 🔙 Back Button -->
+<div id="back-container" class="text-center mt-4">
+    <a id="back-button" class="btn btn-secondary"
+       href="@Url.Action("Payment", "Home", new { bookingId = Model.BookingId })">
+        Back
+    </a>
+</div>
+
+@section Scripts {
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script>
+        function onScanSuccess(decodedText, decodedResult) {
+            html5QrcodeScanner.clear(); // stop scanner
+
+            // Send QR confirm request
+            fetch('@Url.Action("ConfirmQRPayment", "Home")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bookingId: @Model.BookingId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Hide scanner + title
+                    document.getElementById("scan-title").style.display = "none";
+                    document.getElementById("qr-reader").style.display = "none";
+
+                    // Generate receipt URL
+                    const receiptUrl = `/Home/Receipt?paymentId=${data.paymentId}`;
+
+                    // Show success + Download Receipt
+                    document.getElementById("success-message").style.display = "block";
+                    document.getElementById("success-message").innerHTML = `
+                        <h2 class='text-success fw-bold'>Payment Completed ✅</h2>
+                        <div class="mt-3">
+                            <a href='${receiptUrl}' class='btn btn-primary' target="_blank">
+                                Download Receipt
+                            </a>
+                        </div>
+                    `;
+
+                    // Update back button
+                    let backButton = document.getElementById("back-button");
+                    backButton.textContent = "Return to Home";
+                    backButton.href = "@Url.Action("Index", "Home")";
+                } else {
+                    alert("Failed to confirm payment. Please try again.");
+                }
+            })
+            .catch(err => { console.error(err); alert("Error confirming payment."); });
+        }
+
+        var html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: 250 });
+        html5QrcodeScanner.render(onScanSuccess);
+    </script>
+}

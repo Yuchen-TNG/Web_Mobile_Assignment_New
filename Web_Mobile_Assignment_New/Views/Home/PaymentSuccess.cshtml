@@ -2,6 +2,8 @@
 
 @{
     ViewData["Title"] = "Payment Success";
+    var payment = Model.Payment;
+
 }
 
 <h2 style="color:green;">✅ Payment Successful</h2>
@@ -15,5 +17,12 @@
     <p><strong>Total Paid:</strong> RM @Model.TotalPrice</p>
     <p><strong>Status:</strong> Confirmed</p>
 </div>
+
+@if (payment != null && payment.Status == "Completed")
+{
+    <a asp-action="Receipt" asp-route-paymentId="@payment.PaymentId" class="btn btn-primary">
+        Download Receipt
+    </a>
+}
 
 <a asp-action="Index" asp-controller="Home" class="btn btn-success">Back to Home</a>

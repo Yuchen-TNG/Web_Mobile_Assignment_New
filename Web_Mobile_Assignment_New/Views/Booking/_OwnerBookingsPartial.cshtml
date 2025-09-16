@@ -1,0 +1,30 @@
+﻿@model IEnumerable<Web_Mobile_Assignment_New.Models.Booking>
+
+<div class="card-container">
+    @foreach (var b in Model)
+    {
+        <div class="booking-card">
+            <img src="@b.House.ImageUrl" class="booking-image" alt="House" />
+            <div class="booking-body">
+                <div class="booking-title">@b.House.RoomName</div>
+                <div class="booking-price">@b.TotalPrice.ToString("C")</div>
+                <div class="booking-info">Tenant: @b.User.Name (@b.User.Email)</div>
+                <div class="booking-info">Start: @b.StartDate.ToString("yyyy-MM-dd")</div>
+                <div class="booking-info">End: @b.EndDate.ToString("yyyy-MM-dd")</div>
+                <div class="booking-info">Address: @b.House.Address</div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- 分页按钮 -->
+<div class="pagination" style="margin-top:20px; text-align:center;">
+    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+    {
+        <button class="btn btn-sm btn-outline-primary page-btn @(i == ViewBag.CurrentPage ? "active" : "")"
+                data-page="@i"
+                style="margin:0 5px;">
+            @i
+        </button>
+    }
+</div>

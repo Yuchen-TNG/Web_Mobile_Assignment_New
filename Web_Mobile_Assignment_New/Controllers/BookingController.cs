@@ -13,11 +13,10 @@ public class BookingController : Controller
         _db = db;
     }
 
-    // 租客查看自己的预订历史
+    // 原本的 MyBookings/OwnerBookings 不变
     public IActionResult MyBookings()
     {
-        var email = User.Identity?.Name; // 登录用户的 Email
-
+        var email = User.Identity?.Name;
         var bookings = _db.Bookings
             .Include(b => b.House)
             .Include(b => b.Payment)   // 🔥 Make sure Payment is loaded
@@ -27,45 +26,57 @@ public class BookingController : Controller
         return View(bookings);
     }
 
-    // 房东查看自己的屋子被谁租过
     public IActionResult OwnerBookings()
     {
-        var email = User.Identity?.Name; // 当前房东 Email
-
+        var email = User.Identity?.Name;
         var bookings = _db.Bookings
             .Include(b => b.House)
             .Include(b => b.User)
-            .Where(b => b.House.Email == email) // House.Email = Owner.Email
+            .Where(b => b.House.Email == email)
             .ToList();
 
         return View(bookings);
     }
 
-    // 租客创建 Booking
-    [HttpPost]
-    public IActionResult Create(int houseId, DateTime startDate, DateTime endDate)
+    // ✅ 租客分页
+    public IActionResult MyBookingsPage(int page = 1, int pageSize = 4)
     {
+        if (page < 1) page = 1;
         var email = User.Identity?.Name;
 
-        var house = _db.Houses.Find(houseId);
-        if (house == null) return NotFound();
+        var query = _db.Bookings
+            .Include(b => b.House)
+            .Where(b => b.UserEmail == email)
+            .OrderByDescending(b => b.StartDate);
 
-        var days = (endDate - startDate).Days;
-        if (days <= 0) return BadRequest("Invalid dates");
+        var totalItems = query.Count();
+        var bookings = query.Skip((page - 1) * pageSize).Take(pageSize).ToList();
 
-        var booking = new Booking
-        {
-            HouseId = houseId,
-            UserEmail = email,
-            StartDate = startDate,
-            EndDate = endDate,
-            TotalPrice = house.Price * days
-        };
+        ViewBag.CurrentPage = page;
+        ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
 
-        _db.Bookings.Add(booking);
-        _db.SaveChanges();
+        return PartialView("_MyBookingsPartial", bookings);
+    }
 
-        return RedirectToAction("MyBookings");
+    // ✅ 房东分页
+    public IActionResult OwnerBookingsPage(int page = 1, int pageSize = 4)
+    {
+        if (page < 1) page = 1;
+        var email = User.Identity?.Name;
+
+        var query = _db.Bookings
+            .Include(b => b.House)
+            .Include(b => b.User)
+            .Where(b => b.House.Email == email)
+            .OrderByDescending(b => b.StartDate);
+
+        var totalItems = query.Count();
+        var bookings = query.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+        ViewBag.CurrentPage = page;
+        ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+        return PartialView("_OwnerBookingsPartial", bookings);
     }
     [HttpPost]
     public IActionResult CancelBooking(int id)

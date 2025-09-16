@@ -253,23 +253,18 @@ house.Owner = owner;
 
 
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddReview(int houseId, int rating, string comment)
+        public async Task<IActionResult> AddReview(int houseId, int? rating, string comment)
         {
-            if (rating < 1 || rating > 5)
-            {
-                TempData["Error"] = "Invalid rating value.";
-                return RedirectToAction("Details", new { id = houseId });
-            }
+            if (rating == null || rating < 1 || rating > 5)
+                rating = 0;
 
             var review = new HouseReview
             {
                 HouseId = houseId,
                 Rating = rating,
                 Comment = comment,
-                UserEmail = User.Identity?.Name ?? "guest@example.com", // 防止为空
-                CreatedAt = DateTime.Now // 🔥 记得赋值时间
+                UserEmail = User.Identity?.Name ?? "guest@example.com",
+                CreatedAt = DateTime.UtcNow
             };
 
             _context.HouseReviews.Add(review);
@@ -528,6 +523,7 @@ house.Owner = owner;
         {
             var booking = _context.Bookings
                 .Include(b => b.House)
+                .Include(b => b.Payment)
                 .FirstOrDefault(b => b.BookingId == bookingId);
 
             if (booking == null) return NotFound();
@@ -639,6 +635,7 @@ house.Owner = owner;
         {
             var booking = _context.Bookings
                 .Include(b => b.House)
+                .Include(b => b.Payment)
                 .FirstOrDefault(b => b.BookingId == bookingId);
 
             if (booking == null) return NotFound();
@@ -670,7 +667,7 @@ house.Owner = owner;
                 }
             }
 
-            return Json(new { success = true });
+            return Json(new { success = true, paymentId = payment.PaymentId });
         }
 
         public IActionResult Receipt(int paymentId)

@@ -45,7 +45,7 @@ namespace Web_Mobile_Assignment_New.Controllers
 
             // 生成唯一文件名
             var fileName = Guid.NewGuid() + Path.GetExtension(photoFile.FileName);
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", fileName);
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/photos", fileName);
 
             // 保存文件
             using (var stream = new FileStream(filePath, FileMode.Create))
@@ -56,7 +56,7 @@ namespace Web_Mobile_Assignment_New.Controllers
             // 如果之前有旧照片，尝试删除
             if (!string.IsNullOrEmpty(user.PhotoURL))
             {
-                var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", user.PhotoURL);
+                var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/photos", user.PhotoURL);
                 if (System.IO.File.Exists(oldPath))
                     System.IO.File.Delete(oldPath);
             }
@@ -89,9 +89,12 @@ namespace Web_Mobile_Assignment_New.Controllers
 
         public IActionResult PropertyDetails(int id)
         {
-            if (id is 0) return NotFound();
+            if (id == 0) return NotFound();
 
-            House? house = _context.Houses.FirstOrDefault(h => h.Id == id);
+            // ✅ Include Images
+            House? house = _context.Houses
+                                   .Include(h => h.Images)
+                                   .FirstOrDefault(h => h.Id == id);
             if (house == null) return NotFound();
 
             return View(house);
@@ -397,9 +400,9 @@ namespace Web_Mobile_Assignment_New.Controllers
         }
 
         [HttpPost]
-        public IActionResult DeleteHouseImage(int imageId, int houseId)
+        public IActionResult DeleteHouseImage([FromBody] DeleteHouseImageRequest req)
         {
-            var image = _context.HouseImages.FirstOrDefault(i => i.Id == imageId);
+            var image = _context.HouseImages.FirstOrDefault(i => i.Id == req.ImageId);
             if (image != null)
             {
                 var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", image.ImageUrl);
@@ -409,10 +412,18 @@ namespace Web_Mobile_Assignment_New.Controllers
                 _context.HouseImages.Remove(image);
                 _context.SaveChanges();
                 TempData["Message"] = "Image deleted successfully!";
+                return Ok(new { success = true });
             }
 
-            return RedirectToAction("PropertyDetails", new { id = houseId });
+            return BadRequest(new { success = false });
         }
+
+        public class DeleteHouseImageRequest
+        {
+            public int ImageId { get; set; }
+            public int HouseId { get; set; }
+        }
+
 
     }
 }

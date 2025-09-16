@@ -15,7 +15,8 @@
             <p><strong>Type:</strong> @Model.House.RoomType</p>
             <p><strong>Furnishing:</strong> @Model.House.Furnishing</p>
             <p><strong>Address:</strong> @Model.House.Address</p>
-            <p><strong>Period:</strong> 
+            <p>
+                <strong>Period:</strong>
                 @Model.StartDate.ToString("yyyy-MM-dd") →
                 @Model.EndDate.ToString("yyyy-MM-dd")
             </p>
@@ -66,28 +67,33 @@
             fetch('@Url.Action("ConfirmQRPayment", "Home")', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ bookingId: @Model.BookingId })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    // Hide scanner + title
-                    document.getElementById("scan-title").style.display = "none";
-                    document.getElementById("qr-reader").style.display = "none";
+                body: JSON.stringify({ BookingId: @Model.BookingId })  // PascalCase
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const receiptUrl = `/Home/Receipt?paymentId=${data.paymentId}`;
+                document.getElementById("scan-title").style.display = "none";
+                document.getElementById("qr-reader").style.display = "none";
 
-                    // Show Payment Confirmed
-                    document.getElementById("success-message").style.display = "block";
-                    document.getElementById("success-message").innerHTML =
-                        "<h2 class='text-success fw-bold'>Payment Completed ✅</h2>";
+                document.getElementById("success-message").style.display = "block";
+                document.getElementById("success-message").innerHTML = `
+                    <h2 class='text-success fw-bold'>Payment Completed ✅</h2>
+                    <div class="mt-3">
+                        <a href='${receiptUrl}' class='btn btn-primary'>
+                            Download Receipt
+                        </a>
+                    </div>
+                `;
 
-                    // Change Back button to "Return to Home"
-                    let backButton = document.getElementById("back-button");
-                    backButton.textContent = "Return to Home";
-                    backButton.href = "@Url.Action("Index", "Home")";
-                } else {
-                    alert("Failed to confirm payment. Please try again.");
-                }
-            });
+                let backButton = document.getElementById("back-button");
+                backButton.textContent = "Return to Home";
+                backButton.href = "@Url.Action("Index", "Home")";
+            } else {
+                alert("Failed to confirm payment. Please try again.");
+            }
+        });
+
         }
 
         var html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: 250 });

@@ -143,6 +143,19 @@
 </style>
 
 <h2>My Booking History</h2>
+
+<div id="bookingList">
+    <!-- 这里通过 Ajax 加载 _MyBookingsPartial -->
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function loadPage(page) {
+            $.get("@Url.Action("MyBookingsPage", "Booking")", { page: page }, function (data) {
+                $("#bookingList").html(data);
+            });
+        }
 <div class="card-container">
     @foreach (var booking in Model)
     {
@@ -165,6 +178,15 @@
                 }
 
 
+        $(document).ready(function () {
+            loadPage(1);
+
+            $(document).on("click", ".page-btn", function () {
+                loadPage($(this).data("page"));
+            });
+        });
+    </script>
+}
                 @if (booking.EndDate >= DateTime.Today)
                 {
                     <form asp-controller="Booking" asp-action="CancelBooking" asp-route-id="@booking.BookingId" method="post">

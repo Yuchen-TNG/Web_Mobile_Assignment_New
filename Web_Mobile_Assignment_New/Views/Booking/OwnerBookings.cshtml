@@ -1,22 +1,121 @@
 ﻿@model IEnumerable<Web_Mobile_Assignment_New.Models.Booking>
 
-<h2>My House Bookings</h2>
-<table class="table">
-    <tr>
-        <th>House</th>
-        <th>Tenant</th>
-        <th>Start</th>
-        <th>End</th>
-        <th>Total Price</th>
-    </tr>
-    @foreach (var b in Model)
-    {
-        <tr>
-            <td>@b.House.RoomName</td>
-            <td>@b.User.Name (@b.User.Email)</td>
-            <td>@b.StartDate.ToString("yyyy-MM-dd")</td>
-            <td>@b.EndDate.ToString("yyyy-MM-dd")</td>
-            <td>@b.TotalPrice.ToString("C")</td>
-        </tr>
+@{
+    ViewBag.Title = "My House Bookings";
+}
+
+@if (TempData["Message"] != null)
+{
+    var type = TempData["MessageType"]?.ToString() ?? "success";
+    <div class="alert @(type == "success" ? "alert-success" : "alert-error")">
+        @TempData["Message"]
+    </div>
+}
+
+<style>
+    body {
+        font-family: "Segoe UI", Arial, sans-serif;
+        background-color: #f9fafb;
+        margin: 0;
     }
-</table>
+
+    .card-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .booking-card {
+        display: flex;
+        flex-direction: row;
+        background: #fff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        min-height: 180px;
+    }
+
+        .booking-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+        }
+
+    .booking-image {
+        width: 300px;
+        height: 180px;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+    .booking-body {
+        flex: 1;
+        padding: 15px 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .booking-title {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 8px;
+    }
+
+    .booking-price {
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #2c7a7b;
+        margin-bottom: 10px;
+    }
+
+    .booking-info {
+        font-size: 0.9rem;
+        color: #555;
+        margin: 4px 0;
+    }
+
+    /* 状态颜色 */
+    .status-pending {
+        color: #d97706;
+        font-weight: bold;
+    }
+
+    .status-approved {
+        color: #16a34a;
+        font-weight: bold;
+    }
+
+    .status-cancelled {
+        color: #dc2626;
+        font-weight: bold;
+    }
+</style>
+
+<h2>My House Bookings</h2>
+
+<!-- 🚀 用来放 PartialView 内容 -->
+<div id="bookingList"></div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function loadPage(page) {
+            $.get("@Url.Action("OwnerBookingsPage", "Booking")", { page: page }, function (data) {
+                $("#bookingList").html(data);
+            });
+        }
+
+        $(document).ready(function () {
+            loadPage(1); // 默认加载第一页
+
+            // 监听分页按钮点击
+            $(document).on("click", ".page-btn", function () {
+                loadPage($(this).data("page"));
+            });
+        });
+    </script>
+}
+
+

@@ -1,0 +1,33 @@
+﻿@model Web_Mobile_Assignment_New.Models.Payment
+
+@{
+    Layout = null; // Optional if you want a standalone receipt
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Receipt</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; }
+        .receipt-box { border: 1px solid #ccc; padding: 20px; border-radius: 10px; width: 600px; margin: auto; }
+        h2 { text-align: center; }
+        .info { margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="receipt-box">
+        <h2>Payment Receipt</h2>
+        <div class="info"><b>Receipt No:</b> @Model.PaymentId</div>
+        <div class="info"><b>Date:</b> @Model.PaymentDate.ToString("yyyy-MM-dd HH:mm")</div>
+        <div class="info"><b>Method:</b> @Model.Method</div>
+        <div class="info"><b>Status:</b> @Model.Status</div>
+        <hr />
+        <h3>Booking Details</h3>
+        <div class="info"><b>House:</b> @Model.Booking.House.RoomName</div>
+        <div class="info"><b>Address:</b> @Model.Booking.House.Address</div>
+        <div class="info"><b>Stay:</b> @Model.Booking.StartDate.ToString("yyyy-MM-dd") → @Model.Booking.EndDate.ToString("yyyy-MM-dd")</div>
+        <div class="info"><b>Total Paid:</b> @Model.Amount.ToString("C")</div>
+    </div>
+</body>
+</html>

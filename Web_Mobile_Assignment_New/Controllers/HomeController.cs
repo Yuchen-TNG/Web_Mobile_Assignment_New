@@ -10,6 +10,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using QRCoder;
 using Web_Mobile_Assignment_New.Models;
 using ZXing.QrCode.Internal;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 
 namespace Web_Mobile_Assignment_New.Controllers
 {
@@ -668,6 +671,62 @@ house.Owner = owner;
             }
 
             return Json(new { success = true });
+        }
+
+        public IActionResult Receipt(int paymentId)
+        {
+            var payment = _context.Payments
+                .Include(p => p.Booking)
+                .ThenInclude(b => b.House)
+                .FirstOrDefault(p => p.PaymentId == paymentId);
+
+            if (payment == null) return NotFound();
+
+            if (payment.Status != "Completed")
+            {
+                TempData["Message"] = "Receipt available only for successful payments.";
+                return RedirectToAction("MyBookings");
+            }
+
+            var booking = payment.Booking;
+            var house = booking.House;
+
+            var document = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Margin(40);
+
+                    // Header
+                    page.Header().Row(row =>
+                    {
+                        row.RelativeItem().Text("E-Receipt").FontSize(22).Bold().FontColor(Colors.Blue.Medium);
+                        row.ConstantItem(100).Height(50).Placeholder(); // you can replace with logo
+                    });
+
+                    // Content
+                    page.Content().Column(col =>
+                    {
+                        col.Spacing(10);
+
+                        col.Item().Text($"Receipt #: {payment.PaymentId}").FontSize(12);
+                        col.Item().Text($"Date: {payment.PaymentDate:yyyy-MM-dd HH:mm}");
+                        col.Item().Text($"Tenant: {booking.UserEmail}");
+                        col.Item().Text($"House: {house.RoomName} ({house.Address})");
+
+                        col.Item().Text($"Booking Period: {booking.StartDate:yyyy-MM-dd} → {booking.EndDate:yyyy-MM-dd}");
+                        col.Item().Text($"Amount Paid: RM {payment.Amount:F2}").Bold();
+                        col.Item().Text($"Payment Method: {payment.Method}");
+                        col.Item().Text($"Status: {payment.Status}");
+                    });
+
+                    // Footer
+                    page.Footer().AlignCenter().Text("Thank you for your payment!");
+                });
+            });
+
+            var pdf = document.GeneratePdf();
+            return File(pdf, "application/pdf", $"Receipt_{payment.PaymentId}.pdf");
         }
 
 

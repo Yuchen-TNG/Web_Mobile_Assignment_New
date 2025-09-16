@@ -55,7 +55,6 @@ searching
 举报问题 (Report Issue)
 针对合同、付款、维修服务等异常情况提交举报。
 
-Room status: 已租
 payment:电子合同
 
 payment: Cancel booking (退款的概念)

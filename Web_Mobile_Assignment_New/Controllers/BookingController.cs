@@ -20,6 +20,7 @@ public class BookingController : Controller
 
         var bookings = _db.Bookings
             .Include(b => b.House)
+            .Include(b => b.Payment)   // 🔥 Make sure Payment is loaded
             .Where(b => b.UserEmail == email)
             .ToList();
 

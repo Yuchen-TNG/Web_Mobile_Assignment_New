@@ -141,7 +141,7 @@
     @foreach (var house in Model)
     {
         <div class="property-card">
-            <img src="@house.ImageUrl" alt="House Image" class="property-image" />
+            <img src="/images/@house.ImageUrl" alt="House Image" class="property-image" />
             <div class="property-body">
                 <div class="property-title">@house.RoomName (@house.RoomType)</div>
                 <div class="property-price">$@house.Price</div>

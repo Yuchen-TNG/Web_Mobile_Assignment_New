@@ -338,12 +338,17 @@
 
 
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                    <!-- 导航菜单保持不变 -->
                     @if (User.IsInRole("Tenant"))
                     {
                         <li class="nav-item">
                             <a class="nav-link text-light" href="/Home/Tenant">
                                 <i class="fas fa-home"></i>Tenant
+                            </a>
+                        </li>
+                        <!-- ✅ 新增：Tenant 的 Booking 历史按钮 -->
+                        <li class="nav-item">
+                            <a class="nav-link text-light" href="/Booking/MyBookings">
+                                <i class="fas fa-book"></i>My Bookings
                             </a>
                         </li>
                     }
@@ -352,6 +357,12 @@
                         <li class="nav-item">
                             <a class="nav-link text-light" href="/Home/Owner">
                                 <i class="fas fa-key"></i>Owner
+                            </a>
+                        </li>
+                        <!-- ✅ 新增：Owner 的租客记录按钮 -->
+                        <li class="nav-item">
+                            <a class="nav-link text-light" href="/Booking/OwnerBookings">
+                                <i class="fas fa-users"></i>Tenant History
                             </a>
                         </li>
                     }
@@ -405,6 +416,7 @@
                         </li>
                     }
                 </ul>
+
             </div>
         </div>
     </nav>

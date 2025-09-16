@@ -15,7 +15,6 @@ namespace Web_Mobile_Assignment_New.Models
         [Required, StringLength(100)]
         public string? UserEmail { get; set; } = ""; // 外键到 User.Email
 
-
         [Range(1, 5)]
         public int? Rating { get; set; } // 1-5 星、
 

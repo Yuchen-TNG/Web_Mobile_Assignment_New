@@ -42,6 +42,19 @@ namespace Web_Mobile_Assignment_New.Models
                 .WithMany()
                 .HasForeignKey(h => h.Email)
                 .HasPrincipalKey(o => o.Email);
+
+            // Booking → User
+            modelBuilder.Entity<Booking>()
+                .HasOne(b => b.User)
+                .WithMany()
+                .HasForeignKey(b => b.UserEmail)
+                .HasPrincipalKey(u => u.Email);
+
+            // Booking → House
+            modelBuilder.Entity<Booking>()
+                .HasOne(b => b.House)
+                .WithMany()
+                .HasForeignKey(b => b.HouseId);
         }
     }
 

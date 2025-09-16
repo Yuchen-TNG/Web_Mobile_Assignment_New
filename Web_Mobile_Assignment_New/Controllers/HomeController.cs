@@ -153,6 +153,15 @@ namespace Web_Mobile_Assignment_New.Controllers
                 return View(house);
             }
 
+            // ✅ 🔥 在这里检查 Owner 是否存在
+var owner = await _context.Owners.FirstOrDefaultAsync(o => o.Email == house.Email);
+if (owner == null)
+{
+    ModelState.AddModelError("", "Owner not found. Please register as an Owner before adding a house.");
+    return View(house);
+}
+house.Owner = owner;
+
             // ✅ 保存房源（先存 House 才能拿到 Id）
             _context.Houses.Add(house);
             await _context.SaveChangesAsync();
@@ -307,6 +316,34 @@ namespace Web_Mobile_Assignment_New.Controllers
             ViewBag.BookedDates = bookedDates;
 
             return View(house);
+        }
+
+        [Authorize(Roles = "Tenant")]
+        public IActionResult MyBookings()
+        {
+            var userEmail = User.Identity.Name;
+            var bookings = _context.Bookings
+                .Include(b => b.House)
+                .Include(b => b.Payment)
+                .Where(b => b.UserEmail == userEmail)
+                .OrderByDescending(b => b.StartDate)
+                .ToList();
+
+            return View(bookings);
+        }
+
+        [Authorize(Roles = "Owner")]
+        public IActionResult OwnerBookings()
+        {
+            var userEmail = User.Identity.Name;
+            var bookings = _context.Bookings
+                .Include(b => b.House)
+                .Include(b => b.Payment)
+                .Where(b => b.House.Email == userEmail) // 房东的 Email 存在 House.Email
+                .OrderByDescending(b => b.StartDate)
+                .ToList();
+
+            return View(bookings);
         }
 
 

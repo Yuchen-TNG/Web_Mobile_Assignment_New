@@ -42,6 +42,7 @@ additional:
 
 Room status: 已租
 payment:电子合同
+
 payment: Cancel booking (退款的概念)
 Update house： no validation
 

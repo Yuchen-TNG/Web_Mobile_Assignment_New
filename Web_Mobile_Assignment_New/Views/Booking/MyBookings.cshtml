@@ -128,10 +128,14 @@
                 <div class="property-info">End: @booking.EndDate.ToString("yyyy-MM-dd")</div>
                 <div class="property-info">Address: @booking.House.Address</div>
 
-                    <form asp-action="CancelBooking" asp-route-id="@booking.BookingId" method="post">
+                @if (booking.EndDate >= DateTime.Today)
+                {
+                    <form asp-controller="Booking" asp-action="CancelBooking" asp-route-id="@booking.BookingId" method="post">
                         <button type="submit" class="cancel-btn">Cancel Booking</button>
                     </form>
-                
+
+                }
+     
             </div>
         </div>
     }

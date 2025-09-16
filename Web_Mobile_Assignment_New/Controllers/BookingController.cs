@@ -66,4 +66,47 @@ public class BookingController : Controller
 
         return RedirectToAction("MyBookings");
     }
+    [HttpPost]
+    public IActionResult CancelBooking(int id)
+    {
+        var booking = _db.Bookings
+            .Include(b => b.House)
+            .FirstOrDefault(b => b.BookingId == id);
+
+        if (booking == null)
+        {
+            TempData["Message"] = "Booking not found.";
+            TempData["MessageType"] = "error";
+            return RedirectToAction("MyBookings");
+        }
+
+        // ✅ remove booking (and payment if you have a relation)
+        var payment = _db.Payments.FirstOrDefault(p => p.BookingId == booking.BookingId);
+        if (payment != null)
+        {
+            _db.Payments.Remove(payment);
+        }
+
+        _db.Bookings.Remove(booking);
+        _db.SaveChanges();
+
+        // ✅ Update house availability
+        var house = booking.House;
+        if (house != null)
+        {
+            house.Availability = IsHouseFullyBooked(house.Id) ? "Rented" : "Available";
+            _db.SaveChanges();
+        }
+
+        TempData["Message"] = "Booking has been cancelled successfully.";
+        TempData["MessageType"] = "success";
+        return RedirectToAction("MyBookings");
+    }
+
+    // Helper method to check if house is still fully booked
+    private bool IsHouseFullyBooked(int houseId)
+    {
+        return _db.Bookings.Any(b => b.HouseId == houseId);
+    }
+
 }

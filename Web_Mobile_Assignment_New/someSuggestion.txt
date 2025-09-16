@@ -3,8 +3,6 @@
 
 KaiZhen
 
-report function(https://chatgpt.com/share/68c6fdc0-d84c-8003-9c44-25526d31cca0)
-
 validation(don't ask which path, if want to know, all path need to do)
 
 User Management
@@ -14,11 +12,9 @@ User Management
 Property Management
 -can edit photo?
 
-Owner can't rent or report house
 
 extra
--owner 只有update room 和add house
-(owner status can put as private and public user)
+owner status can put as private and public user
 
 
 yuchen
@@ -39,6 +35,25 @@ extra
 email 跳gmail 然后 auto fill recipient 的email
 
 additional:
+address link google map
+phone number link whatsapp but 不一定要开进whatsapp acc
+payment link paypal third api
+problem:
+if got payment should we need payment method?
+paging
+searching
+-histrory
+
+在 House Rental System 里 “举报 (Report)” 按钮可以怎么设计
+
+举报房源 (Report Listing)
+如果房东发布了虚假房源、照片不符、价格欺诈，用户可以点这个按钮举报。
+
+举报房东/租客 (Report User)
+用户觉得对方行为不当（例如：骚扰、诈骗、违约），可以点按钮举报。
+
+举报问题 (Report Issue)
+针对合同、付款、维修服务等异常情况提交举报。
 
 Room status: 已租
 payment:电子合同

@@ -57,9 +57,9 @@ namespace Web_Mobile_Assignment_New.Models
         public ICollection<HouseImage> Images { get; set; } = new List<HouseImage>();
 
         // 🔑 外键，指向 Owner
-        [Required]
-        public string Email { get; set; }
-        public Owner Owner { get; set; }
+
+        public string? Email { get; set; }
+        public Owner? Owner { get; set; }
 
     }
 }

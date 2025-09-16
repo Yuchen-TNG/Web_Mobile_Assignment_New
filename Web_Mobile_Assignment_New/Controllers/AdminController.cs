@@ -2,6 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Web_Mobile_Assignment_New.Models;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
+
 namespace Web_Mobile_Assignment_New.Controllers
 {
     public class AdminController : Controller
@@ -25,7 +28,36 @@ namespace Web_Mobile_Assignment_New.Controllers
 
             return View(users);
         }
+        public IActionResult BookingManagement()
+        {
+            var vm = new BookingManagementVM
+            {
+                Bookings = _context.Bookings
+                                   .Include(b => b.House)
+                                   .Include(b => b.User)
+                                   .ToList(),
+                Houses = _context.Houses.ToList()
+            };
+            return View(vm);
+        }
 
+        public IActionResult BookingDetails(int id)
+        {
+            var booking = _context.Bookings
+                                  .Include(b => b.House)
+                                  .Include(b => b.User)
+                                  .Include(b => b.Payment)
+                                  .FirstOrDefault(b => b.BookingId == id);
+
+            if (booking == null)
+            {
+                TempData["Message"] = "Booking not found!";
+                TempData["MessageType"] = "error";
+                return RedirectToAction("BookingManagement");
+            }
+
+            return View(booking);
+        }
         public async Task<IActionResult> UserFilter(string? role, string? status, DateOnly? birthday)
         {
             // 1️⃣ 从数据库获取所有用户（User 表）  
@@ -354,6 +386,45 @@ namespace Web_Mobile_Assignment_New.Controllers
             return View("ReportManagement",rp);
         }
 
+        [HttpPost]
+        [HttpPost]
+        public async Task<IActionResult> RotatePhoto(string email, int degrees)
+        {
+            if (string.IsNullOrEmpty(email)) return NotFound();
+
+            var user = _context.Users
+                               .AsEnumerable()
+                               .OfType<OwnerTenant>()
+                               .FirstOrDefault(u => u.Email == email);
+
+            if (user == null || string.IsNullOrEmpty(user.PhotoURL))
+            {
+                TempData["Message"] = "No photo found!";
+                TempData["MessageType"] = "error";
+                return RedirectToAction("UserDetails", new { email });
+            }
+
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/photos", user.PhotoURL);
+
+            if (!System.IO.File.Exists(filePath))
+            {
+                TempData["Message"] = "Photo file missing!";
+                TempData["MessageType"] = "error";
+                return RedirectToAction("UserDetails", new { email });
+            }
+
+            using (var image = await Image.LoadAsync(filePath))
+            {
+                image.Mutate(x => x.Rotate(degrees));
+                await image.SaveAsync(filePath);
+            }
+
+            TempData["Message"] = $"Photo rotated {degrees}° successfully!";
+            TempData["MessageType"] = "success";
+
+            return RedirectToAction("UserDetails", new { email });
+        }
+
         public IActionResult ReportDetails(int id)
         {
             var report = _context.Reports.FirstOrDefault(r => r.Id == id);
@@ -390,6 +461,7 @@ namespace Web_Mobile_Assignment_New.Controllers
             TempData["Message"] = "Report deleted (marked as Valid).";
             return RedirectToAction("ReportManagement"); // 删除后返回列表
         }
+
 
         public IActionResult RestrictedReport(int reportId,int houseId)
         {

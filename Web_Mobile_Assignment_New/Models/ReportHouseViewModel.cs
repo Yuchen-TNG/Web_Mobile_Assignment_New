@@ -6,4 +6,10 @@
         public Report Report { get; set; }   // 举报
         public House? House { get; set; }    // 房源（可能为空）
     }
+
+    public class BookingManagementVM
+    {
+        public List<Booking> Bookings { get; set; }
+        public List<House> Houses { get; set; }
+    }
 }

@@ -1,0 +1,186 @@
+﻿@model Web_Mobile_Assignment_New.Modelss.BookingManagementVM
+@using Newtonsoft.Json
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+@{
+    ViewData["Title"] = "Booking Management";
+}
+@{
+    // 按月份分组统计
+    var monthlyData = Model.Bookings
+        .GroupBy(b => new { b.StartDate.Year, b.StartDate.Month })
+        .Select(g => new
+        {
+            Month = g.Key.Year + "-" + g.Key.Month.ToString("D2"),
+            Count = g.Count()
+        }).OrderBy(x => x.Month).ToList();
+
+    var months = monthlyData.Select(x => x.Month).ToList();
+    var monthCounts = monthlyData.Select(x => x.Count).ToList();
+}
+
+@if (TempData["Message"] != null)
+{
+    var type = TempData["MessageType"]?.ToString() ?? "success";
+    <div class="alert @(type == "success" ? "alert-success" : "alert-error")">
+        @TempData["Message"]
+    </div>
+}
+
+<div class="header-container">
+    <h1>Booking Management</h1>
+    <a asp-controller="Home" asp-action="Admin" class="back-btn">⬅ Back</a>
+</div>
+
+<style>
+    /* header */
+    .header-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 25px;
+        position: relative;
+    }
+
+        .header-container h1 {
+            margin: 0;
+            flex-grow: 1;
+            text-align: center;
+            font-size: 28px;
+            color: #333;
+        }
+
+    .back-btn {
+        position: absolute;
+        left: 0;
+        padding: 8px 16px;
+        background-color: #4a90e2;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: bold;
+        transition: background-color 0.3s, transform 0.2s;
+    }
+
+        .back-btn:hover {
+            background-color: #357ab8;
+            transform: scale(1.05);
+        }
+
+    /* 卡片容器 */
+    .card-container {
+        display: flex;
+        overflow-x: auto;
+        gap: 20px;
+        padding: 10px;
+        scroll-snap-type: x mandatory; /* 每张卡片像吸附一样滑动 */
+    }
+
+    .booking-card {
+        min-width: 300px;
+        flex-shrink: 0;
+        scroll-snap-align: start;
+    }
+
+        .booking-card:hover {
+            transform: scale(1.02);
+        }
+
+    .booking-title {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+
+    .booking-info {
+        font-size: 14px;
+        margin-bottom: 6px;
+        color: #555;
+    }
+
+    .booking-price {
+        font-size: 16px;
+        font-weight: bold;
+        color: #4a90e2;
+        margin-top: 8px;
+    }
+
+    .status-paid {
+        color: #4caf50;
+        font-weight: bold;
+    }
+
+    .status-unpaid {
+        color: #f44336;
+        font-weight: bold;
+    }
+
+    .details-btn {
+        display: inline-block;
+        margin-top: 12px;
+        padding: 8px 12px;
+        background: #4a90e2;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: bold;
+        transition: background-color 0.2s, transform 0.2s;
+    }
+
+        .details-btn:hover {
+            background: #357ab8;
+            transform: scale(1.05);
+        }
+</style>
+
+<div class="card-container">
+    @foreach (var booking in Model.Bookings)
+    {
+        <div class="booking-card">
+            <div class="booking-title">Booking #@booking.BookingId</div>
+            <div class="booking-info">Tenant: @booking.User?.Name (@booking.UserEmail)</div>
+            <div class="booking-info">House: @booking.House?.RoomName</div>
+            <div class="booking-info">From: @booking.StartDate.ToString("yyyy-MM-dd")</div>
+            <div class="booking-info">To: @booking.EndDate.ToString("yyyy-MM-dd")</div>
+            <div class="booking-price">Total: $@booking.TotalPrice</div>
+            <a asp-controller="Admin" asp-action="BookingDetails" asp-route-id="@booking.BookingId" class="details-btn">
+                Details
+            </a>
+        </div>
+    }
+</div>
+<div style="width:80%; margin:40px auto;">
+    <h2 style="text-align:center;">Bookings per Month</h2>
+    <canvas id="monthlyBookingChart"></canvas>
+</div>
+
+<script>
+    const ctx3 = document.getElementById('monthlyBookingChart').getContext('2d');
+    const monthlyBookingChart = new Chart(ctx3, {
+        type: 'line',
+        data: {
+            labels: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(months)),
+            datasets: [{
+                label: 'Bookings',
+                data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(monthCounts)),
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                fill: true,
+                tension: 0.2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1 }
+                }
+            }
+        }
+    });
+</script>
+

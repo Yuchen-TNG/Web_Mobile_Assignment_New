@@ -1,21 +1,45 @@
 ﻿@model IEnumerable<Web_Mobile_Assignment_New.Models.Booking>
 
 <div class="card-container">
-    @foreach (var b in Model)
+    @foreach (var booking in Model)
     {
         <div class="property-card">
-            <img src="@b.House.ImageUrl" class="property-image" alt="House" />
+            <img src="@booking.House.ImageUrl" alt="House Image" class="property-image" />
             <div class="property-body">
-                <div class="property-title">@b.House.RoomName</div>
-                <div class="property-price">@b.TotalPrice.ToString("C")</div>
-                <div class="property-info">Start: @b.StartDate.ToString("yyyy-MM-dd")</div>
-                <div class="property-info">End: @b.EndDate.ToString("yyyy-MM-dd")</div>
+                <div class="property-title">@booking.House.RoomName (@booking.House.RoomType)</div>
+                <div class="property-price">@booking.TotalPrice.ToString("C")</div>
+                <div class="property-info">Start: @booking.StartDate.ToString("yyyy-MM-dd")</div>
+                <div class="property-info">End: @booking.EndDate.ToString("yyyy-MM-dd")</div>
+                <div class="property-info">Address: @booking.House.Address</div>
+
+                @* Receipt 下载 *@
+                @if (booking.Payment != null && booking.Payment.Status == "Completed")
+                {
+                    <a asp-action="Receipt"
+                       asp-controller="Home"
+                       asp-route-paymentId="@booking.Payment.PaymentId"
+                       class="receipt-btn">
+                        Download Receipt
+                    </a>
+                }
+
+                @* Cancel Booking 按钮 *@
+                @if (booking.EndDate >= DateTime.Today)
+                {
+                    <form asp-controller="Booking"
+                          asp-action="CancelBooking"
+                          asp-route-id="@booking.BookingId"
+                          method="post"
+                          class="cancel-booking-form">
+                        <button type="submit" class="cancel-btn">Cancel Booking</button>
+                    </form>
+                }
             </div>
         </div>
     }
 </div>
 
-<div class="pagination">
+<div class="pagination mt-3">
     @for (int i = 1; i <= ViewBag.TotalPages; i++)
     {
         <button class="btn btn-sm btn-outline-primary page-btn @(i == ViewBag.Page ? "active" : "")"

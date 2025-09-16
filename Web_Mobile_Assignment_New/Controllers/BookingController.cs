@@ -13,32 +13,13 @@ public class BookingController : Controller
         _db = db;
     }
 
-    // 原本的 MyBookings/OwnerBookings 不变
+    // ================= 租客页面 =================
     public IActionResult MyBookings()
     {
-        var email = User.Identity?.Name;
-        var bookings = _db.Bookings
-            .Include(b => b.House)
-            .Include(b => b.Payment)   // 🔥 Make sure Payment is loaded
-            .Where(b => b.UserEmail == email)
-            .ToList();
-
-        return View(bookings);
+        return View(); // 初始视图，分页由 Ajax 加载
     }
 
-    public IActionResult OwnerBookings()
-    {
-        var email = User.Identity?.Name;
-        var bookings = _db.Bookings
-            .Include(b => b.House)
-            .Include(b => b.User)
-            .Where(b => b.House.Email == email)
-            .ToList();
-
-        return View(bookings);
-    }
-
-    // ✅ 租客分页
+    // 租客分页
     public IActionResult MyBookingsPage(int page = 1, int pageSize = 4)
     {
         if (page < 1) page = 1;
@@ -46,6 +27,7 @@ public class BookingController : Controller
 
         var query = _db.Bookings
             .Include(b => b.House)
+            .Include(b => b.Payment)
             .Where(b => b.UserEmail == email)
             .OrderByDescending(b => b.StartDate);
 
@@ -58,7 +40,12 @@ public class BookingController : Controller
         return PartialView("_MyBookingsPartial", bookings);
     }
 
-    // ✅ 房东分页
+    // ================= 房东页面 =================
+    public IActionResult OwnerBookings()
+    {
+        return View();
+    }
+
     public IActionResult OwnerBookingsPage(int page = 1, int pageSize = 4)
     {
         if (page < 1) page = 1;
@@ -78,11 +65,14 @@ public class BookingController : Controller
 
         return PartialView("_OwnerBookingsPartial", bookings);
     }
+
+    // ================= 取消预订 =================
     [HttpPost]
     public IActionResult CancelBooking(int id)
     {
         var booking = _db.Bookings
             .Include(b => b.House)
+            .Include(b => b.Payment)
             .FirstOrDefault(b => b.BookingId == id);
 
         if (booking == null)
@@ -92,21 +82,20 @@ public class BookingController : Controller
             return RedirectToAction("MyBookings");
         }
 
-        // ✅ remove booking (and payment if you have a relation)
-        var payment = _db.Payments.FirstOrDefault(p => p.BookingId == booking.BookingId);
-        if (payment != null)
+        // 删除关联 Payment
+        if (booking.Payment != null)
         {
-            _db.Payments.Remove(payment);
+            _db.Payments.Remove(booking.Payment);
         }
 
         _db.Bookings.Remove(booking);
         _db.SaveChanges();
 
-        // ✅ Update house availability
+        // 更新房源状态
         var house = booking.House;
         if (house != null)
         {
-            house.Availability = IsHouseFullyBooked(house.Id) ? "Rented" : "Available";
+            house.RoomStatus = IsHouseFullyBooked(house.Id) ? "Rented" : "Available";
             _db.SaveChanges();
         }
 
@@ -115,10 +104,10 @@ public class BookingController : Controller
         return RedirectToAction("MyBookings");
     }
 
-    // Helper method to check if house is still fully booked
+    // ================= Helper =================
     private bool IsHouseFullyBooked(int houseId)
     {
-        return _db.Bookings.Any(b => b.HouseId == houseId);
+        // 如果还有未取消的预订，视为已被占用
+        return _db.Bookings.Any(b => b.HouseId == houseId && b.EndDate >= DateTime.Today);
     }
-
 }

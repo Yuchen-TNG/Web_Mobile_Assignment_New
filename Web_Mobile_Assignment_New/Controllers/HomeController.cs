@@ -75,6 +75,8 @@ namespace Web_Mobile_Assignment_New.Controllers
         }
 
 
+
+
         // ================= HOUSE CRUD ==================
         [HttpGet]
         public IActionResult AddHouse()
@@ -557,6 +559,8 @@ house.Owner = owner;
 
             return View(house);
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult UpdateProperty(House model)
         {
             var existing = _context.Houses.FirstOrDefault(h => h.Id == model.Id);
@@ -565,8 +569,57 @@ house.Owner = owner;
                 TempData["Message"] = "House not found";
                 return RedirectToAction("Owner");
             }
-                
-            // 更新允许修改的字段
+
+            // ================== 验证逻辑 ==================
+            if (model.RoomType == "Whole Unit")
+            {
+                // Whole Unit 可以自由决定 Rooms/Bathrooms
+                if (model.Rooms < 1 || model.Rooms > 8)
+                    ModelState.AddModelError("Rooms", "For Whole Unit, rooms must be between 1 and 8.");
+                if (model.Bathrooms < 1 || model.Bathrooms > 6)
+                    ModelState.AddModelError("Bathrooms", "For Whole Unit, bathrooms must be between 1 and 6.");
+            }
+            else
+            {
+                // 非 Whole Unit 固定 1 个房间和 1 个卫生间
+                model.Rooms = 1;
+                model.Bathrooms = 1;
+            }
+
+            // 日期验证
+            if (!model.StartDate.HasValue || !model.EndDate.HasValue)
+            {
+                ModelState.AddModelError("StartDate", "Both Start Date and End Date are required.");
+            }
+            else
+            {
+                if (model.StartDate < DateTime.Today)
+                    ModelState.AddModelError("StartDate", "Start Date cannot be in the past.");
+                if (model.EndDate <= model.StartDate)
+                    ModelState.AddModelError("EndDate", "End Date must be later than Start Date.");
+
+                // 限制租期
+                var maxDuration = model.RoomType == "Whole Unit" ? 730 : 365;
+                var duration = (model.EndDate.Value - model.StartDate.Value).TotalDays;
+                if (duration > maxDuration)
+                {
+                    ModelState.AddModelError("EndDate",
+                        model.RoomType == "Whole Unit"
+                            ? "Whole Unit rental cannot exceed 2 years."
+                            : "Rental for this room type cannot exceed 1 year.");
+                }
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                              .Select(e => e.ErrorMessage)
+                                              .ToList();
+                TempData["Message"] = string.Join("; ", errors);
+                return RedirectToAction("OwnerDetails", new { id = model.Id });
+            }
+
+            // ================== 更新字段 ==================
             existing.RoomName = model.RoomName;
             existing.RoomType = model.RoomType;
             existing.Rooms = model.Rooms;
@@ -579,24 +632,17 @@ house.Owner = owner;
             existing.Sqft = model.Sqft;
             existing.RoomStatus = model.RoomStatus;
 
-            // 如果你希望图片也可以修改，需要确保前端有 Hidden Input
+            // 图片保持原样（前端有 Hidden Input）
             if (!string.IsNullOrEmpty(model.ImageUrl))
                 existing.ImageUrl = model.ImageUrl;
 
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState.Values.SelectMany(v => v.Errors)
-                                              .Select(e => e.ErrorMessage)
-                                              .ToList();
-                TempData["Message"] = string.Join("; ", errors);
-                return RedirectToAction("OwnerDetails", new { id = model.Id });
-            }
-
             _context.SaveChanges();
             TempData["Message"] = "Property Change Successful";
+
             return RedirectToAction("OwnerDetails", new { id = model.Id });
         }
-    
+
+
 
 
         [HttpPost]

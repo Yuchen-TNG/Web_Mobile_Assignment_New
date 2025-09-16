@@ -275,6 +275,27 @@ house.Owner = owner;
             return RedirectToAction("Details", new { id = houseId });
         }
 
+        [Authorize(Roles = "Owner")]
+        [HttpPost]
+        public IActionResult DeleteReview(int id, int houseId)
+        {
+            var review = _context.HouseReviews.FirstOrDefault(r => r.Id == id);
+            if (review == null)
+            {
+                TempData["Message"] = "Review not found.";
+                TempData["MessageType"] = "error";
+                return RedirectToAction("Details", "Home", new { id = houseId });
+            }
+
+            _context.HouseReviews.Remove(review);
+            _context.SaveChanges();
+
+            TempData["Message"] = "Review deleted successfully.";
+            TempData["MessageType"] = "success";
+            return RedirectToAction("Details", "Home", new { id = houseId });
+        }
+
+
 
         [Authorize]
         public IActionResult Both() => View();

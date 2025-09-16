@@ -33,8 +33,10 @@ public class AccountController : Controller
 
     // POST: Account/Login
     [HttpPost]
-    public IActionResult Login(LoginVM vm, string? returnUrl)
+    public async Task<IActionResult> Login(LoginVM vm, string? returnUrl)
     {
+        ViewData["ReturnUrl"] = returnUrl;
+
         // 确保有记录
         if (!_loginAttempts.ContainsKey(vm.Email))
             _loginAttempts[vm.Email] = (0, null);
@@ -46,13 +48,18 @@ public class AccountController : Controller
         {
             var remaining = (lockoutEnd.Value - DateTime.Now).Seconds;
             ModelState.AddModelError("", $"Too many failed attempts. Try again in {remaining} seconds.");
+            return View(vm);
         }
-        else
-        {
-            // --- 你原本的代码，保持不动 ---
-            var u = db.Users.Find(vm.Email);
 
-            if (u == null || !hp.VerifyPassword(u.Hash, vm.Password))
+        if (!await VerifyRecaptchaAsync())
+        {
+            ModelState.AddModelError("", "Please complete the reCAPTCHA verification.");
+            return View(vm);
+        }
+
+        // 验证账号密码
+        var u = db.Users.Find(vm.Email);
+        if (u == null || !hp.VerifyPassword(u.Hash, vm.Password))
         {
             ModelState.AddModelError("", "Login credentials not matched.");
         }
@@ -62,39 +69,58 @@ public class AccountController : Controller
             ModelState.AddModelError("", "This account is restricted.");
         }
 
-        if (ModelState.IsValid)
+        // 如果任何验证失败，增加失败次数
+        if (!ModelState.IsValid)
         {
-            _loginAttempts[vm.Email] = (0, null);
-
-            hp.SignIn(u!.Email, u.Role, vm.RememberMe);
-            TempData["Info"] = "Login successfully.";
-
-            // Redirect to returnUrl if valid, otherwise to Home/
-            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+            failedCount++;
+            if (failedCount >= 3)
             {
-                return Redirect(returnUrl);
+                lockoutEnd = DateTime.Now.AddSeconds(30);
+                failedCount = 0; // 重置失败次数
+                ModelState.AddModelError("", "Too many failed attempts. Locked for 30 seconds.");
             }
-
-            return RedirectToAction("Index", "Home");
-            }
-            else
-            {
-                // 登录失败 → 增加计数
-                failedCount++;
-
-                if (failedCount >= 3)
-                {
-                    lockoutEnd = DateTime.Now.AddSeconds(30);
-                    failedCount = 0; // 重置失败次数
-                    ModelState.AddModelError("", "Too many failed attempts. Locked for 30 seconds.");
-                }
-
-                _loginAttempts[vm.Email] = (failedCount, lockoutEnd);
-            }
+            _loginAttempts[vm.Email] = (failedCount, lockoutEnd);
+            return View(vm);
         }
 
-        ViewData["ReturnUrl"] = returnUrl;
-        return View(vm);
+        // 登录成功
+        _loginAttempts[vm.Email] = (0, null);
+
+        hp.SignIn(u!.Email, u.Role, vm.RememberMe);
+        TempData["Info"] = "Login successfully.";
+
+        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+            return Redirect(returnUrl);
+
+        return RedirectToAction("Index", "Home");
+    }
+
+    // 通用方法：验证 reCAPTCHA
+    private async Task<bool> VerifyRecaptchaAsync()
+    {
+        // 从请求表单获取 reCAPTCHA 响应
+        var recaptchaResponse = Request.Form["g-recaptcha-response"];
+
+        if (string.IsNullOrEmpty(recaptchaResponse))
+            return false;
+
+        var secret = "6LcljcsrAAAAAAd6f7HK-c6pePcDj9X0reCSbrs4"; // 替换成你的 Google reCAPTCHA Secret
+        using var client = new HttpClient();
+        var result = await client.PostAsync(
+            $"https://www.google.com/recaptcha/api/siteverify?secret={secret}&response={recaptchaResponse}",
+            null);
+        var json = await result.Content.ReadAsStringAsync();
+
+        var data = System.Text.Json.JsonSerializer.Deserialize<RecaptchaResult>(json);
+
+        return data?.Success ?? false;
+    }
+
+    // reCAPTCHA 返回对象
+    private class RecaptchaResult
+    {
+        public bool Success { get; set; }
+        public List<string>? ErrorCodes { get; set; }
     }
 
     // GET: Account/Logout
@@ -134,8 +160,15 @@ public class AccountController : Controller
 
     // POST: Account/Register
     [HttpPost]
-    public IActionResult Register(RegisterVM vm)
+    public async Task<IActionResult> Register(RegisterVM vm)
     {
+
+        if (!await VerifyRecaptchaAsync())
+        {
+            ModelState.AddModelError("", "Please complete the reCAPTCHA verification.");
+            return View(vm);
+        }
+
         if (ModelState.IsValid("Email") &&
             db.Users.Any(u => u.Email == vm.Email))
         {

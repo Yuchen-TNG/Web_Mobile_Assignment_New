@@ -1,8 +1,10 @@
 ﻿global using Microsoft.EntityFrameworkCore;
 global using Web_Mobile_Assignment_New.Models;
 using Web_Mobile_Assignment_New;
+using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
+QuestPDF.Settings.License = LicenseType.Community;
 builder.Services.AddControllersWithViews();
 builder.Services.AddSqlServer<DB>($@"
     Data Source=(LocalDB)\MSSQLLocalDB;

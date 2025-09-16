@@ -113,6 +113,33 @@
             background: #b91c1c;
             transform: scale(1.05);
         }
+
+    .receipt-btn {
+        margin-top: 15px;
+        padding: 8px 15px;
+        background: #16a34a; /* green */
+        color: #fff;
+        text-decoration: none;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        transition: background 0.2s ease, transform 0.2s ease;
+        display: inline-block;
+        width: fit-content;
+        border: none;
+        cursor: pointer;
+    }
+
+        .receipt-btn:hover {
+            background: #15803d; /* darker green */
+            transform: scale(1.05);
+        }
+
+        .receipt-btn i {
+            margin-right: 6px;
+        }
+
+
+
 </style>
 
 <h2>My Booking History</h2>
@@ -129,6 +156,27 @@
                 $("#bookingList").html(data);
             });
         }
+<div class="card-container">
+    @foreach (var booking in Model)
+    {
+        <div class="property-card">
+            <img src="@booking.House.ImageUrl" alt="House Image" class="property-image" />
+            <div class="property-body">
+                <div class="property-title">@booking.House.RoomName (@booking.House.RoomType)</div>
+                <div class="property-price">@booking.TotalPrice.ToString("C")</div>
+                <div class="property-info">Start: @booking.StartDate.ToString("yyyy-MM-dd")</div>
+                <div class="property-info">End: @booking.EndDate.ToString("yyyy-MM-dd")</div>
+                <div class="property-info">Address: @booking.House.Address</div>
+                @if (booking.Payment != null && booking.Payment.Status == "Completed")
+                {
+                    <a asp-action="Receipt"
+                       asp-controller="Home"
+                       asp-route-paymentId="@booking.Payment.PaymentId"
+                       class="receipt-btn">
+                        Download Receipt
+                    </a>
+                }
+
 
         $(document).ready(function () {
             loadPage(1);
@@ -139,3 +187,14 @@
         });
     </script>
 }
+                @if (booking.EndDate >= DateTime.Today)
+                {
+                    <form asp-controller="Booking" asp-action="CancelBooking" asp-route-id="@booking.BookingId" method="post">
+                        <button type="submit" class="cancel-btn">Cancel Booking</button>
+                    </form>
+                }
+     
+            </div>
+        </div>
+    }
+</div>

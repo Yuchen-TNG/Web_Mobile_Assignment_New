@@ -44,7 +44,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 32px;
+            padding: 20px;
             border: 2px dashed #ccc;
             border-radius: 8px;
             cursor: pointer;
@@ -63,6 +63,33 @@
                 object-fit: cover;
                 border: 2px solid #4e73df;
             }
+
+        /* 旋转按钮 */
+        .rotate-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+            .rotate-buttons form {
+                display: inline;
+            }
+
+            .rotate-buttons button {
+                padding: 6px 12px;
+                border: none;
+                border-radius: 6px;
+                background: #6f42c1;
+                color: white;
+                font-size: 0.9rem;
+                cursor: pointer;
+                transition: background 0.3s;
+            }
+
+                .rotate-buttons button:hover {
+                    background: #5a2fa0;
+                }
 
         /* 右边表单区 */
         .form-group {
@@ -128,7 +155,6 @@
     </style>
 }
 
-
 <div class="update-profile-container">
     <h2>Update Profile</h2>
     <form class="form" method="post" enctype="multipart/form-data">
@@ -141,9 +167,24 @@
                 <label class="upload">
                     <small>Select Photo...</small>
                     <input asp-for="Photo" accept="image/jpeg,image/png" hidden>
-                    <img src="/photos/@Model.PhotoURL">
+                    <img src="/photos/@Model.PhotoURL?v=@DateTime.Now.Ticks" alt="Profile Photo">
                 </label>
                 <span asp-validation-for="Photo"></span>
+
+                <!-- 旋转按钮组 -->
+                <div class="rotate-buttons">
+                    <form method="post" asp-action="RotatePhoto" asp-controller="Account">
+                        <input type="hidden" name="email" value="@Model.Email" />
+                        <input type="hidden" name="degrees" value="270" />
+                        <button type="submit" hidden>⟲ 左转</button>
+                    </form>
+
+                    <form method="post" asp-action="RotatePhoto" asp-controller="Account">
+                        <input type="hidden" name="email" value="@Model.Email" />
+                        <input type="hidden" name="degrees" value="90" />
+                        <button type="submit">⟳ right rotate</button>
+                    </form>
+                </div>
             </div>
 
             <!-- 右边信息区 -->

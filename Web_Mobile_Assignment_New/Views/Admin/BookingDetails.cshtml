@@ -1,0 +1,110 @@
+﻿@model Web_Mobile_Assignment_New.Models.Booking
+
+@{
+    ViewData["Title"] = "Booking Details";
+}
+
+<div class="details-container">
+    <h1>Booking #@Model.BookingId</h1>
+    <a asp-controller="Admin" asp-action="BookingManagement" class="back-btn">⬅ Back</a>
+
+    <div class="details-card">
+        <h2>Tenant Info</h2>
+        <p><b>Name:</b> @Model.User?.Name</p>
+        <p><b>Email:</b> @Model.UserEmail</p>
+    </div>
+
+    <div class="details-card">
+        <h2>House Info</h2>
+
+        @if (!string.IsNullOrEmpty(Model.House?.ImageUrl))
+        {
+            <img src="@Model.House.ImageUrl" alt="House Image" class="house-image" />
+        }
+
+        <p><b>Room:</b> @Model.House?.RoomName (@Model.House?.RoomType)</p>
+        <p><b>Address:</b> @Model.House?.Address</p>
+        <p><b>Price per night:</b> $@Model.House?.Price</p>
+    </div>
+
+    <div class="details-card">
+        <h2>Booking Info</h2>
+        <p><b>Start Date:</b> @Model.StartDate.ToString("yyyy-MM-dd")</p>
+        <p><b>End Date:</b> @Model.EndDate.ToString("yyyy-MM-dd")</p>
+        <p><b>Total Price:</b> $@Model.TotalPrice</p>
+
+    </div>
+
+    @if (Model.Payment != null)
+    {
+        <div class="details-card">
+            <h2>Payment Info</h2>
+            <p><b>Payment ID:</b> @Model.Payment.PaymentId</p>
+            <p><b>Amount:</b> $@Model.Payment.Amount</p>
+            <p><b>Date:</b> @Model.Payment.PaymentDate.ToString("yyyy-MM-dd HH:mm")</p>
+            <p><b>Method:</b> @Model.Payment.Method</p>
+        </div>
+    }
+</div>
+
+<style>
+    .house-image {
+        width: 100%;
+        max-height: 250px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-bottom: 15px;
+    }
+    .details-container {
+        max-width: 800px;
+        margin: 30px auto;
+        font-family: Arial, sans-serif;
+    }
+
+    .back-btn {
+        display: inline-block;
+        margin-bottom: 20px;
+        padding: 8px 16px;
+        background-color: #4a90e2;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: bold;
+        transition: background-color 0.3s, transform 0.2s;
+    }
+
+        .back-btn:hover {
+            background-color: #357ab8;
+            transform: scale(1.05);
+        }
+
+    h1 {
+        text-align: center;
+        margin-bottom: 25px;
+        color: #333;
+    }
+
+    .details-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+        .details-card h2 {
+            margin-top: 0;
+            color: #4a90e2;
+            margin-bottom: 12px;
+        }
+
+    .status-paid {
+        color: #4caf50;
+        font-weight: bold;
+    }
+
+    .status-unpaid {
+        color: #f44336;
+        font-weight: bold;
+    }
+</style>

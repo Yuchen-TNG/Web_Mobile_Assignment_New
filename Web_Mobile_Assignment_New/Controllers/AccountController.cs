@@ -1,8 +1,11 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using System;
+using System.Net.Mail;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Net.Mail;
+using Microsoft.EntityFrameworkCore;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 
 namespace Web_Mobile_Assignment_New.Controllers;
 
@@ -598,5 +601,54 @@ public class AccountController : Controller
         return RedirectToAction("Login");
     }
 
+    [Authorize(Roles = "Owner,Tenant")]
+    [HttpPost]
+    [Authorize(Roles = "Owner,Tenant")]
+    [HttpPost]
+    public async Task<IActionResult> RotatePhoto(string email, int degrees)
+    {
+        if (string.IsNullOrEmpty(email)) return NotFound();
+
+        var user = db.Users
+                     .AsEnumerable()
+                     .OfType<OwnerTenant>()
+                     .FirstOrDefault(u => u.Email == email);
+
+        if (user == null || string.IsNullOrEmpty(user.PhotoURL))
+        {
+            TempData["Message"] = "No photo found!";
+            TempData["MessageType"] = "error";
+            return RedirectToAction("UpdateProfile", new { email });
+        }
+
+        var filePath = Path.Combine(en.WebRootPath, "photos", user.PhotoURL);
+
+        if (!System.IO.File.Exists(filePath))
+        {
+            TempData["Message"] = "Photo file missing!";
+            TempData["MessageType"] = "error";
+            return RedirectToAction("UpdateProfile", new { email });
+        }
+
+        try
+        {
+            using (var image = await Image.LoadAsync(filePath))
+            {
+                int normalizedDegrees = ((degrees % 360) + 360) % 360;
+                image.Mutate(x => x.Rotate(normalizedDegrees));
+                await image.SaveAsync(filePath);
+            }
+
+            TempData["Message"] = $"Photo rotated {degrees}° successfully!";
+            TempData["MessageType"] = "success";
+        }
+        catch (Exception ex)
+        {
+            TempData["Message"] = $"Error rotating photo: {ex.Message}";
+            TempData["MessageType"] = "error";
+        }
+
+        return RedirectToAction("UpdateProfile", new { email });
+    }
 
 }

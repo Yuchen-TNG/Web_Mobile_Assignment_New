@@ -741,35 +741,69 @@ house.Owner = owner;
                     page.Margin(40);
 
                     // Header
-                    page.Header().Row(row =>
+                    page.Header().Column(col =>
                     {
-                        row.RelativeItem().Text("E-Receipt").FontSize(22).Bold().FontColor(Colors.Blue.Medium);
-                        row.ConstantItem(100).Height(50).Placeholder(); // you can replace with logo
+                        col.Item().Text("Payment Receipt")
+                            .FontSize(22).Bold().FontColor(Colors.Blue.Medium)
+                            .AlignCenter();
+
+                        col.Item().Text($"Receipt ID: {payment.PaymentId}")
+                            .FontSize(10).FontColor(Colors.Grey.Medium)
+                            .AlignCenter();
                     });
 
-                    // Content
+                    // Content with table layout
                     page.Content().Column(col =>
                     {
-                        col.Spacing(10);
+                        col.Spacing(15);
 
-                        col.Item().Text($"Receipt #: {payment.PaymentId}").FontSize(12);
-                        col.Item().Text($"Date: {payment.PaymentDate:yyyy-MM-dd HH:mm}");
-                        col.Item().Text($"Tenant: {booking.UserEmail}");
-                        col.Item().Text($"House: {house.RoomName} ({house.Address})");
+                        col.Item().Text("Booking & Payment Details")
+                            .FontSize(14).Bold().Underline();
 
-                        col.Item().Text($"Booking Period: {booking.StartDate:yyyy-MM-dd} → {booking.EndDate:yyyy-MM-dd}");
-                        col.Item().Text($"Amount Paid: RM {payment.Amount:F2}").Bold();
-                        col.Item().Text($"Payment Method: {payment.Method}");
-                        col.Item().Text($"Status: {payment.Status}");
+                        col.Item().Table(table =>
+                        {
+                            table.ColumnsDefinition(columns =>
+                            {
+                                columns.ConstantColumn(150); // 左边字段
+                                columns.RelativeColumn();   // 右边值
+                            });
+
+                            // 🔹 Helper 方法
+                            void AddRow(string label, string value)
+                            {
+                                table.Cell().Element(CellStyle).Text(label).Bold();
+                                table.Cell().Element(CellStyle).Text(value ?? "-");
+                            }
+
+                            // 🔹 内容行
+                            AddRow("Date", $"{payment.PaymentDate:yyyy-MM-dd HH:mm}");
+                            AddRow("Tenant Email", booking.UserEmail);
+                            AddRow("House", house.RoomName);
+                            AddRow("Address", house.Address);
+                            AddRow("Booking Period", $"{booking.StartDate:yyyy-MM-dd} → {booking.EndDate:yyyy-MM-dd}");
+                            AddRow("Payment Method", payment.Method);
+                            AddRow("Status", payment.Status);
+                            AddRow("Total Paid", $"RM {payment.Amount:F2}");
+                        });
                     });
 
                     // Footer
-                    page.Footer().AlignCenter().Text("Thank you for your payment!");
+                    page.Footer().AlignCenter().Text("Thank you for your payment!")
+                        .FontSize(10).FontColor(Colors.Grey.Medium);
                 });
             });
 
             var pdf = document.GeneratePdf();
             return File(pdf, "application/pdf", $"Receipt_{payment.PaymentId}.pdf");
+        }
+
+        // 🔹 统一单元格样式
+        static IContainer CellStyle(IContainer container)
+        {
+            return container
+                .BorderBottom(1)
+                .BorderColor(Colors.Grey.Lighten2)
+                .PaddingVertical(5);
         }
 
 

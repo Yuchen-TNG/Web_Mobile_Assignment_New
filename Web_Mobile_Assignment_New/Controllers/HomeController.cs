@@ -26,23 +26,25 @@ namespace Web_Mobile_Assignment_New.Controllers
         {
             if (User.IsInRole("Admin"))
             {
+                // 管理员看全部
                 return View("Admin");
             }
             else
             {
-                // 计算总数
-                var totalHouses = await _context.Houses.CountAsync();
+                // ✅ 普通用户只看可用的
+                var totalHouses = await _context.Houses
+                    .Where(h => h.Availability == "Available" && h.RoomStatus == "Valid")
+                    .CountAsync();
 
-                // 拿分页数据
                 var houses = await _context.Houses
                     .Include(h => h.Images)
                     .Include(h => h.Reviews)
+                    .Where(h => h.Availability == "Available" && h.RoomStatus == "Valid") // 🔑 过滤
                     .OrderBy(h => h.Id)
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
                     .ToListAsync();
 
-                // 传递分页数据给 View
                 ViewBag.Page = page;
                 ViewBag.TotalPages = (int)Math.Ceiling(totalHouses / (double)pageSize);
 
@@ -50,11 +52,12 @@ namespace Web_Mobile_Assignment_New.Controllers
             }
         }
 
-
         public async Task<IActionResult> Filter(int? minPrice, int? maxPrice, string? type)
         {
-            // 从 DbContext 里先拿出 IQueryable
-            var houses = _context.Houses.AsQueryable();
+            var houses = _context.Houses
+                .Include(h => h.Images)
+                .Include(h => h.Reviews)
+                .Where(h => h.Availability == "Available" && h.RoomStatus == "Valid"); // 🔑 只取可用
 
             if (minPrice.HasValue)
                 houses = houses.Where(h => h.Price >= minPrice.Value);
@@ -63,12 +66,11 @@ namespace Web_Mobile_Assignment_New.Controllers
                 houses = houses.Where(h => h.Price <= maxPrice.Value);
 
             if (!string.IsNullOrEmpty(type) && type != "All")
-            {
                 houses = houses.Where(h => h.RoomType == type);
-            }
 
             return View("Index", await houses.ToListAsync());
         }
+
 
         // ================= HOUSE CRUD ==================
         [HttpGet]
@@ -85,6 +87,7 @@ namespace Web_Mobile_Assignment_New.Controllers
                 house.Email = UserEmail;
             // ✅ 自动设置状态为 "Available"
             house.RoomStatus = "Valid";
+            house.Availability = "Available";
 
             // ✅ 房间数验证
             if (house.RoomType == "Whole Unit")
@@ -450,13 +453,13 @@ house.Owner = owner;
 
             _context.SaveChanges();
 
-            // ✅ Only mark house as "Rented" if ALL dates are booked and payment is completed
+            // ✅ Only mark Availability as "Rented" if fully booked & payment done
             if (paymentMethod != "QRPayment" && IsHouseFullyBooked(booking.HouseId))
             {
                 var house = _context.Houses.FirstOrDefault(h => h.Id == booking.HouseId);
                 if (house != null)
                 {
-                    house.RoomStatus = "Rented";
+                    house.Availability = "Rented";
                     _context.SaveChanges();
                 }
             }
@@ -484,7 +487,6 @@ house.Owner = owner;
 
             if (!bookings.Any()) return false;
 
-            // Collect all booked dates
             var bookedDays = new HashSet<DateTime>();
             foreach (var b in bookings)
             {
@@ -494,17 +496,17 @@ house.Owner = owner;
                 }
             }
 
-            // Check if every day in the house's availability is covered
             for (var d = house.StartDate.Value.Date; d <= house.EndDate.Value.Date; d = d.AddDays(1))
             {
                 if (!bookedDays.Contains(d))
                 {
-                    return false; // At least one day not booked → still Available
+                    return false;
                 }
             }
 
-            return true; // ✅ All days booked → fully rented
+            return true;
         }
+
 
 
 
@@ -618,18 +620,11 @@ house.Owner = owner;
             _context.Bookings.Remove(booking);
             _context.SaveChanges();
 
-            // Update house status if needed
+            // Update house availability
             var house = booking.House;
             if (house != null)
             {
-                if (IsHouseFullyBooked(house.Id))
-                {
-                    house.RoomStatus = "Rented";
-                }
-                else
-                {
-                    house.RoomStatus = "Available";
-                }
+                house.Availability = IsHouseFullyBooked(house.Id) ? "Rented" : "Available";
                 _context.SaveChanges();
             }
 
@@ -660,14 +655,14 @@ house.Owner = owner;
             payment.Status = "Completed";
             _context.SaveChanges();
 
-            // Update house status if fully booked
+            // Update house availability if fully booked
             var booking = _context.Bookings.FirstOrDefault(b => b.BookingId == request.BookingId);
             if (booking != null && IsHouseFullyBooked(booking.HouseId))
             {
                 var house = _context.Houses.FirstOrDefault(h => h.Id == booking.HouseId);
                 if (house != null)
                 {
-                    house.RoomStatus = "Rented";
+                    house.Availability = "Rented";
                     _context.SaveChanges();
                 }
             }

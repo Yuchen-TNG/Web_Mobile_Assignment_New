@@ -75,6 +75,8 @@ namespace Web_Mobile_Assignment_New.Controllers
         }
 
 
+
+
         // ================= HOUSE CRUD ==================
         [HttpGet]
         public IActionResult AddHouse()
@@ -253,23 +255,18 @@ house.Owner = owner;
 
 
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddReview(int houseId, int rating, string comment)
+        public async Task<IActionResult> AddReview(int houseId, int? rating, string comment)
         {
-            if (rating < 1 || rating > 5)
-            {
-                TempData["Error"] = "Invalid rating value.";
-                return RedirectToAction("Details", new { id = houseId });
-            }
+            if (rating == null || rating < 1 || rating > 5)
+                rating = 0;
 
             var review = new HouseReview
             {
                 HouseId = houseId,
                 Rating = rating,
                 Comment = comment,
-                UserEmail = User.Identity?.Name ?? "guest@example.com", // 防止为空
-                CreatedAt = DateTime.Now // 🔥 记得赋值时间
+                UserEmail = User.Identity?.Name ?? "guest@example.com",
+                CreatedAt = DateTime.UtcNow
             };
 
             _context.HouseReviews.Add(review);
@@ -528,6 +525,7 @@ house.Owner = owner;
         {
             var booking = _context.Bookings
                 .Include(b => b.House)
+                .Include(b => b.Payment)
                 .FirstOrDefault(b => b.BookingId == bookingId);
 
             if (booking == null) return NotFound();
@@ -561,6 +559,8 @@ house.Owner = owner;
 
             return View(house);
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult UpdateProperty(House model)
         {
             var existing = _context.Houses.FirstOrDefault(h => h.Id == model.Id);
@@ -569,8 +569,57 @@ house.Owner = owner;
                 TempData["Message"] = "House not found";
                 return RedirectToAction("Owner");
             }
-                
-            // 更新允许修改的字段
+
+            // ================== 验证逻辑 ==================
+            if (model.RoomType == "Whole Unit")
+            {
+                // Whole Unit 可以自由决定 Rooms/Bathrooms
+                if (model.Rooms < 1 || model.Rooms > 8)
+                    ModelState.AddModelError("Rooms", "For Whole Unit, rooms must be between 1 and 8.");
+                if (model.Bathrooms < 1 || model.Bathrooms > 6)
+                    ModelState.AddModelError("Bathrooms", "For Whole Unit, bathrooms must be between 1 and 6.");
+            }
+            else
+            {
+                // 非 Whole Unit 固定 1 个房间和 1 个卫生间
+                model.Rooms = 1;
+                model.Bathrooms = 1;
+            }
+
+            // 日期验证
+            if (!model.StartDate.HasValue || !model.EndDate.HasValue)
+            {
+                ModelState.AddModelError("StartDate", "Both Start Date and End Date are required.");
+            }
+            else
+            {
+                if (model.StartDate < DateTime.Today)
+                    ModelState.AddModelError("StartDate", "Start Date cannot be in the past.");
+                if (model.EndDate <= model.StartDate)
+                    ModelState.AddModelError("EndDate", "End Date must be later than Start Date.");
+
+                // 限制租期
+                var maxDuration = model.RoomType == "Whole Unit" ? 730 : 365;
+                var duration = (model.EndDate.Value - model.StartDate.Value).TotalDays;
+                if (duration > maxDuration)
+                {
+                    ModelState.AddModelError("EndDate",
+                        model.RoomType == "Whole Unit"
+                            ? "Whole Unit rental cannot exceed 2 years."
+                            : "Rental for this room type cannot exceed 1 year.");
+                }
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                              .Select(e => e.ErrorMessage)
+                                              .ToList();
+                TempData["Message"] = string.Join("; ", errors);
+                return RedirectToAction("OwnerDetails", new { id = model.Id });
+            }
+
+            // ================== 更新字段 ==================
             existing.RoomName = model.RoomName;
             existing.RoomType = model.RoomType;
             existing.Rooms = model.Rooms;
@@ -583,24 +632,17 @@ house.Owner = owner;
             existing.Sqft = model.Sqft;
             existing.RoomStatus = model.RoomStatus;
 
-            // 如果你希望图片也可以修改，需要确保前端有 Hidden Input
+            // 图片保持原样（前端有 Hidden Input）
             if (!string.IsNullOrEmpty(model.ImageUrl))
                 existing.ImageUrl = model.ImageUrl;
 
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState.Values.SelectMany(v => v.Errors)
-                                              .Select(e => e.ErrorMessage)
-                                              .ToList();
-                TempData["Message"] = string.Join("; ", errors);
-                return RedirectToAction("OwnerDetails", new { id = model.Id });
-            }
-
             _context.SaveChanges();
             TempData["Message"] = "Property Change Successful";
+
             return RedirectToAction("OwnerDetails", new { id = model.Id });
         }
-    
+
+
 
 
         [HttpPost]
@@ -639,6 +681,7 @@ house.Owner = owner;
         {
             var booking = _context.Bookings
                 .Include(b => b.House)
+                .Include(b => b.Payment)
                 .FirstOrDefault(b => b.BookingId == bookingId);
 
             if (booking == null) return NotFound();
@@ -670,7 +713,7 @@ house.Owner = owner;
                 }
             }
 
-            return Json(new { success = true });
+            return Json(new { success = true, paymentId = payment.PaymentId });
         }
 
         public IActionResult Receipt(int paymentId)
@@ -698,35 +741,69 @@ house.Owner = owner;
                     page.Margin(40);
 
                     // Header
-                    page.Header().Row(row =>
+                    page.Header().Column(col =>
                     {
-                        row.RelativeItem().Text("E-Receipt").FontSize(22).Bold().FontColor(Colors.Blue.Medium);
-                        row.ConstantItem(100).Height(50).Placeholder(); // you can replace with logo
+                        col.Item().Text("Payment Receipt")
+                            .FontSize(22).Bold().FontColor(Colors.Blue.Medium)
+                            .AlignCenter();
+
+                        col.Item().Text($"Receipt ID: {payment.PaymentId}")
+                            .FontSize(10).FontColor(Colors.Grey.Medium)
+                            .AlignCenter();
                     });
 
-                    // Content
+                    // Content with table layout
                     page.Content().Column(col =>
                     {
-                        col.Spacing(10);
+                        col.Spacing(15);
 
-                        col.Item().Text($"Receipt #: {payment.PaymentId}").FontSize(12);
-                        col.Item().Text($"Date: {payment.PaymentDate:yyyy-MM-dd HH:mm}");
-                        col.Item().Text($"Tenant: {booking.UserEmail}");
-                        col.Item().Text($"House: {house.RoomName} ({house.Address})");
+                        col.Item().Text("Booking & Payment Details")
+                            .FontSize(14).Bold().Underline();
 
-                        col.Item().Text($"Booking Period: {booking.StartDate:yyyy-MM-dd} → {booking.EndDate:yyyy-MM-dd}");
-                        col.Item().Text($"Amount Paid: RM {payment.Amount:F2}").Bold();
-                        col.Item().Text($"Payment Method: {payment.Method}");
-                        col.Item().Text($"Status: {payment.Status}");
+                        col.Item().Table(table =>
+                        {
+                            table.ColumnsDefinition(columns =>
+                            {
+                                columns.ConstantColumn(150); // 左边字段
+                                columns.RelativeColumn();   // 右边值
+                            });
+
+                            // 🔹 Helper 方法
+                            void AddRow(string label, string value)
+                            {
+                                table.Cell().Element(CellStyle).Text(label).Bold();
+                                table.Cell().Element(CellStyle).Text(value ?? "-");
+                            }
+
+                            // 🔹 内容行
+                            AddRow("Date", $"{payment.PaymentDate:yyyy-MM-dd HH:mm}");
+                            AddRow("Tenant Email", booking.UserEmail);
+                            AddRow("House", house.RoomName);
+                            AddRow("Address", house.Address);
+                            AddRow("Booking Period", $"{booking.StartDate:yyyy-MM-dd} → {booking.EndDate:yyyy-MM-dd}");
+                            AddRow("Payment Method", payment.Method);
+                            AddRow("Status", payment.Status);
+                            AddRow("Total Paid", $"RM {payment.Amount:F2}");
+                        });
                     });
 
                     // Footer
-                    page.Footer().AlignCenter().Text("Thank you for your payment!");
+                    page.Footer().AlignCenter().Text("Thank you for your payment!")
+                        .FontSize(10).FontColor(Colors.Grey.Medium);
                 });
             });
 
             var pdf = document.GeneratePdf();
             return File(pdf, "application/pdf", $"Receipt_{payment.PaymentId}.pdf");
+        }
+
+        // 🔹 统一单元格样式
+        static IContainer CellStyle(IContainer container)
+        {
+            return container
+                .BorderBottom(1)
+                .BorderColor(Colors.Grey.Lighten2)
+                .PaddingVertical(5);
         }
 
 

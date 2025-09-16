@@ -1,0 +1,22 @@
+﻿@model IEnumerable<Web_Mobile_Assignment_New.Models.Booking>
+
+<h2>My House Bookings</h2>
+<table class="table">
+    <tr>
+        <th>House</th>
+        <th>Tenant</th>
+        <th>Start</th>
+        <th>End</th>
+        <th>Total Price</th>
+    </tr>
+    @foreach (var b in Model)
+    {
+        <tr>
+            <td>@b.House.RoomName</td>
+            <td>@b.User.Name (@b.User.Email)</td>
+            <td>@b.StartDate.ToString("yyyy-MM-dd")</td>
+            <td>@b.EndDate.ToString("yyyy-MM-dd")</td>
+            <td>@b.TotalPrice.ToString("C")</td>
+        </tr>
+    }
+</table>

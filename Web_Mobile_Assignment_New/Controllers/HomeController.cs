@@ -10,6 +10,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using QRCoder;
 using Web_Mobile_Assignment_New.Models;
 using ZXing.QrCode.Internal;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 
 namespace Web_Mobile_Assignment_New.Controllers
 {
@@ -26,23 +29,25 @@ namespace Web_Mobile_Assignment_New.Controllers
         {
             if (User.IsInRole("Admin"))
             {
+                // 管理员看全部
                 return View("Admin");
             }
             else
             {
-                // 计算总数
-                var totalHouses = await _context.Houses.CountAsync();
+                // ✅ 普通用户只看可用的
+                var totalHouses = await _context.Houses
+                    .Where(h => h.Availability == "Available" && h.RoomStatus == "Valid")
+                    .CountAsync();
 
-                // 拿分页数据
                 var houses = await _context.Houses
                     .Include(h => h.Images)
                     .Include(h => h.Reviews)
+                    .Where(h => h.Availability == "Available" && h.RoomStatus == "Valid") // 🔑 过滤
                     .OrderBy(h => h.Id)
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
                     .ToListAsync();
 
-                // 传递分页数据给 View
                 ViewBag.Page = page;
                 ViewBag.TotalPages = (int)Math.Ceiling(totalHouses / (double)pageSize);
 
@@ -50,11 +55,12 @@ namespace Web_Mobile_Assignment_New.Controllers
             }
         }
 
-
         public async Task<IActionResult> Filter(int? minPrice, int? maxPrice, string? type)
         {
-            // 从 DbContext 里先拿出 IQueryable
-            var houses = _context.Houses.AsQueryable();
+            var houses = _context.Houses
+                .Include(h => h.Images)
+                .Include(h => h.Reviews)
+                .Where(h => h.Availability == "Available" && h.RoomStatus == "Valid"); // 🔑 只取可用
 
             if (minPrice.HasValue)
                 houses = houses.Where(h => h.Price >= minPrice.Value);
@@ -63,12 +69,11 @@ namespace Web_Mobile_Assignment_New.Controllers
                 houses = houses.Where(h => h.Price <= maxPrice.Value);
 
             if (!string.IsNullOrEmpty(type) && type != "All")
-            {
                 houses = houses.Where(h => h.RoomType == type);
-            }
 
             return View("Index", await houses.ToListAsync());
         }
+
 
         // ================= HOUSE CRUD ==================
         [HttpGet]
@@ -85,6 +90,7 @@ namespace Web_Mobile_Assignment_New.Controllers
                 house.Email = UserEmail;
             // ✅ 自动设置状态为 "Available"
             house.RoomStatus = "Valid";
+            house.Availability = "Available";
 
             // ✅ 房间数验证
             if (house.RoomType == "Whole Unit")
@@ -152,6 +158,15 @@ namespace Web_Mobile_Assignment_New.Controllers
             {
                 return View(house);
             }
+
+            // ✅ 🔥 在这里检查 Owner 是否存在
+var owner = await _context.Owners.FirstOrDefaultAsync(o => o.Email == house.Email);
+if (owner == null)
+{
+    ModelState.AddModelError("", "Owner not found. Please register as an Owner before adding a house.");
+    return View(house);
+}
+house.Owner = owner;
 
             // ✅ 保存房源（先存 House 才能拿到 Id）
             _context.Houses.Add(house);
@@ -309,6 +324,34 @@ namespace Web_Mobile_Assignment_New.Controllers
             return View(house);
         }
 
+        [Authorize(Roles = "Tenant")]
+        public IActionResult MyBookings()
+        {
+            var userEmail = User.Identity.Name;
+            var bookings = _context.Bookings
+                .Include(b => b.House)
+                .Include(b => b.Payment)
+                .Where(b => b.UserEmail == userEmail)
+                .OrderByDescending(b => b.StartDate)
+                .ToList();
+
+            return View(bookings);
+        }
+
+        [Authorize(Roles = "Owner")]
+        public IActionResult OwnerBookings()
+        {
+            var userEmail = User.Identity.Name;
+            var bookings = _context.Bookings
+                .Include(b => b.House)
+                .Include(b => b.Payment)
+                .Where(b => b.House.Email == userEmail) // 房东的 Email 存在 House.Email
+                .OrderByDescending(b => b.StartDate)
+                .ToList();
+
+            return View(bookings);
+        }
+
 
         [HttpPost]
         public async Task<IActionResult> ConfirmRent(int id, DateTime startDate, DateTime endDate)
@@ -413,13 +456,13 @@ namespace Web_Mobile_Assignment_New.Controllers
 
             _context.SaveChanges();
 
-            // ✅ Only mark house as "Rented" if ALL dates are booked and payment is completed
+            // ✅ Only mark Availability as "Rented" if fully booked & payment done
             if (paymentMethod != "QRPayment" && IsHouseFullyBooked(booking.HouseId))
             {
                 var house = _context.Houses.FirstOrDefault(h => h.Id == booking.HouseId);
                 if (house != null)
                 {
-                    house.RoomStatus = "Rented";
+                    house.Availability = "Rented";
                     _context.SaveChanges();
                 }
             }
@@ -447,7 +490,6 @@ namespace Web_Mobile_Assignment_New.Controllers
 
             if (!bookings.Any()) return false;
 
-            // Collect all booked dates
             var bookedDays = new HashSet<DateTime>();
             foreach (var b in bookings)
             {
@@ -457,17 +499,17 @@ namespace Web_Mobile_Assignment_New.Controllers
                 }
             }
 
-            // Check if every day in the house's availability is covered
             for (var d = house.StartDate.Value.Date; d <= house.EndDate.Value.Date; d = d.AddDays(1))
             {
                 if (!bookedDays.Contains(d))
                 {
-                    return false; // At least one day not booked → still Available
+                    return false;
                 }
             }
 
-            return true; // ✅ All days booked → fully rented
+            return true;
         }
+
 
 
 
@@ -581,18 +623,11 @@ namespace Web_Mobile_Assignment_New.Controllers
             _context.Bookings.Remove(booking);
             _context.SaveChanges();
 
-            // Update house status if needed
+            // Update house availability
             var house = booking.House;
             if (house != null)
             {
-                if (IsHouseFullyBooked(house.Id))
-                {
-                    house.RoomStatus = "Rented";
-                }
-                else
-                {
-                    house.RoomStatus = "Available";
-                }
+                house.Availability = IsHouseFullyBooked(house.Id) ? "Rented" : "Available";
                 _context.SaveChanges();
             }
 
@@ -623,19 +658,75 @@ namespace Web_Mobile_Assignment_New.Controllers
             payment.Status = "Completed";
             _context.SaveChanges();
 
-            // Update house status if fully booked
+            // Update house availability if fully booked
             var booking = _context.Bookings.FirstOrDefault(b => b.BookingId == request.BookingId);
             if (booking != null && IsHouseFullyBooked(booking.HouseId))
             {
                 var house = _context.Houses.FirstOrDefault(h => h.Id == booking.HouseId);
                 if (house != null)
                 {
-                    house.RoomStatus = "Rented";
+                    house.Availability = "Rented";
                     _context.SaveChanges();
                 }
             }
 
             return Json(new { success = true });
+        }
+
+        public IActionResult Receipt(int paymentId)
+        {
+            var payment = _context.Payments
+                .Include(p => p.Booking)
+                .ThenInclude(b => b.House)
+                .FirstOrDefault(p => p.PaymentId == paymentId);
+
+            if (payment == null) return NotFound();
+
+            if (payment.Status != "Completed")
+            {
+                TempData["Message"] = "Receipt available only for successful payments.";
+                return RedirectToAction("MyBookings");
+            }
+
+            var booking = payment.Booking;
+            var house = booking.House;
+
+            var document = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Margin(40);
+
+                    // Header
+                    page.Header().Row(row =>
+                    {
+                        row.RelativeItem().Text("E-Receipt").FontSize(22).Bold().FontColor(Colors.Blue.Medium);
+                        row.ConstantItem(100).Height(50).Placeholder(); // you can replace with logo
+                    });
+
+                    // Content
+                    page.Content().Column(col =>
+                    {
+                        col.Spacing(10);
+
+                        col.Item().Text($"Receipt #: {payment.PaymentId}").FontSize(12);
+                        col.Item().Text($"Date: {payment.PaymentDate:yyyy-MM-dd HH:mm}");
+                        col.Item().Text($"Tenant: {booking.UserEmail}");
+                        col.Item().Text($"House: {house.RoomName} ({house.Address})");
+
+                        col.Item().Text($"Booking Period: {booking.StartDate:yyyy-MM-dd} → {booking.EndDate:yyyy-MM-dd}");
+                        col.Item().Text($"Amount Paid: RM {payment.Amount:F2}").Bold();
+                        col.Item().Text($"Payment Method: {payment.Method}");
+                        col.Item().Text($"Status: {payment.Status}");
+                    });
+
+                    // Footer
+                    page.Footer().AlignCenter().Text("Thank you for your payment!");
+                });
+            });
+
+            var pdf = document.GeneratePdf();
+            return File(pdf, "application/pdf", $"Receipt_{payment.PaymentId}.pdf");
         }
 
 

@@ -1,0 +1,178 @@
+﻿@model IEnumerable<Web_Mobile_Assignment_New.Models.Booking>
+
+@{
+    ViewBag.Title = "My Booking History";
+}
+
+@if (TempData["Message"] != null)
+{
+    var type = TempData["MessageType"]?.ToString() ?? "success";
+    <div class="alert @(type == "success" ? "alert-success" : "alert-error")">
+        @TempData["Message"]
+    </div>
+}
+
+<style>
+    /* 卡片整体样式 */
+    body {
+        font-family: "Segoe UI", Arial, sans-serif;
+        background-color: #f9fafb;
+        margin: 0;
+    }
+
+    .card-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .property-card {
+        display: flex;
+        flex-direction: row;
+        background: #fff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        min-height: 200px;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .property-image {
+        width: 400px;
+        height: 200px;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+    .property-body {
+        flex: 1;
+        padding: 15px 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .property-title {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 8px;
+    }
+
+    .property-price {
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #2c7a7b;
+        margin-bottom: 10px;
+    }
+
+    .property-info {
+        font-size: 0.9rem;
+        color: #555;
+        margin: 4px 0;
+    }
+
+    /* 状态颜色 */
+    .status-pending {
+        color: #f59e0b;
+        font-weight: bold;
+    }
+
+    .status-approved {
+        color: #16a34a;
+        font-weight: bold;
+    }
+
+    .status-rejected {
+        color: #dc2626;
+        font-weight: bold;
+    }
+
+    .status-completed {
+        color: #6b7280;
+        font-weight: bold;
+    }
+
+    /* 按钮样式 */
+    .cancel-btn {
+        margin-top: 15px;
+        padding: 8px 15px;
+        background: #dc2626;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        transition: background 0.2s ease, transform 0.2s ease;
+        display: inline-block;
+        width: fit-content;
+    }
+
+        .cancel-btn:hover {
+            background: #b91c1c;
+            transform: scale(1.05);
+        }
+
+    .receipt-btn {
+        margin-top: 15px;
+        padding: 8px 15px;
+        background: #16a34a; /* green */
+        color: #fff;
+        text-decoration: none;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        transition: background 0.2s ease, transform 0.2s ease;
+        display: inline-block;
+        width: fit-content;
+        border: none;
+        cursor: pointer;
+    }
+
+        .receipt-btn:hover {
+            background: #15803d; /* darker green */
+            transform: scale(1.05);
+        }
+
+        .receipt-btn i {
+            margin-right: 6px;
+        }
+
+
+
+</style>
+
+<h2>My Booking History</h2>
+<div class="card-container">
+    @foreach (var booking in Model)
+    {
+        <div class="property-card">
+            <img src="@booking.House.ImageUrl" alt="House Image" class="property-image" />
+            <div class="property-body">
+                <div class="property-title">@booking.House.RoomName (@booking.House.RoomType)</div>
+                <div class="property-price">@booking.TotalPrice.ToString("C")</div>
+                <div class="property-info">Start: @booking.StartDate.ToString("yyyy-MM-dd")</div>
+                <div class="property-info">End: @booking.EndDate.ToString("yyyy-MM-dd")</div>
+                <div class="property-info">Address: @booking.House.Address</div>
+                @if (booking.Payment != null && booking.Payment.Status == "Completed")
+                {
+                    <a asp-action="Receipt"
+                       asp-controller="Home"
+                       asp-route-paymentId="@booking.Payment.PaymentId"
+                       class="receipt-btn">
+                        Download Receipt
+                    </a>
+                }
+
+
+                @if (booking.EndDate >= DateTime.Today)
+                {
+                    <form asp-controller="Booking" asp-action="CancelBooking" asp-route-id="@booking.BookingId" method="post">
+                        <button type="submit" class="cancel-btn">Cancel Booking</button>
+                    </form>
+                }
+     
+            </div>
+        </div>
+    }
+</div>

@@ -36,10 +36,17 @@ namespace Web_Mobile_Assignment_New.Models
         [StringLength(100, ErrorMessage = "Room Name cannot exceed 100 characters.")]
         public string? RoomName { get; set; }
 
+        // ✅ Room status: only "Valid" or "Restricted"
         [Required]
-        [RegularExpression("^(Available|Rented|Maintenance|Valid)$",
-            ErrorMessage = "Room status must be Available, Rented, Maintenance, or Valid.")]
-        public string RoomStatus { get; set; } = "Valid"; // 默认值
+        [RegularExpression("^(Valid|Restricted)$",
+            ErrorMessage = "Room status must be Valid or Restricted.")]
+        public string RoomStatus { get; set; } = "Valid";
+
+        // ✅ Availability: "Available", "Rented", or "Maintenance"
+        [Required]
+        [RegularExpression("^(Available|Rented)$",
+            ErrorMessage = "Availability must be Available, Rented.")]
+        public string Availability { get; set; } = "Available";
 
         [DataType(DataType.Date)]
         public DateTime? StartDate { get; set; }

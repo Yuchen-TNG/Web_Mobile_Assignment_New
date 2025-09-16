@@ -66,32 +66,40 @@ namespace Web_Mobile_Assignment_New.Migrations
 
                     b.Property<string>("Address")
                         .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Availability")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Bathrooms")
                         .HasColumnType("int");
 
                     b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Furnishing")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ImageUrl")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Other")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("RoomName")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("RoomStatus")
                         .IsRequired()
@@ -111,6 +119,8 @@ namespace Web_Mobile_Assignment_New.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Email");
 
                     b.ToTable("Houses");
                 });
@@ -339,6 +349,15 @@ namespace Web_Mobile_Assignment_New.Migrations
                     b.Navigation("House");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Web_Mobile_Assignment_New.Models.House", b =>
+                {
+                    b.HasOne("Web_Mobile_Assignment_New.Models.Owner", "Owner")
+                        .WithMany()
+                        .HasForeignKey("Email");
+
+                    b.Navigation("Owner");
                 });
 
             modelBuilder.Entity("Web_Mobile_Assignment_New.Models.HouseImage", b =>

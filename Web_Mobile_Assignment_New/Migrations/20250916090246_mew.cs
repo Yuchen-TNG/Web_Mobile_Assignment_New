@@ -6,37 +6,11 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Web_Mobile_Assignment_New.Migrations
 {
     /// <inheritdoc />
-    public partial class meow : Migration
+    public partial class mew : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
-                name: "Houses",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    RoomType = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Rooms = table.Column<int>(type: "int", nullable: false),
-                    Bathrooms = table.Column<int>(type: "int", nullable: false),
-                    Sqft = table.Column<int>(type: "int", nullable: false),
-                    Address = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Other = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    RoomName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    RoomStatus = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    Furnishing = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Houses", x => x.Id);
-                });
-
             migrationBuilder.CreateTable(
                 name: "Reports",
                 columns: table => new
@@ -74,23 +48,35 @@ namespace Web_Mobile_Assignment_New.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "HouseImages",
+                name: "Houses",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    HouseId = table.Column<int>(type: "int", nullable: false),
-                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    RoomType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Rooms = table.Column<int>(type: "int", nullable: false),
+                    Bathrooms = table.Column<int>(type: "int", nullable: false),
+                    Sqft = table.Column<int>(type: "int", nullable: false),
+                    Address = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Other = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    RoomName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    RoomStatus = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Availability = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Furnishing = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(100)", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_HouseImages", x => x.Id);
+                    table.PrimaryKey("PK_Houses", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_HouseImages_Houses_HouseId",
-                        column: x => x.HouseId,
-                        principalTable: "Houses",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        name: "FK_Houses_Users_Email",
+                        column: x => x.Email,
+                        principalTable: "Users",
+                        principalColumn: "Email");
                 });
 
             migrationBuilder.CreateTable(
@@ -119,6 +105,26 @@ namespace Web_Mobile_Assignment_New.Migrations
                         column: x => x.UserEmail,
                         principalTable: "Users",
                         principalColumn: "Email",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "HouseImages",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    HouseId = table.Column<int>(type: "int", nullable: false),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_HouseImages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_HouseImages_Houses_HouseId",
+                        column: x => x.HouseId,
+                        principalTable: "Houses",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -198,6 +204,11 @@ namespace Web_Mobile_Assignment_New.Migrations
                 name: "IX_HouseReviews_UserEmail",
                 table: "HouseReviews",
                 column: "UserEmail");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Houses_Email",
+                table: "Houses",
+                column: "Email");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Payments_BookingId",

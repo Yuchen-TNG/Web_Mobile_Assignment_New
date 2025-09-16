@@ -116,23 +116,26 @@
 </style>
 
 <h2>My Booking History</h2>
-<div class="card-container">
-    @foreach (var booking in Model)
-    {
-        <div class="property-card">
-            <img src="@booking.House.ImageUrl" alt="House Image" class="property-image" />
-            <div class="property-body">
-                <div class="property-title">@booking.House.RoomName (@booking.House.RoomType)</div>
-                <div class="property-price">@booking.TotalPrice.ToString("C")</div>
-                <div class="property-info">Start: @booking.StartDate.ToString("yyyy-MM-dd")</div>
-                <div class="property-info">End: @booking.EndDate.ToString("yyyy-MM-dd")</div>
-                <div class="property-info">Address: @booking.House.Address</div>
 
-                    <form asp-action="CancelBooking" asp-route-id="@booking.BookingId" method="post">
-                        <button type="submit" class="cancel-btn">Cancel Booking</button>
-                    </form>
-                
-            </div>
-        </div>
-    }
+<div id="bookingList">
+    <!-- 这里通过 Ajax 加载 _MyBookingsPartial -->
 </div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function loadPage(page) {
+            $.get("@Url.Action("MyBookingsPage", "Booking")", { page: page }, function (data) {
+                $("#bookingList").html(data);
+            });
+        }
+
+        $(document).ready(function () {
+            loadPage(1);
+
+            $(document).on("click", ".page-btn", function () {
+                loadPage($(this).data("page"));
+            });
+        });
+    </script>
+}

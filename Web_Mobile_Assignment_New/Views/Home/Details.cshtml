@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "House Details";
 }
+
 @if (TempData["Message"] != null)
 {
     var type = TempData["MessageType"]?.ToString() ?? "success";
@@ -76,13 +77,8 @@
             <p>Flexible</p>
         }
 
-        @{
-            var returnUrl = Url.Action("Details", "Home", new { id = Model.Id });
-        }
-
         @if (User.Identity.IsAuthenticated && !User.IsInRole("Owner"))
         {
-
             @if (Model.Owner != null)
             {
                 <div class="card mt-3 shadow-sm">
@@ -114,17 +110,13 @@
         }
         else if (!User.Identity.IsAuthenticated)
         {
-            <!-- Not logged in: send to login with ReturnUrl -->
-            <a href="@Url.Action("Login", "Account", new { ReturnUrl = returnUrl })" class="btn btn-primary btn-lg w-100 mt-3">
+            <a href="@Url.Action("Login", "Account", new { ReturnUrl = Url.Action("Details", "Home", new { id = Model.Id }) })" class="btn btn-primary btn-lg w-100 mt-3">
                 <i class="fa-solid fa-key"></i> Rent This House
             </a>
-            <a href="@Url.Action("Login", "Account", new { ReturnUrl = returnUrl })" class="btn btn-danger btn-lg w-100 mt-2">
+            <a href="@Url.Action("Login", "Account", new { ReturnUrl = Url.Action("Details", "Home", new { id = Model.Id }) })" class="btn btn-danger btn-lg w-100 mt-2">
                 <i class="fa-solid fa-flag"></i> Report This House
             </a>
         }
-
-
-
     </div>
 </div>
 
@@ -140,32 +132,29 @@
     }
 </div>
 
-
-
 <!-- ⭐ 评论区 -->
 <div class="mt-5">
     <h4 class="fw-bold">Reviews & Ratings</h4>
 
-    <!-- 评论表单 -->
     @if (User.Identity.IsAuthenticated && !User.IsInRole("Owner"))
     {
         <form asp-action="AddReview" asp-controller="Home" method="post" class="mb-4">
             @Html.AntiForgeryToken()
             <input type="hidden" name="houseId" value="@Model.Id" />
             <div class="mb-3">
-                <label class="form-label">Your Rating (optional)</label><br />
+                <label class="form-label">Your Rating</label><br />
                 <div class="star-rating d-flex justify-content-start">
-                    <input type="radio" id="star0" name="rating" value="0" style="display:none;" checked />
-                    @for (int i = 1; i <= 5; i++)
+                    @* 默认选中 1 星 *@
+                    @for (int i = 0; i < 5; i++)
                     {
-                        <input type="radio" id="star@i" name="rating" value="@i" style="display:none;" />
-                        <label for="star@i" class="star-label" style="cursor:pointer;font-size:2rem;color:#ffc107;margin-right:5px;">
+                        <input type="radio" id="star@(i + 1)" name="rating" value="@(i + 1)" style="display:none;" />
+                        <label for="star@(i + 1)" class="star-label" style="cursor:pointer;font-size:2rem;color:#ffc107;margin-right:5px;">
                             <i class="fa-regular fa-star"></i>
                         </label>
                     }
+
                 </div>
             </div>
-
 
             <div class="mb-3">
                 <label class="form-label">Your Comment</label>
@@ -186,29 +175,40 @@
 
     <hr />
 
-    <!-- 评论列表 -->
     @if (Model.Reviews != null && Model.Reviews.Any())
     {
         foreach (var r in Model.Reviews.OrderByDescending(x => x.CreatedAt))
         {
             <div class="card mb-3">
                 <div class="card-body">
-                    <h6 class="card-title">@r.UserEmail <span class="text-warning">@for(int i=0;i<r.Rating;i++){
-                    <i class="fa-solid fa-star"></i>
-                }
-    </span></h6>
-                <p class="card-text">@r.Comment</p>
-                <small class="text-muted">@r.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</small>
+                    <h6 class="card-title">
+                        @r.UserEmail
+                        <span class="text-warning">
+                            @* 显示 5 星，前 r.Rating 实心黄星，其余灰色 *@
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                if (i <= r.Rating)
+                                {
+                                    <i class="fa-solid fa-star"></i>
+                                }
+                                else
+                                {
+                                    <i class="fa-regular fa-star text-muted"></i>
+                                }
+                            }
+                        </span>
+                    </h6>
+                    <p class="card-text">@r.Comment</p>
+                    <small class="text-muted">@r.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</small>
+                </div>
             </div>
-        </div>
-    }
         }
-        else
+    }
+    else
     {
         <p>No reviews yet.</p>
     }
 </div>
-
 
 <!-- 举报 Modal -->
 <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
@@ -252,3 +252,58 @@
         </div>
     </div>
 </div>
+
+<!-- ⭐ 星星评分 CSS -->
+<style>
+    .star-label i {
+        color: #ccc;
+        transition: color 0.2s;
+    }
+
+    .star-label.selected i {
+        color: #ffc107;
+    }
+
+    .star-label.hovered i {
+        color: #ffc107;
+    }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const stars = document.querySelectorAll(".star-label");
+    const radios = document.querySelectorAll(".star-rating input");
+
+stars.forEach((star, idx) => {
+    star.addEventListener("click", () => {
+        stars.forEach(s => {
+            s.classList.remove("selected");
+            s.querySelector("i").classList.remove("fa-solid");
+            s.querySelector("i").classList.add("fa-regular");
+        });
+
+        for (let i = 0; i <= idx; i++) {
+            stars[i].classList.add("selected");
+            stars[i].querySelector("i").classList.remove("fa-regular");
+            stars[i].querySelector("i").classList.add("fa-solid");
+        }
+
+        radios.forEach(r => r.checked = false);
+        radios[idx].checked = true;
+    });
+
+    star.addEventListener("mouseover", () => {
+        stars.forEach(s => s.classList.remove("hovered"));
+        for (let i = 0; i <= idx; i++) {
+            stars[i].classList.add("hovered");
+        }
+    });
+
+    star.addEventListener("mouseout", () => {
+        stars.forEach(s => s.classList.remove("hovered"));
+    });
+});
+
+});
+</script>
+

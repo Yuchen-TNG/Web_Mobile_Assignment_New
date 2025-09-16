@@ -26,6 +26,25 @@ namespace Web_Mobile_Assignment_New.Controllers
             return View(users);
         }
 
+        public async Task<IActionResult> UserFilter(string? role, string? status, DateOnly? Birtday)
+        {
+            var housesQuery = _context.Users.OfType<OwnerTenant>().AsQueryable();
+
+            if (!string.IsNullOrEmpty(role))
+                housesQuery = housesQuery.Where(h => h.Role == role);
+
+            if (!string.IsNullOrEmpty(status))
+                housesQuery = housesQuery.Where(h => h.Status == status);
+
+            if (Birtday.HasValue)
+                housesQuery = housesQuery.Where(h => h.Birthday == Birtday.Value);
+
+            var houses = await housesQuery.ToListAsync();
+
+            return View(houses); // 或 return View(houses);
+        }
+
+
         [HttpPost]
         public async Task<IActionResult> UserUploadPhoto(IFormFile photoFile, string email)
         {

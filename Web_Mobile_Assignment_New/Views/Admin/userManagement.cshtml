@@ -19,6 +19,7 @@
         --success: #4caf50;
         --danger: #f44336;
         --text-dark: #333;
+        --text-light: #666;
         --card-bg: #fff;
         --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
@@ -64,7 +65,7 @@
         position: absolute;
         left: 0;
         padding: 8px 16px;
-        background-color: #4a90e2;
+        background-color: var(--primary);
         color: #fff;
         text-decoration: none;
         border-radius: 6px;
@@ -73,7 +74,7 @@
     }
 
         .back-btn:hover {
-            background-color: #357ab8;
+            background-color: var(--primary-hover);
             transform: scale(1.05);
         }
 
@@ -94,10 +95,10 @@
         padding: 16px;
         transition: transform 0.2s, box-shadow 0.2s;
         font-family: Arial, sans-serif;
-        display: flex; /* ✅ 横向布局 */
-        align-items: center; /* 垂直居中 */
-        gap: 20px; /* 头像和文字的间距 */
-        text-align: left; /* 左对齐文字 */
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        text-align: left;
     }
 
         .user-card:hover {
@@ -105,40 +106,33 @@
             box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
         }
 
+    /* 用户头像 */
     .user-photo {
-        flex-shrink: 0; /* ✅ 不要被压缩 */
+        flex-shrink: 0;
         width: 110px;
         height: 110px;
         border-radius: 50%;
-        border: 3px solid #fff;
-        overflow: hidden; /* ✅ 裁掉外面部分 */
+        overflow: hidden;
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transition: transform 0.2s, box-shadow 0.2s;
     }
 
         .user-photo img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            display: block;
+            transition: transform 0.3s, box-shadow 0.3s;
         }
 
-    /* 右边的文字部分 */
-    .user-details {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        flex: 1;
-    }
-
-
-    /* hover 时头像放大并加深阴影 */
-    .user-card:hover .user-img {
+    .user-card:hover .user-photo img {
         transform: scale(1.08);
         box-shadow: 0 8px 20px rgba(0,0,0,0.25);
     }
 
-    /* 默认头像图标（如果没有照片） */
+    /* 默认头像 */
     .user-img.default {
-        background: linear-gradient(135deg, #4a90e2, #357ab8);
+        background: linear-gradient(135deg, var(--primary), var(--primary-hover));
         display: flex;
         align-items: center;
         justify-content: center;
@@ -147,6 +141,13 @@
         font-weight: bold;
     }
 
+    /* 右边文字部分 */
+    .user-details {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        flex: 1;
+    }
 
     .user-title {
         font-size: 18px;
@@ -181,7 +182,43 @@
     .details-btn {
         margin-top: 10px;
         display: inline-block;
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: bold;
     }
+
+        .details-btn:hover {
+            text-decoration: underline;
+        }
+
+
+
+    .filter-form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 20px;
+        align-items: center;
+    }
+
+        .filter-form label {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .filter-form select {
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+            .filter-form select:focus {
+                border-color: var(--primary);
+                box-shadow: 0 0 6px rgba(74,144,226,0.5);
+            }
+
 </style>
 
 <div class="header-container">
@@ -190,6 +227,30 @@
 </div>
 
 <div class="card-container">
+    <form asp-action="UserFilter" method="get" class="filter-form">
+        <label>Role: </label>
+        <select name="role">
+            <option value="">--All--</option>
+            <option value="Owner">Owner</option>
+            <option value="Tenant">Tenant</option>
+        </select>
+
+        <label>Status: </label>
+        <select name="status">
+            <option value="">--All--</option>
+            <option value="valid">Valid</option>
+            <option value="restricted">Restricted</option>
+        </select>
+
+        <div>
+            <button type="submit" class="btn">Apply Filter</button>
+            <button type="reset" class="btn">Reset</button>
+        </div>
+    </form>
+
+
+
+
     @foreach (var user in Model)
     {
         if (user.Role == "Admin") continue;

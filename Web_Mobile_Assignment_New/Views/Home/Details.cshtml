@@ -144,7 +144,6 @@
             <div class="mb-3">
                 <label class="form-label">Your Rating</label><br />
                 <div class="star-rating d-flex justify-content-start">
-                    @* 默认选中 1 星 *@
                     @for (int i = 0; i < 5; i++)
                     {
                         <input type="radio" id="star@(i + 1)" name="rating" value="@(i + 1)" style="display:none;" />
@@ -152,7 +151,6 @@
                             <i class="fa-regular fa-star"></i>
                         </label>
                     }
-
                 </div>
             </div>
 
@@ -181,22 +179,40 @@
         {
             <div class="card mb-3">
                 <div class="card-body">
-                    <h6 class="card-title">
-                        @r.UserEmail
-                        <span class="text-warning">
-                            @* 显示 5 星，前 r.Rating 实心黄星，其余灰色 *@
-                            @for (int i = 1; i <= 5; i++)
-                            {
-                                if (i <= r.Rating)
+                    <h6 class="card-title d-flex justify-content-between align-items-center">
+                        <span>
+                            @r.UserEmail
+                            <span class="text-warning">
+                                @for (int i = 1; i <= 5; i++)
                                 {
-                                    <i class="fa-solid fa-star"></i>
+                                    if (i <= r.Rating)
+                                    {
+                                        <i class="fa-solid fa-star"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fa-regular fa-star text-muted"></i>
+                                    }
                                 }
-                                else
-                                {
-                                    <i class="fa-regular fa-star text-muted"></i>
-                                }
-                            }
+                            </span>
                         </span>
+
+                        <!-- 🔥 删除按钮：只有当前登录用户能删除 -->
+                        <!-- 删除按钮：评论人自己 OR 房东都能删除 -->
+                        @if (User.Identity.IsAuthenticated &&
+                                        (r.UserEmail == User.Identity.Name || User.IsInRole("Owner")))
+                        {
+                            <form asp-action="DeleteReview" asp-controller="Home" method="post" style="display:inline;"
+                                  onsubmit="return confirm('Are you sure you want to delete this review?');">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@r.Id" />
+                                <input type="hidden" name="houseId" value="@Model.Id" />
+                                <button type="submit" class="btn btn-sm btn-danger">
+                                    <i class="fa-solid fa-trash"></i> Delete
+                                </button>
+                            </form>
+                        }
+
                     </h6>
                     <p class="card-text">@r.Comment</p>
                     <small class="text-muted">@r.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</small>
@@ -209,6 +225,7 @@
         <p>No reviews yet.</p>
     }
 </div>
+
 
 <!-- 举报 Modal -->
 <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">

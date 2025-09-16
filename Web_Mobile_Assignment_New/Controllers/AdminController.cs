@@ -26,6 +26,47 @@ namespace Web_Mobile_Assignment_New.Controllers
             return View(users);
         }
 
+        public async Task<IActionResult> UserFilter(string? role, string? status, DateOnly? birthday)
+        {
+            // 1️⃣ 从数据库获取所有用户（User 表）  
+            var allUsers = await _context.Users.ToListAsync();
+
+            // 2️⃣ 只筛选 OwnerTenant 子类（Owner/Tenant）
+            var ownerTenantUsers = allUsers
+                .Where(u => u is OwnerTenant)
+                .Cast<OwnerTenant>();
+
+            // 3️⃣ 根据 role 过滤
+            if (!string.IsNullOrEmpty(role))
+            {
+                ownerTenantUsers = role switch
+                {
+                    "Owner" => ownerTenantUsers.Where(u => u is Owner),
+                    "Tenant" => ownerTenantUsers.Where(u => u is Tenant),
+                    _ => ownerTenantUsers
+                };
+            }
+
+            // 4️⃣ 根据 status 过滤
+            if (!string.IsNullOrEmpty(status))
+            {
+                ownerTenantUsers = ownerTenantUsers.Where(u => u.Status == status);
+            }
+
+            // 5️⃣ 根据 birthday 过滤
+            if (birthday.HasValue)
+            {
+                ownerTenantUsers = ownerTenantUsers.Where(u => u.Birthday == birthday.Value);
+            }
+
+            // 6️⃣ 转为 List<User> 类型传给视图，保证 Razor 视图类型安全
+            var usersToView = ownerTenantUsers.Cast<User>().ToList();
+
+            return View("UserManagement", usersToView);
+        }
+
+
+
         [HttpPost]
         public async Task<IActionResult> UserUploadPhoto(IFormFile photoFile, string email)
         {

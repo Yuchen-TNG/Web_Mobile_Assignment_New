@@ -13,145 +13,165 @@
 }
 
 <style>
+    /* ==== 容器 ==== */
     .user-details-container {
-        max-width: 600px;
-        margin: 20px auto;
-        font-family: Arial, sans-serif;
+        max-width: 650px;
+        margin: 30px auto;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #ffffff;
+        padding: 30px 35px;
+        border-radius: 16px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
         text-align: center;
-        background: #fff;
-        padding: 25px;
-        border-radius: 12px;
-        box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+    }
+
+    /* ==== 用户头像 ==== */
+    .user-photo-container {
+        position: relative;
+        display: inline-block;
+        margin-bottom: 20px;
     }
 
     .user-photo {
-        width: 150px;
-        height: 150px;
+        width: 160px;
+        height: 160px;
         object-fit: cover;
         border-radius: 50%;
-        margin-bottom: 15px;
-        transition: transform 0.3s ease;
+        border: 4px solid #2196F3;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
         .user-photo:hover {
-            transform: scale(1.05);
+            transform: scale(1.07);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.15);
         }
 
-    /* === 按钮通用样式 === */
-    button,
-    a.button-link,
-    a.btn {
+    .photo-actions {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin-top: 12px;
+    }
+
+    /* ==== 按钮 ==== */
+    button, a.button-link, a.btn {
         padding: 10px 18px;
         border: none;
-        border-radius: 5px;
+        border-radius: 8px;
         color: #fff;
         font-weight: bold;
         text-decoration: none;
         cursor: pointer;
-        transition: transform 0.2s ease, filter 0.2s ease;
-        margin: 5px 5px 0 0;
+        transition: all 0.2s ease;
+        margin: 0;
         display: inline-block;
+        min-width: 120px;
     }
 
-        button:hover,
-        a.button-link:hover,
-        a.btn:hover {
-            transform: scale(1.03);
+        button:hover, a.button-link:hover, a.btn:hover {
+            transform: scale(1.05);
             filter: brightness(0.9);
         }
 
-    /* === 按钮颜色分类 === */
     .btn-save {
         background: #2196F3;
     }
-    /* 蓝色 */
+
     .btn-back {
         background: #9E9E9E;
     }
-    /* 灰色 */
+
     .btn-delete {
         background: #f44336;
     }
 
-    /* 红色 */
     .btn-reset {
         background: #9E9E9E;
     }
-    /* 灰色 (和 back 一致) */
+
     .btn-restrict {
         background: #e67e22;
     }
-    /* 橙色 */
+
     .btn-valid {
         background: #4caf50;
     }
-    /* 绿色 */
 
-    /* === 表单区域 === */
+    /* ==== 表单 ==== */
     .form-field {
-        margin-bottom: 15px;
+        margin-bottom: 18px;
         text-align: left;
     }
 
         .form-field label {
             display: block;
-            font-weight: bold;
-            margin-bottom: 5px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #333;
         }
 
         .form-field input {
             width: 100%;
-            padding: 8px 10px;
+            padding: 10px 14px;
             font-size: 15px;
             border: 1px solid #ccc;
-            border-radius: 6px;
+            border-radius: 8px;
             outline: none;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
             .form-field input:focus {
-                border-color: #4a90e2;
-                box-shadow: 0 0 6px rgba(74,144,226,0.4);
+                border-color: #2196F3;
+                box-shadow: 0 0 6px rgba(33,150,243,0.3);
             }
 
             .form-field input[readonly] {
-                background: #eee;
+                background: #f5f5f5;
+                color: #555;
             }
 
-    /* === 状态颜色 === */
+    /* ==== 状态 ==== */
     .status-valid {
         color: green;
-        font-weight: bold;
+        font-weight: 600;
     }
 
     .status-restricted {
-        color: red;
-        font-weight: bold;
+        color: #e67e22;
+        font-weight: 600;
     }
 
     .status-unknown {
         color: #666;
     }
 
-    /* === Action 按钮区 === */
+    /* ==== 动作按钮区 ==== */
     .action-buttons {
         display: flex;
         justify-content: center;
-        gap: 10px;
-        margin-top: 20px;
+        gap: 14px;
+        margin-top: 25px;
+        flex-wrap: wrap;
     }
 
-        .action-buttons form {
-            margin: 0;
-        }
+    /* ==== 消息提示 ==== */
+    .alert {
+        max-width: 650px;
+        margin: 20px auto;
+        padding: 12px 18px;
+        border-radius: 8px;
+        font-weight: bold;
+    }
 
-    /* === 照片区域 === */
-    .photo-delete-form {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 20px;
+    .alert-success {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .alert-error {
+        background: #f8d7da;
+        color: #721c24;
     }
 
 </style>
@@ -160,19 +180,28 @@
 
 <div class="user-details-container">
 
-    <div class="photo-delete-form">
+    <div class="user-photo-container">
         @if (Model is Web_Mobile_Assignment_New.Models.OwnerTenant photoUser && !string.IsNullOrEmpty(photoUser.PhotoURL))
         {
             <img src="/photos/@photoUser.PhotoURL" alt="User Photo" class="user-photo" />
-            <form asp-action="DeletePhoto" method="post" onsubmit="return confirm('Are you sure you want to delete photo？');">
-                <input type="hidden" name="email" value="@Model.Email" />
-                <button type="submit" class="btn-delete">🗑 Delete Photo</button>
-            </form>
         }
         else
         {
             <img src="/images/photo.jpg" alt="Default Photo" class="user-photo" />
         }
+
+        <div class="photo-actions">
+            <form asp-action="DeletePhoto" method="post" onsubmit="return confirm('Are you sure you want to delete photo?');">
+                <input type="hidden" name="email" value="@Model.Email" />
+                <button type="submit" class="btn-delete">🗑 Delete</button>
+            </form>
+
+            <form asp-action="UserUploadPhoto" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="email" value="@Model.Email" />
+                <input type="file" name="photoFile" accept="image/*" required />
+                <button type="submit" class="btn-save">📤 Upload</button>
+            </form>
+        </div>
     </div>
 
     <form asp-action="UpdateUser" method="post">
@@ -207,11 +236,9 @@
                 <input type="text" value="N/A" readonly />
             }
         </div>
+
         <button type="submit" class="btn-save">Save Changes</button>
-        <a asp-action="UserDetails"
-           asp-controller="Admin"
-           asp-route-email="@Model.Email"
-           class="button-link btn-reset">↩ Reset</a>
+        <a asp-action="UserDetails" asp-controller="Admin" asp-route-email="@Model.Email" class="button-link btn-reset">↩ Reset</a>
         <a asp-controller="Admin" asp-action="UserManagement" class="button-link btn-back">⬅ Back</a>
     </form>
 
@@ -220,11 +247,12 @@
             <input type="hidden" name="email" value="@Model.Email" />
             <button type="submit" class="btn-delete">🗑 Delete User</button>
         </form>
+
         @if (Model is Web_Mobile_Assignment_New.Models.OwnerTenant tenantUser && tenantUser.Status == "valid")
         {
             <form asp-action="RestrictedUser" method="post">
                 <input type="hidden" name="email" value="@Model.Email" />
-                <button type="submit" class="btn-delete">Restricted User</button>
+                <button type="submit" class="btn-restrict">Restricted User</button>
             </form>
         }
         else

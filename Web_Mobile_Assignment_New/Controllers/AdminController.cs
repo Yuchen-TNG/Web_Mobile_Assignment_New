@@ -26,6 +26,51 @@ namespace Web_Mobile_Assignment_New.Controllers
             return View(users);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> UserUploadPhoto(IFormFile photoFile, string email)
+        {
+            if (photoFile == null || photoFile.Length == 0)
+            {
+                TempData["Message"] = "No file selected!";
+                TempData["MessageType"] = "error";
+                return RedirectToAction("UserDetails", new { email = email });
+            }
+
+            var user = _context.Users
+                               .AsEnumerable()          // ⚠️ 会把所有 User 拉到内存
+                               .OfType<OwnerTenant>()
+                               .FirstOrDefault(u => u.Email == email);
+
+            if (user == null) return NotFound();
+
+            // 生成唯一文件名
+            var fileName = Guid.NewGuid() + Path.GetExtension(photoFile.FileName);
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", fileName);
+
+            // 保存文件
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await photoFile.CopyToAsync(stream);
+            }
+
+            // 如果之前有旧照片，尝试删除
+            if (!string.IsNullOrEmpty(user.PhotoURL))
+            {
+                var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", user.PhotoURL);
+                if (System.IO.File.Exists(oldPath))
+                    System.IO.File.Delete(oldPath);
+            }
+
+            // 更新数据库
+            user.PhotoURL = fileName;
+            await _context.SaveChangesAsync();
+
+            TempData["Message"] = "Photo updated successfully!";
+            TempData["MessageType"] = "success";
+
+            return RedirectToAction("UserDetails", new { email = email });
+        }
+
         public IActionResult PropertyManagement()
         {
             var houses = _context.Houses.ToList();
@@ -89,14 +134,18 @@ namespace Web_Mobile_Assignment_New.Controllers
 
 
             User? user = _context.Users.FirstOrDefault(u => u.Email == email);
-            if (user is OwnerTenant otUser) // 👈 只有 Owner/Tenant 才有 PhotoURL
+            if (user is OwnerTenant otUser)
             {
                 otUser.PhotoURL = null;
                 _context.Users.Update(otUser);
                 _context.SaveChanges();
                 TempData["Message"] = "Delete Successful";
             }
-            TempData["Message"] = "Delete failed";
+            else
+            {
+                TempData["Message"] = "Delete failed";
+            }
+
             return RedirectToAction("UserDetails", new { email = email });
         }
 
@@ -313,6 +362,56 @@ namespace Web_Mobile_Assignment_New.Controllers
 
             TempData["Message"] = "Report marked as Restricted.";
             return RedirectToAction("ReportManagement");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UploadHouseImages(int houseId, List<IFormFile> photos)
+        {
+            var house = _context.Houses.Include(h => h.Images).FirstOrDefault(h => h.Id == houseId);
+            if (house == null) return NotFound();
+
+            if (photos != null && photos.Count > 0)
+            {
+                foreach (var photo in photos)
+                {
+                    var fileName = Guid.NewGuid() + Path.GetExtension(photo.FileName);
+                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await photo.CopyToAsync(stream);
+                    }
+
+                    house.Images.Add(new HouseImage { ImageUrl = fileName });
+                }
+
+                await _context.SaveChangesAsync();
+                TempData["Message"] = "Images uploaded successfully!";
+            }
+            else
+            {
+                TempData["Message"] = "No images selected!";
+            }
+
+            return RedirectToAction("PropertyDetails", new { id = houseId });
+        }
+
+        [HttpPost]
+        public IActionResult DeleteHouseImage(int imageId, int houseId)
+        {
+            var image = _context.HouseImages.FirstOrDefault(i => i.Id == imageId);
+            if (image != null)
+            {
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", image.ImageUrl);
+                if (System.IO.File.Exists(filePath))
+                    System.IO.File.Delete(filePath);
+
+                _context.HouseImages.Remove(image);
+                _context.SaveChanges();
+                TempData["Message"] = "Image deleted successfully!";
+            }
+
+            return RedirectToAction("PropertyDetails", new { id = houseId });
         }
 
     }

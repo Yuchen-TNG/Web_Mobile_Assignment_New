@@ -494,9 +494,10 @@ namespace Web_Mobile_Assignment_New.Controllers
         }
         public IActionResult OwnerDetails(int id)
         {
-            var ID = _context.Houses.Where(h => h.Id == id).FirstOrDefault();
-            return View(ID);
-
+            var house = _context.Houses
+                .Include(h => h.Images) // 🔥 加这里
+                .FirstOrDefault(h => h.Id == id);
+            return View(house);
         }
 
         public IActionResult PropertyDelete(int id)
@@ -512,11 +513,10 @@ namespace Web_Mobile_Assignment_New.Controllers
 
         public IActionResult PropertyDetails(int id)
         {
-            if (id is 0) return NotFound();
-
-            House? house = _context.Houses.FirstOrDefault(h => h.Id == id);
+            House? house = _context.Houses
+                .Include(h => h.Images) // 🔥 加这里
+                .FirstOrDefault(h => h.Id == id);
             if (house == null) return NotFound();
-
             return View(house);
         }
         public IActionResult UpdateProperty(House model)

@@ -125,7 +125,7 @@
             <img src="@house.ImageUrl" alt="House Image" class="property-image" />
             <div class="property-body">
                 <div class="property-title">@house.RoomName (@house.RoomType)</div>
-                <div class="property-price">$@house.Price</div>
+                <div class="property-price">RM @house.Price</div>
                 <div class="property-info">Rooms: @house.Rooms | Sqft: @house.Sqft</div>
                 <div class="property-info">Address: @house.Address</div>
                 <div class="property-info @(house.RoomStatus?.ToLower() == "valid" ? "status-valid" :

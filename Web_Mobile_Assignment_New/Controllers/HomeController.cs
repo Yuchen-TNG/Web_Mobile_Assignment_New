@@ -560,16 +560,36 @@ house.Owner = owner;
 
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult PropertyDelete(int id)
         {
-            House? house = _context.Houses.FirstOrDefault(h => h.Id == id);
+            var house = _context.Houses
+                .Include(h => h.Images)
+                .FirstOrDefault(h => h.Id == id);
+
             if (house != null)
             {
+                if (house.Images != null && house.Images.Any())
+                {
+                    _context.HouseImages.RemoveRange(house.Images);
+                }
+
                 _context.Houses.Remove(house);
                 _context.SaveChanges();
+
+                TempData["Message"] = "✅ Property deleted successfully.";
+                TempData["MessageType"] = "success";
             }
-            return RedirectToAction("OwnerDetails");
+            else
+            {
+                TempData["Message"] = "⚠ This property does not exist.";
+                TempData["MessageType"] = "error";
+            }
+
+            return RedirectToAction("Index"); // ✅ 强制回到列表
         }
+
 
         public IActionResult PropertyDetails(int id)
         {

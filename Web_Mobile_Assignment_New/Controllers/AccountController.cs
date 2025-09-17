@@ -36,8 +36,14 @@ public class AccountController : Controller
 
     // POST: Account/Login
     [HttpPost]
-    public IActionResult Login(LoginVM vm, string? returnUrl)
+    public async Task<IActionResult> Login(LoginVM vm, string? returnUrl)
     {
+        // 1. 验证 reCAPTCHA
+        if (!await VerifyRecaptchaAsync())
+        {
+            ModelState.AddModelError("", "Please complete the robot verification first.");
+            return View(vm);
+        }
 
         // 确保有记录
         if (!_loginAttempts.ContainsKey(vm.Email))
@@ -91,6 +97,35 @@ public class AccountController : Controller
         return RedirectToAction("Index", "Home");
     }
 
+    // 验证 reCAPTCHA
+    private async Task<bool> VerifyRecaptchaAsync()
+    {
+        var recaptchaResponse = Request.Form["g-recaptcha-response"];
+        if (string.IsNullOrEmpty(recaptchaResponse))
+        {
+            return false;
+        }
+
+        var secret = "6LdPE8wrAAAAAIoY1ViTTiiWbmmS2WR4B11KRb7p"; // 替换成你的 reCAPTCHA secret
+        using var client = new HttpClient();
+        var response = await client.PostAsync(
+            $"https://www.google.com/recaptcha/api/siteverify?secret={secret}&response={recaptchaResponse}",
+            null
+        );
+
+        var json = await response.Content.ReadAsStringAsync();
+        var result = JsonSerializer.Deserialize<RecaptchaVerifyResult>(json);
+
+        return result?.success ?? false;
+    }
+
+    // 用于解析 Google 返回的 JSON
+    private class RecaptchaVerifyResult
+    {
+        public bool success { get; set; }
+        public string[]? error_codes { get; set; }
+    }
+
     // GET: Account/Logout
     public IActionResult Logout(string? returnURL)
     {
@@ -128,8 +163,15 @@ public class AccountController : Controller
 
     // POST: Account/Register
     [HttpPost]
-    public IActionResult Register(RegisterVM vm)
+    public async Task<IActionResult> Register(RegisterVM vm)
     {
+
+        // 1. 验证 reCAPTCHA
+        if (!await VerifyRecaptchaAsync())
+        {
+            ModelState.AddModelError("", "Please complete the robot verification first.");
+            return View(vm);
+        }
 
         if (ModelState.IsValid("Email") &&
             db.Users.Any(u => u.Email == vm.Email))

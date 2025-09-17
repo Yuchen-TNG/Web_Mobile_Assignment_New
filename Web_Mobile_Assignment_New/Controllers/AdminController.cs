@@ -1,9 +1,10 @@
-﻿using Web_Mobile_Assignment_New.Modelss;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Web_Mobile_Assignment_New.Models;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Processing;
+using Web_Mobile_Assignment_New.Models;
+using Web_Mobile_Assignment_New.Modelss;
 
 namespace Web_Mobile_Assignment_New.Controllers
 {
@@ -386,8 +387,7 @@ namespace Web_Mobile_Assignment_New.Controllers
             return View("ReportManagement",rp);
         }
 
-        [HttpPost]
-        [HttpPost]
+
         public async Task<IActionResult> RotatePhoto(string email, int degrees)
         {
             if (string.IsNullOrEmpty(email)) return NotFound();
@@ -413,15 +413,15 @@ namespace Web_Mobile_Assignment_New.Controllers
                 return RedirectToAction("UserDetails", new { email });
             }
 
+            // 🔑 不要自己用 FileStream，直接传 filePath 就行
             using (var image = await Image.LoadAsync(filePath))
             {
                 image.Mutate(x => x.Rotate(degrees));
-                await image.SaveAsync(filePath);
+                await image.SaveAsync(filePath); // 自动保存为原格式
             }
 
             TempData["Message"] = $"Photo rotated {degrees}° successfully!";
             TempData["MessageType"] = "success";
-
             return RedirectToAction("UserDetails", new { email });
         }
 

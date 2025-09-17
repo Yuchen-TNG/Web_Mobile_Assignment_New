@@ -24,6 +24,19 @@ leon
 extra
 email 跳gmail 然后 auto fill recipient 的email
 
+
+filter negative
+update furnishing choose sendiri
+InvalidOperationException: The view 'AccessDenied' was not found. The following locations were searched:
+/Views/Account/AccessDenied.cshtml
+/Views/Shared/AccessDenied.cshtml
+
+credit date expiredd
+cancel booking
+
+
+
+
 tankaizhen2006@gmail.com	tan	AQAAAAIAAYagAAAAEJFfhpNF2Ufp3j7f/a9Gn/XVgAwga/UrY80c44wtRyGXJHnQNYwh/GxN89xYzFYbhw==	9/9/2025	Admin		valid
 chenkaizhen2006@gmail.com	tan	AQAAAAIAAYagAAAAEJFfhpNF2Ufp3j7f/a9Gn/XVgAwga/UrY80c44wtRyGXJHnQNYwh/GxN89xYzFYbhw==	9/9/2025	Owner	254fe160bf20451ebda621f3148c2ef5.jpg	valid
 chankaizhen2006@gmail.com	tan	AQAAAAIAAYagAAAAEJFfhpNF2Ufp3j7f/a9Gn/XVgAwga/UrY80c44wtRyGXJHnQNYwh/GxN89xYzFYbhw==	9/9/2025	Tenant	254fe160bf20451ebda621f3148c2ef5.jpg	valid

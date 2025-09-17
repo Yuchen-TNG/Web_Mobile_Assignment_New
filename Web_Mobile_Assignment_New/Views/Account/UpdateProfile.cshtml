@@ -4,6 +4,14 @@
     ViewBag.Title = "Account | Update Profile";
 }
 
+@if (TempData["Message"] != null)
+{
+    var type = TempData["MessageType"]?.ToString() ?? "success";
+    <div class="alert @(type == "success" ? "alert-success" : "alert-error")">
+        @TempData["Message"]
+    </div>
+}
+
 @section head {
     <style>
         body {

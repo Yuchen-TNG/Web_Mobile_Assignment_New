@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Text.Json;
 
 namespace Web_Mobile_Assignment_New.Controllers;
 
@@ -33,9 +36,8 @@ public class AccountController : Controller
 
     // POST: Account/Login
     [HttpPost]
-    public async Task<IActionResult> Login(LoginVM vm, string? returnUrl)
+    public IActionResult Login(LoginVM vm, string? returnUrl)
     {
-        ViewData["ReturnUrl"] = returnUrl;
 
         // 确保有记录
         if (!_loginAttempts.ContainsKey(vm.Email))
@@ -48,12 +50,6 @@ public class AccountController : Controller
         {
             var remaining = (lockoutEnd.Value - DateTime.Now).Seconds;
             ModelState.AddModelError("", $"Too many failed attempts. Try again in {remaining} seconds.");
-            return View(vm);
-        }
-
-        if (!await VerifyRecaptchaAsync())
-        {
-            ModelState.AddModelError("", "Please complete the reCAPTCHA verification.");
             return View(vm);
         }
 
@@ -95,34 +91,6 @@ public class AccountController : Controller
         return RedirectToAction("Index", "Home");
     }
 
-    // 通用方法：验证 reCAPTCHA
-    private async Task<bool> VerifyRecaptchaAsync()
-    {
-        // 从请求表单获取 reCAPTCHA 响应
-        var recaptchaResponse = Request.Form["g-recaptcha-response"];
-
-        if (string.IsNullOrEmpty(recaptchaResponse))
-            return false;
-
-        var secret = "6LcljcsrAAAAAAd6f7HK-c6pePcDj9X0reCSbrs4"; // 替换成你的 Google reCAPTCHA Secret
-        using var client = new HttpClient();
-        var result = await client.PostAsync(
-            $"https://www.google.com/recaptcha/api/siteverify?secret={secret}&response={recaptchaResponse}",
-            null);
-        var json = await result.Content.ReadAsStringAsync();
-
-        var data = System.Text.Json.JsonSerializer.Deserialize<RecaptchaResult>(json);
-
-        return data?.Success ?? false;
-    }
-
-    // reCAPTCHA 返回对象
-    private class RecaptchaResult
-    {
-        public bool Success { get; set; }
-        public List<string>? ErrorCodes { get; set; }
-    }
-
     // GET: Account/Logout
     public IActionResult Logout(string? returnURL)
     {
@@ -160,14 +128,8 @@ public class AccountController : Controller
 
     // POST: Account/Register
     [HttpPost]
-    public async Task<IActionResult> Register(RegisterVM vm)
+    public IActionResult Register(RegisterVM vm)
     {
-
-        if (!await VerifyRecaptchaAsync())
-        {
-            ModelState.AddModelError("", "Please complete the reCAPTCHA verification.");
-            return View(vm);
-        }
 
         if (ModelState.IsValid("Email") &&
             db.Users.Any(u => u.Email == vm.Email))

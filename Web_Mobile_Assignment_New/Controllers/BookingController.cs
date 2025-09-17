@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Web_Mobile_Assignment_New.Models;
 
+
 [Authorize]
 public class BookingController : Controller
 {
@@ -77,32 +78,48 @@ public class BookingController : Controller
 
         if (booking == null)
         {
+            // If AJAX request, return JSON
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return Json(new { success = false, message = "Booking not found." });
+
+            // fallback for normal request
             TempData["Message"] = "Booking not found.";
             TempData["MessageType"] = "error";
             return RedirectToAction("MyBookings");
         }
 
-        // 删除关联 Payment
+        // Remove associated payment
         if (booking.Payment != null)
-        {
             _db.Payments.Remove(booking.Payment);
-        }
 
+        // Remove booking
         _db.Bookings.Remove(booking);
         _db.SaveChanges();
 
-        // 更新房源状态
+        // Update house availability
         var house = booking.House;
         if (house != null)
         {
-            house.RoomStatus = IsHouseFullyBooked(house.Id) ? "Rented" : "Available";
-            _db.SaveChanges();
+            var freshHouse = _db.Houses.FirstOrDefault(h => h.Id == house.Id);
+            if (freshHouse != null)
+            {
+                freshHouse.Availability = _db.Bookings.Any(b => b.HouseId == freshHouse.Id && b.EndDate >= DateTime.Today)
+                                         ? "Rented"
+                                         : "Available";
+                _db.SaveChanges();
+            }
         }
 
+        // If AJAX, return JSON for alert
+        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            return Json(new { success = true, message = "Booking has been cancelled successfully." });
+
+        // fallback for normal request
         TempData["Message"] = "Booking has been cancelled successfully.";
         TempData["MessageType"] = "success";
         return RedirectToAction("MyBookings");
     }
+
 
     // ================= Helper =================
     private bool IsHouseFullyBooked(int houseId)

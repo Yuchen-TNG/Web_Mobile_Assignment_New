@@ -77,6 +77,7 @@
 
             // Optional: basic validation
             var cardNumberRegex = /^[0-9]{13,19}$/; // simple number check
+            var expiry = document.getElementById("ExpiryDate").value.trim();
             var expiryRegex = /^(0[1-9]|1[0-2])\/\d{2}$/; // MM/YY
             var cvcRegex = /^[0-9]{3,4}$/;
 
@@ -86,11 +87,29 @@
                 return;
             }
 
-            if (!expiryRegex.test(expiry)) {
-                alert("Expiry date must be in MM/YY format.");
-                event.preventDefault();
-                return;
-            }
+                if (!expiryRegex.test(expiry)) {
+        alert("Expiry date must be in MM/YY format.");
+        event.preventDefault();
+        return;
+    }
+
+    // Check if the expiry date is in the future
+    var parts = expiry.split('/');
+    var month = parseInt(parts[0], 10);
+    var year = parseInt('20' + parts[1], 10); // convert YY to YYYY
+
+    var now = new Date();
+    var expDate = new Date(year, month - 1, 1); // first day of expiry month
+
+    // Move to end of the month
+    expDate.setMonth(expDate.getMonth() + 1);
+    expDate.setDate(0);
+
+    if (expDate < now) {
+        alert("Credit card has expired.");
+        event.preventDefault();
+        return;
+    }
 
             if (!cvcRegex.test(cvc)) {
                 alert("Invalid CVC.");

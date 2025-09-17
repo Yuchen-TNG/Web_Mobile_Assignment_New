@@ -671,7 +671,6 @@ house.Owner = owner;
             existing.EndDate = model.EndDate;
             existing.Address = model.Address;
             existing.Sqft = model.Sqft;
-            existing.RoomStatus = model.RoomStatus;
 
             // 图片保持原样（前端有 Hidden Input）
             if (!string.IsNullOrEmpty(model.ImageUrl))

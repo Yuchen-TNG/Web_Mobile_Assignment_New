@@ -19,11 +19,11 @@
         <!-- Price Range -->
         <div class="col-md-3 mb-2">
             <label for="minPrice" class="form-label">Min Price</label>
-            <input type="number" class="form-control" id="minPrice" name="minPrice" placeholder="Enter min price" />
+            <input type="number" class="form-control" id="minPrice" name="minPrice" placeholder="Enter min price" min="0" />
         </div>
         <div class="col-md-3 mb-2">
             <label for="maxPrice" class="form-label">Max Price</label>
-            <input type="number" class="form-control" id="maxPrice" name="maxPrice" placeholder="Enter max price" />
+            <input type="number" class="form-control" id="maxPrice" name="maxPrice" placeholder="Enter max price" min="0" />
         </div>
 
         <!-- House Type -->
@@ -120,12 +120,14 @@
 @section Scripts {
     <script>
         $(document).ready(function () {
+
+            // ===================== Pagination via AJAX =====================
             $(document).on("click", ".page-btn", function (e) {
                 e.preventDefault();
                 let page = $(this).data("page");
 
                 $.ajax({
-                    url: '/Home/HouseList',
+                    url: '/Home/HouseList', // your action that returns partial view
                     type: 'GET',
                     data: { page: page },
                     success: function (result) {
@@ -136,7 +138,27 @@
                     }
                 });
             });
+
+            // ===================== Filter Validation =====================
+            $("form[asp-action='Filter']").on("submit", function (e) {
+                let minPrice = parseFloat($("#minPrice").val()) || 0;
+                let maxPrice = parseFloat($("#maxPrice").val()) || 0;
+
+                if (minPrice < 0 || maxPrice < 0) {
+                    e.preventDefault();
+                    alert("Price cannot be negative.");
+                    return false;
+                }
+
+                if (maxPrice > 0 && minPrice > maxPrice) {
+                    e.preventDefault();
+                    alert("Min price cannot be greater than Max price.");
+                    return false;
+                }
+            });
+
         });
     </script>
 }
+
 

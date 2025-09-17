@@ -1,5 +1,13 @@
 ﻿@model Web_Mobile_Assignment_New.Models.House
 
+@if (TempData["Message"] != null)
+{
+    var type = TempData["MessageType"]?.ToString() ?? "success";
+    <div class="alert @(type == "success" ? "alert-success" : "alert-error")">
+        @TempData["Message"]
+    </div>
+}
+
 <style>
     .house-card {
         max-width: 650px;
@@ -162,7 +170,12 @@ else
 
             <div class="field">
                 <label>Furnishing:</label>
-                <input asp-for="Furnishing" type="text" />
+                <select asp-for="Furnishing">
+                    <option value="">-- Select --</option>
+                    <option value="Fully">Fully</option>
+                    <option value="Semi">Semi</option>
+                    <option value="Unfurnished">Unfurnished</option>
+                </select>
                 <span asp-validation-for="Furnishing" class="text-danger"></span>
             </div>
 

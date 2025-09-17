@@ -25,13 +25,6 @@ extra
 email 跳gmail 然后 auto fill recipient 的email
 
 
-update furnishing choose sendiri
-
-
-InvalidOperationException: The view 'AccessDenied' was not found. The following locations were searched:
-/Views/Account/AccessDenied.cshtml
-/Views/Shared/AccessDenied.cshtml
-
 如果是被ban就有button去申诉
 
 

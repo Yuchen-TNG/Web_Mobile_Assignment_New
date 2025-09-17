@@ -275,14 +275,25 @@ house.Owner = owner;
             return RedirectToAction("Details", new { id = houseId });
         }
 
-        [Authorize(Roles = "Owner")]
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult DeleteReview(int id, int houseId)
         {
             var review = _context.HouseReviews.FirstOrDefault(r => r.Id == id);
             if (review == null)
             {
                 TempData["Message"] = "Review not found.";
+                TempData["MessageType"] = "error";
+                return RedirectToAction("Details", "Home", new { id = houseId });
+            }
+
+            var currentUser = User.Identity?.Name;
+            var isOwner = User.IsInRole("Owner");
+
+            // 只有评论作者或者房东可以删除
+            if (review.UserEmail != currentUser && !isOwner)
+            {
+                TempData["Message"] = "You are not allowed to delete this review.";
                 TempData["MessageType"] = "error";
                 return RedirectToAction("Details", "Home", new { id = houseId });
             }
@@ -294,6 +305,7 @@ house.Owner = owner;
             TempData["MessageType"] = "success";
             return RedirectToAction("Details", "Home", new { id = houseId });
         }
+
 
 
 

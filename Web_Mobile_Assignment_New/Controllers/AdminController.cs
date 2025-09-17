@@ -392,6 +392,7 @@ namespace Web_Mobile_Assignment_New.Controllers
         {
             if (string.IsNullOrEmpty(email)) return NotFound();
 
+            // 获取用户
             var user = _context.Users
                                .AsEnumerable()
                                .OfType<OwnerTenant>()
@@ -413,17 +414,51 @@ namespace Web_Mobile_Assignment_New.Controllers
                 return RedirectToAction("UserDetails", new { email });
             }
 
-            // 🔑 不要自己用 FileStream，直接传 filePath 就行
-            using (var image = await Image.LoadAsync(filePath))
+            // 创建临时文件路径
+            var tempFile = Path.Combine(Path.GetDirectoryName(filePath), Guid.NewGuid().ToString() + Path.GetExtension(filePath));
+
+            // 读取图片到内存
+            byte[] imageBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+            using (var ms = new MemoryStream(imageBytes))
+            using (var image = await Image.LoadAsync(ms))
             {
+                // 旋转图片
                 image.Mutate(x => x.Rotate(degrees));
-                await image.SaveAsync(filePath); // 自动保存为原格式
+
+                // 根据原文件扩展名显式保存
+                var extension = Path.GetExtension(filePath).ToLower();
+                switch (extension)
+                {
+                    case ".webp":
+                        await image.SaveAsWebpAsync(tempFile);
+                        break;
+                    case ".jpg":
+                    case ".jpeg":
+                        await image.SaveAsJpegAsync(tempFile);
+                        break;
+                    case ".png":
+                        await image.SaveAsPngAsync(tempFile);
+                        break;
+                    case ".gif":
+                        await image.SaveAsGifAsync(tempFile);
+                        break;
+                    case ".bmp":
+                        await image.SaveAsBmpAsync(tempFile);
+                        break;
+                    default:
+                        throw new NotSupportedException("Unsupported image format");
+                }
             }
+
+            // 替换原文件
+            System.IO.File.Delete(filePath);
+            System.IO.File.Move(tempFile, filePath);
 
             TempData["Message"] = $"Photo rotated {degrees}° successfully!";
             TempData["MessageType"] = "success";
             return RedirectToAction("UserDetails", new { email });
         }
+
 
         public IActionResult ReportDetails(int id)
         {

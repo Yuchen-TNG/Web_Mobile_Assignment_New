@@ -917,8 +917,18 @@ namespace Web_Mobile_Assignment_New.Controllers
                         await photo.CopyToAsync(stream);
                     }
 
-                    // ✅ 存到数据库时带 /images/
-                    house.Images.Add(new HouseImage { ImageUrl = "/images/" + fileName });
+                    var url = "/images/" + fileName;
+
+                    // ✅ 如果 house.Images 没有图片且 house.ImageUrl 为空，就存入 house.ImageUrl
+                    if ((house.Images == null || !house.Images.Any()) && string.IsNullOrEmpty(house.ImageUrl))
+                    {
+                        house.ImageUrl = url;
+                    }
+                    else
+                    {
+                        // 其他图片存入 HouseImage
+                        house.Images.Add(new HouseImage { ImageUrl = url });
+                    }
                 }
 
                 await _context.SaveChangesAsync();

@@ -627,6 +627,11 @@ namespace Web_Mobile_Assignment_New.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult UpdateProperty(House model)
         {
+            if (!ModelState.IsValid)
+            {
+                // 返回原页面并保留用户输入
+                return View(model);
+            }
             var existing = _context.Houses.FirstOrDefault(h => h.Id == model.Id);
             if (existing == null)
             {

@@ -108,17 +108,20 @@
             <span asp-validation-for="Price" class="text-error"></span>
         </div>
 
+        <!-- StartDate / EndDate 限制 -->
         <div class="field">
             <label>Start Date:</label>
-            <input asp-for="StartDate" type="date" />
+            <input asp-for="StartDate" type="date" id="StartDate" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
             <span asp-validation-for="StartDate" class="text-error"></span>
         </div>
 
         <div class="field">
             <label>End Date:</label>
-            <input asp-for="EndDate" type="date" />
+            <input asp-for="EndDate" type="date" id="EndDate" />
             <span asp-validation-for="EndDate" class="text-error"></span>
+            <div id="date-error" class="text-danger mt-1"></div>
         </div>
+
 
         <div class="field">
             <label>Address:</label>
@@ -151,14 +154,20 @@
     <div class="btn-group btn-group-status">
         @if (Model.RoomStatus == "valid")
         {
-            <a asp-controller="Admin" asp-action="RestrictedProperty" asp-route-id="@Model.Id" class="btn-submit btn-restricted">❌ Restricted</a>
+            <a asp-controller="Admin"
+               asp-action="RestrictedProperty"
+               asp-route-id="@Model.Id"
+               class="btn-submit btn-restricted">❌ Restricted</a>
         }
         else
         {
-            <a asp-controller="Admin" asp-action="ValidProperty" asp-route-id="@Model.Id" class="btn-submit btn-valid">✅ Valid</a>
+            <a asp-controller="Admin"
+               asp-action="ValidProperty"
+               asp-route-id="@Model.Id"
+               class="btn-submit btn-valid">✅ Valid</a>
         }
 
-        <form asp-controller="Admin" asp-action="PropertyDelete" method="post" style="margin:0;">
+        <form asp-controller="Admin" asp-action="PropertyDelete" method="post" style="margin:0; flex:1;">
             <input type="hidden" name="id" value="@Model.Id" />
             <button type="submit" class="btn-submit btn-delete"
                     onclick="return confirm('Are you sure you want to delete this property?');">
@@ -171,7 +180,89 @@
 
 <!-- 脚本 -->
 <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const startDateInput = document.getElementById("StartDate");
+        const endDateInput = document.getElementById("EndDate");
+        const roomTypeSelect = document.querySelector("[asp-for='RoomType']");
+        const dateError = document.getElementById("date-error");
+
+        function updateEndDateLimit() {
+            if (!startDateInput.value) {
+                endDateInput.removeAttribute("max");
+                dateError.textContent = "";
+                return;
+            }
+
+            const startDate = new Date(startDateInput.value);
+            let maxEnd = new Date(startDate);
+
+            if (roomTypeSelect && roomTypeSelect.value === "Whole Unit") {
+                maxEnd.setFullYear(maxEnd.getFullYear() + 2);
+            } else {
+                maxEnd.setFullYear(maxEnd.getFullYear() + 1);
+            }
+
+            const maxDateStr = maxEnd.toISOString().split("T")[0];
+            endDateInput.max = maxDateStr;
+
+            if (endDateInput.value && endDateInput.value > maxDateStr) {
+                dateError.textContent = roomTypeSelect.value === "Whole Unit"
+                    ? "❌ Whole Unit rental cannot exceed 2 years."
+                    : "❌ Rental cannot exceed 1 year.";
+                endDateInput.value = maxDateStr; // 自动修正
+            } else {
+                dateError.textContent = "";
+            }
+        }
+
+        if (startDateInput) startDateInput.addEventListener("change", updateEndDateLimit);
+        if (roomTypeSelect) roomTypeSelect.addEventListener("change", updateEndDateLimit);
+
+        updateEndDateLimit(); // 页面加载时执行一次
+    });
+    <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // ---------- 时间限制逻辑 ----------
+        const startDateInput = document.getElementById("StartDate");
+        const endDateInput = document.getElementById("EndDate");
+        const roomTypeSelect = document.querySelector("[asp-for='RoomType']");
+        const dateError = document.getElementById("date-error");
+
+        function updateEndDateLimit() {
+            if (!startDateInput.value) {
+                endDateInput.removeAttribute("max");
+                dateError.textContent = "";
+                return;
+            }
+
+            const startDate = new Date(startDateInput.value);
+            let maxEnd = new Date(startDate);
+
+            if (roomTypeSelect && roomTypeSelect.value === "Whole Unit") {
+                maxEnd.setFullYear(maxEnd.getFullYear() + 2);
+            } else {
+                maxEnd.setFullYear(maxEnd.getFullYear() + 1);
+            }
+
+            const maxDateStr = maxEnd.toISOString().split("T")[0];
+            endDateInput.max = maxDateStr;
+
+            if (endDateInput.value && endDateInput.value > maxDateStr) {
+                dateError.textContent = roomTypeSelect.value === "Whole Unit"
+                    ? "❌ Whole Unit rental cannot exceed 2 years."
+                    : "❌ Rental cannot exceed 1 year.";
+                endDateInput.value = maxDateStr;
+            } else {
+                dateError.textContent = "";
+            }
+        }
+
+        if (startDateInput) startDateInput.addEventListener("change", updateEndDateLimit);
+        if (roomTypeSelect) roomTypeSelect.addEventListener("change", updateEndDateLimit);
+
+        updateEndDateLimit();
+
+        // ---------- 图片轮播逻辑 ----------
         let currentIndex = 0;
         const images = document.querySelectorAll('.carousel-img');
         const currentImageIdInput = document.getElementById('currentImageId');
@@ -215,6 +306,7 @@
     });
 </script>
 
+
 <!-- 样式 -->
 <style>
     .house-card {
@@ -225,7 +317,6 @@
         border-radius: 12px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         font-family: Arial, sans-serif;
-        line-height: 1.6;
     }
 
         .house-card img.house-img {
@@ -256,15 +347,16 @@
     }
 
     .btn-submit {
+        width: 100%; /* ✅ Buttons take full space of parent */
         padding: 12px 0;
         font-weight: bold;
         border: none;
         border-radius: 8px;
         cursor: pointer;
-        flex: 1;
         color: #fff;
         text-align: center;
         text-decoration: none;
+        display:  block;
     }
 
     .btn-save {
@@ -317,5 +409,10 @@
 
     .right-btn {
         right: 10px;
+    }
+
+    .btn-group-status > a,
+    .btn-group-status > form {
+        flex: 1; /* ✅ Equal width for link and form */
     }
 </style>

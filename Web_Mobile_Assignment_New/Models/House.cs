@@ -38,8 +38,8 @@ namespace Web_Mobile_Assignment_New.Models
 
         // ✅ Room status: only "Valid" or "Restricted"
         [Required]
-        [RegularExpression("^(Valid|Restricted)$",
-            ErrorMessage = "Room status must be Valid or Restricted.")]
+        [RegularExpression("^(valid|restricted)$",
+            ErrorMessage = "Room status must be valid or restricted.")]
         public string RoomStatus { get; set; } = "Valid";
 
         // ✅ Availability: "Available", "Rented", or "Maintenance"

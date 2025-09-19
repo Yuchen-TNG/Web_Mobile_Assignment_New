@@ -180,47 +180,6 @@
 
 <!-- 脚本 -->
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const startDateInput = document.getElementById("StartDate");
-        const endDateInput = document.getElementById("EndDate");
-        const roomTypeSelect = document.querySelector("[asp-for='RoomType']");
-        const dateError = document.getElementById("date-error");
-
-        function updateEndDateLimit() {
-            if (!startDateInput.value) {
-                endDateInput.removeAttribute("max");
-                dateError.textContent = "";
-                return;
-            }
-
-            const startDate = new Date(startDateInput.value);
-            let maxEnd = new Date(startDate);
-
-            if (roomTypeSelect && roomTypeSelect.value === "Whole Unit") {
-                maxEnd.setFullYear(maxEnd.getFullYear() + 2);
-            } else {
-                maxEnd.setFullYear(maxEnd.getFullYear() + 1);
-            }
-
-            const maxDateStr = maxEnd.toISOString().split("T")[0];
-            endDateInput.max = maxDateStr;
-
-            if (endDateInput.value && endDateInput.value > maxDateStr) {
-                dateError.textContent = roomTypeSelect.value === "Whole Unit"
-                    ? "❌ Whole Unit rental cannot exceed 2 years."
-                    : "❌ Rental cannot exceed 1 year.";
-                endDateInput.value = maxDateStr; // 自动修正
-            } else {
-                dateError.textContent = "";
-            }
-        }
-
-        if (startDateInput) startDateInput.addEventListener("change", updateEndDateLimit);
-        if (roomTypeSelect) roomTypeSelect.addEventListener("change", updateEndDateLimit);
-
-        updateEndDateLimit(); // 页面加载时执行一次
-    });
-    <script>
     document.addEventListener('DOMContentLoaded', function() {
         // ---------- 时间限制逻辑 ----------
         const startDateInput = document.getElementById("StartDate");
@@ -234,16 +193,13 @@
                 dateError.textContent = "";
                 return;
             }
-
             const startDate = new Date(startDateInput.value);
             let maxEnd = new Date(startDate);
-
             if (roomTypeSelect && roomTypeSelect.value === "Whole Unit") {
                 maxEnd.setFullYear(maxEnd.getFullYear() + 2);
             } else {
                 maxEnd.setFullYear(maxEnd.getFullYear() + 1);
             }
-
             const maxDateStr = maxEnd.toISOString().split("T")[0];
             endDateInput.max = maxDateStr;
 
@@ -259,7 +215,6 @@
 
         if (startDateInput) startDateInput.addEventListener("change", updateEndDateLimit);
         if (roomTypeSelect) roomTypeSelect.addEventListener("change", updateEndDateLimit);
-
         updateEndDateLimit();
 
         // ---------- 图片轮播逻辑 ----------
@@ -283,19 +238,19 @@
             showImage((currentIndex+1)%images.length);
         };
 
-        // 删除图片 AJAX
+        // ---------- 删除图片逻辑 ----------
         window.deleteCurrentImage = function() {
             const imageId = currentImageIdInput.value;
             if(!imageId) return alert("This is main image, can't delete");
 
-            const houseId = @Model.Id;
+            const houseId = '@Model.Id';
 
             if(!confirm("Are you sure you want to delete this image?")) return;
 
             fetch('@Url.Action("DeleteHouseImage", "Admin")', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ imageId: parseInt(imageId), houseId: houseId })
+                body: JSON.stringify({ imageId: parseInt(imageId), houseId: parseInt(houseId) })
             }).then(res => {
                 if(res.ok) location.reload();
                 else alert("Delete failed!");
@@ -305,6 +260,8 @@
         showImage(0);
     });
 </script>
+
+
 
 
 <!-- 样式 -->

@@ -4,7 +4,25 @@
     @foreach (var booking in Model)
     {
         <div class="property-card">
-            <img src="@booking.House.ImageUrl" alt="House Image" class="property-image" />
+            @if (booking.House.Images != null && booking.House.Images.Any())
+            {
+                <img src="@booking.House.Images.First().ImageUrl"
+                     alt="House Image"
+                     class="property-image" />
+            }
+            else if (!string.IsNullOrEmpty(booking.House.ImageUrl))
+            {
+                <img src="@booking.House.ImageUrl"
+                     alt="House Image"
+                     class="property-image" />
+            }
+            else
+            {
+                <div class="d-flex align-items-center justify-content-center bg-light"
+                     style="width:400px; height:200px;">
+                    <span class="text-muted">No Image</span>
+                </div>
+            }
             <div class="property-body">
                 <div class="property-title">@booking.House.RoomName (@booking.House.RoomType)</div>
                 <div class="property-price">@booking.TotalPrice.ToString("C")</div>

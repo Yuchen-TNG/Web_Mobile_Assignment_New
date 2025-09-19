@@ -175,11 +175,11 @@
                 <label class="upload">
                     <small>Select Photo...</small>
                     <input asp-for="Photo" accept="image/jpeg,image/png" hidden>
-                    <img src="/photos/@Model.PhotoURL?v=@DateTime.Now.Ticks" alt="Profile Photo">
+                    <img src="/Photos/@Model.PhotoURL?v=@DateTime.Now.Ticks" alt="Profile Photo">
                 </label>
                 <span asp-validation-for="Photo"></span>
 
-                <!-- 旋转按钮组 -->
+                <!-- 旋转按钮 -->
                 <div class="rotate-buttons">
                     <form method="post" asp-action="RotatePhoto" asp-controller="Account">
                         <input type="hidden" name="email" value="@Model.Email" />
@@ -190,10 +190,11 @@
                     <form method="post" asp-action="RotatePhoto" asp-controller="Account">
                         <input type="hidden" name="email" value="@Model.Email" />
                         <input type="hidden" name="degrees" value="90" />
-                        <button type="submit">⟳ right rotate</button>
+                        <button type="submit">⟳ left rotate</button>
                     </form>
                 </div>
             </div>
+
 
             <!-- 右边信息区 -->
             <div>

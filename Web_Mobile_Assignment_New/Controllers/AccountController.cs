@@ -640,33 +640,34 @@ public class AccountController : Controller
 
     [Authorize(Roles = "Owner,Tenant")]
     [HttpPost]
-    [Authorize(Roles = "Owner,Tenant")]
-    [HttpPost]
     public async Task<IActionResult> RotatePhoto(string email, int degrees)
     {
         if (string.IsNullOrEmpty(email)) return NotFound();
 
-        var user = db.Users
-                     .AsEnumerable()
-                     .OfType<OwnerTenant>()
-                     .FirstOrDefault(u => u.Email == email);
+        // 直接用 OwnerTenant 来接收，不会触发 dynamic 的问题
+        OwnerTenant user = db.Owners.FirstOrDefault(o => o.Email == email);
+        if (user == null)
+            user = db.Tenants.FirstOrDefault(t => t.Email == email);
 
         if (user == null || string.IsNullOrEmpty(user.PhotoURL))
         {
             TempData["Message"] = "No photo found!";
             TempData["MessageType"] = "error";
-            return RedirectToAction("UpdateProfile", new { email });
+            return RedirectToAction("UpdateProfile");
         }
 
-        var filePath = Path.Combine(en.WebRootPath, "photos", user.PhotoURL);
+        // 找文件
+        var photoFileName = user.PhotoURL.Split('?')[0]; // 移除版本号参数
+        var filePath = Path.Combine(en.WebRootPath, "photos", photoFileName);
 
         if (!System.IO.File.Exists(filePath))
         {
-            TempData["Message"] = "Photo file missing!";
+            TempData["Message"] = $"Photo file missing! Looked at: {filePath}";
             TempData["MessageType"] = "error";
-            return RedirectToAction("UpdateProfile", new { email });
+            return RedirectToAction("UpdateProfile");
         }
 
+        // 旋转图片
         try
         {
             using (var image = await Image.LoadAsync(filePath))
@@ -685,7 +686,9 @@ public class AccountController : Controller
             TempData["MessageType"] = "error";
         }
 
-        return RedirectToAction("UpdateProfile", new { email });
+        return RedirectToAction("UpdateProfile");
     }
+
+
 
 }

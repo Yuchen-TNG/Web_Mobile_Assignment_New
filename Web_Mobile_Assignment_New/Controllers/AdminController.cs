@@ -144,10 +144,12 @@ namespace Web_Mobile_Assignment_New.Controllers
 
             return RedirectToAction("UserDetails", new { email = email });
         }
-
         public IActionResult PropertyManagement()
         {
-            var houses = _context.Houses.ToList();
+            var houses = _context.Houses
+                .Include(h => h.Images)   // 🔑 加上这句
+                .ToList();
+
             return View(houses);
         }
 
@@ -163,14 +165,11 @@ namespace Web_Mobile_Assignment_New.Controllers
 
         public IActionResult PropertyDetails(int id)
         {
-            if (id == 0) return NotFound();
+            var house = _context.Houses
+                .Include(h => h.Images)   // 必须 Include
+                .FirstOrDefault(h => h.Id == id);
 
-            // ✅ Include Images
-            House? house = _context.Houses
-                                   .Include(h => h.Images)
-                                   .FirstOrDefault(h => h.Id == id);
             if (house == null) return NotFound();
-
             return View(house);
         }
 
@@ -226,28 +225,90 @@ namespace Web_Mobile_Assignment_New.Controllers
             return RedirectToAction("UserDetails", new { email = email });
         }
 
+        [HttpPost]
         public IActionResult DeleteUser(string? email)
         {
             if (string.IsNullOrEmpty(email))
             {
-                TempData["Message"] = "No email provided.";
+                TempData["Message"] = "❌ No email provided.";
                 return RedirectToAction("UserManagement");
             }
 
-            User? user = _context.Users.FirstOrDefault(u => u.Email == email);
-            if (user != null)
+            var user = _context.Users.FirstOrDefault(u => u.Email == email);
+            if (user == null)
             {
-                _context.Users.Remove(user);
-                _context.SaveChanges();
-                TempData["Message"] = "User deleted Successful!";
+                TempData["Message"] = "❌ User not found.";
+                return RedirectToAction("UserManagement");
             }
-            else
+
+            try
             {
-                TempData["Message"] = "User not found.";
+                // -------------------------------
+                // 1. 删除用户相关的 HouseReviews
+                // -------------------------------
+                var reviews = _context.HouseReviews.Where(r => r.UserEmail == email).ToList();
+                if (reviews.Any())
+                    _context.HouseReviews.RemoveRange(reviews);
+
+                // -------------------------------
+                // 2. 删除用户相关的 Bookings
+                // -------------------------------
+                var bookings = _context.Bookings.Where(b => b.UserEmail == email).ToList();
+                if (bookings.Any())
+                    _context.Bookings.RemoveRange(bookings);
+
+                // -------------------------------
+                // 3. 删除用户相关的 Reports
+                // -------------------------------
+                var reports = _context.Reports.Where(r => r.TargetEmail == email).ToList();
+                if (reports.Any())
+                    _context.Reports.RemoveRange(reports);
+
+                // -------------------------------
+                // 4. 如果用户是房东 (Owner)，删除房屋及其相关数据
+                // -------------------------------
+                var houses = _context.Houses.Where(h => h.Email == email).ToList();
+                foreach (var house in houses)
+                {
+                    // 删除房屋相关的 HouseReviews
+                    var houseReviews = _context.HouseReviews.Where(r => r.HouseId == house.Id).ToList();
+                    if (houseReviews.Any())
+                        _context.HouseReviews.RemoveRange(houseReviews);
+
+                    // 删除房屋相关的 Bookings
+                    var houseBookings = _context.Bookings.Where(b => b.HouseId == house.Id).ToList();
+                    if (houseBookings.Any())
+                        _context.Bookings.RemoveRange(houseBookings);
+
+                    // 删除房屋相关的 HouseImages
+                    var houseImages = _context.HouseImages.Where(img => img.HouseId == house.Id).ToList();
+                    if (houseImages.Any())
+                        _context.HouseImages.RemoveRange(houseImages);
+
+                    // 删除房屋本身
+                    _context.Houses.Remove(house);
+                }
+
+                // -------------------------------
+                // 5. 删除用户本身
+                // -------------------------------
+                _context.Users.Remove(user);
+
+                // -------------------------------
+                // 6. 保存数据库更改
+                // -------------------------------
+                _context.SaveChanges();
+
+                TempData["Message"] = "✅ User and all related data deleted successfully!";
+            }
+            catch (Exception ex)
+            {
+                TempData["Message"] = "❌ Delete failed: " + ex.Message;
             }
 
             return RedirectToAction("UserManagement");
         }
+
 
         public IActionResult RestrictedUser(string? email)
         {
@@ -326,21 +387,31 @@ namespace Web_Mobile_Assignment_New.Controllers
         }
 
 
+        [HttpPost]
         public IActionResult PropertyDelete(int id)
         {
-            House? house = _context.Houses.FirstOrDefault(h => h.Id == id);
-            if (house != null)
+            try
             {
-                _context.Houses.Remove(house);
-                _context.SaveChanges();
-                TempData["Message"] = "Deleted Susscesful.";
+                var house = _context.Houses.FirstOrDefault(h => h.Id == id);
+                if (house != null)
+                {
+                    _context.Houses.Remove(house);
+                    _context.SaveChanges();
+                    TempData["Message"] = "Deleted Successful.";
+                }
+                else
+                {
+                    TempData["Message"] = "Deleted Failed, no related house.";
+                }
             }
-            else
+            catch (Exception ex)
             {
-                TempData["Message"] = "Deleted Failed, no releted house.";
+                TempData["Message"] = "Delete failed: " + ex.Message;
             }
+
             return RedirectToAction("PropertyManagement");
         }
+
 
         public IActionResult RestrictedProperty(int id)
         {
@@ -388,76 +459,71 @@ namespace Web_Mobile_Assignment_New.Controllers
         }
 
 
-        public async Task<IActionResult> RotatePhoto(string email, int degrees)
+        [HttpPost]
+        public IActionResult RotatePhoto(string email, string? direction, int? degrees)
         {
-            if (string.IsNullOrEmpty(email)) return NotFound();
-
-            // 获取用户
-            var user = _context.Users
-                               .AsEnumerable()
-                               .OfType<OwnerTenant>()
-                               .FirstOrDefault(u => u.Email == email);
-
-            if (user == null || string.IsNullOrEmpty(user.PhotoURL))
+            try
             {
-                TempData["Message"] = "No photo found!";
-                TempData["MessageType"] = "error";
-                return RedirectToAction("UserDetails", new { email });
-            }
+                var user = _context.Users.FirstOrDefault(u => u.Email == email);
 
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/photos", user.PhotoURL);
-
-            if (!System.IO.File.Exists(filePath))
-            {
-                TempData["Message"] = "Photo file missing!";
-                TempData["MessageType"] = "error";
-                return RedirectToAction("UserDetails", new { email });
-            }
-
-            // 创建临时文件路径
-            var tempFile = Path.Combine(Path.GetDirectoryName(filePath), Guid.NewGuid().ToString() + Path.GetExtension(filePath));
-
-            // 读取图片到内存
-            byte[] imageBytes = await System.IO.File.ReadAllBytesAsync(filePath);
-            using (var ms = new MemoryStream(imageBytes))
-            using (var image = await Image.LoadAsync(ms))
-            {
-                // 旋转图片
-                image.Mutate(x => x.Rotate(degrees));
-
-                // 根据原文件扩展名显式保存
-                var extension = Path.GetExtension(filePath).ToLower();
-                switch (extension)
+                if (user is OwnerTenant ot && !string.IsNullOrEmpty(ot.PhotoURL))
                 {
-                    case ".webp":
-                        await image.SaveAsWebpAsync(tempFile);
-                        break;
-                    case ".jpg":
-                    case ".jpeg":
-                        await image.SaveAsJpegAsync(tempFile);
-                        break;
-                    case ".png":
-                        await image.SaveAsPngAsync(tempFile);
-                        break;
-                    case ".gif":
-                        await image.SaveAsGifAsync(tempFile);
-                        break;
-                    case ".bmp":
-                        await image.SaveAsBmpAsync(tempFile);
-                        break;
-                    default:
-                        throw new NotSupportedException("Unsupported image format");
+                    // 去掉缓存参数 ?v=xxx
+                    var cleanUrl = ot.PhotoURL.Split('?')[0];
+                    var photoFileName = Path.GetFileName(cleanUrl);
+                    var filePath = Path.Combine(
+                        Directory.GetCurrentDirectory(),
+                        "wwwroot/photos",
+                        photoFileName
+                    );
+
+                    if (!System.IO.File.Exists(filePath))
+                    {
+                        TempData["Message"] = "❌ File not found: " + filePath;
+                        TempData["MessageType"] = "error";
+                        return RedirectToAction("UserDetails", new { email });
+                    }
+
+                    using (var image = SixLabors.ImageSharp.Image.Load(filePath))
+                    {
+                        if (!string.IsNullOrEmpty(direction))
+                        {
+                            if (direction == "left")
+                                image.Mutate(x => x.Rotate(-90));
+                            else if (direction == "right")
+                                image.Mutate(x => x.Rotate(90));
+                        }
+                        else if (degrees.HasValue)
+                        {
+                            image.Mutate(x => x.Rotate(degrees.Value));
+                        }
+
+                        image.Save(filePath);
+                    }
+
+                    // ✅ 只替换缓存参数，不要重复拼接 /photos/
+                    ot.PhotoURL = cleanUrl + "?v=" + DateTime.Now.Ticks;
+                    _context.SaveChanges();
+
+                    TempData["Message"] = "✅ Photo rotated successfully.";
+                    TempData["MessageType"] = "success";
+                }
+                else
+                {
+                    TempData["Message"] = "❌ User has no photo.";
+                    TempData["MessageType"] = "error";
                 }
             }
+            catch (Exception ex)
+            {
+                TempData["Message"] = "❌ Rotate failed: " + ex.Message;
+                TempData["MessageType"] = "error";
+            }
 
-            // 替换原文件
-            System.IO.File.Delete(filePath);
-            System.IO.File.Move(tempFile, filePath);
-
-            TempData["Message"] = $"Photo rotated {degrees}° successfully!";
-            TempData["MessageType"] = "success";
             return RedirectToAction("UserDetails", new { email });
         }
+
+
 
 
         public IActionResult ReportDetails(int id)
@@ -518,32 +584,68 @@ namespace Web_Mobile_Assignment_New.Controllers
         [HttpPost]
         public async Task<IActionResult> UploadHouseImages(int houseId, List<IFormFile> photos)
         {
-            var house = _context.Houses.Include(h => h.Images).FirstOrDefault(h => h.Id == houseId);
-            if (house == null) return NotFound();
-
-            if (photos != null && photos.Count > 0)
+            try
             {
-                foreach (var photo in photos)
+                // 🔎 找房源，带上 Images
+                var house = _context.Houses
+                    .Include(h => h.Images)
+                    .FirstOrDefault(h => h.Id == houseId);
+
+                if (house == null)
                 {
-                    var fileName = Guid.NewGuid() + Path.GetExtension(photo.FileName);
-                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", fileName);
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await photo.CopyToAsync(stream);
-                    }
-
-                    house.Images.Add(new HouseImage { ImageUrl = fileName });
+                    TempData["Message"] = "❌ House not found!";
+                    TempData["MessageType"] = "error";
+                    return RedirectToAction("PropertyDetails", new { id = houseId });
                 }
 
-                await _context.SaveChangesAsync();
-                TempData["Message"] = "Images uploaded successfully!";
+                if (photos != null && photos.Count > 0)
+                {
+                    foreach (var photo in photos)
+                    {
+                        if (photo.Length <= 0) continue;
+
+                        // 生成唯一文件名
+                        var fileName = Guid.NewGuid() + Path.GetExtension(photo.FileName);
+
+                        // wwwroot/images 目录
+                        var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
+                        if (!Directory.Exists(uploadPath))
+                        {
+                            Directory.CreateDirectory(uploadPath);
+                        }
+
+                        var filePath = Path.Combine(uploadPath, fileName);
+
+                        // 写入物理文件
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await photo.CopyToAsync(stream);
+                        }
+
+                        // 存数据库时带 /images/ 前缀，方便 <img src="...">
+                        house.Images.Add(new HouseImage
+                        {
+                            ImageUrl = "/images/" + fileName
+                        });
+                    }
+
+                    await _context.SaveChangesAsync();
+                    TempData["Message"] = "✅ Images uploaded successfully!";
+                    TempData["MessageType"] = "success";
+                }
+                else
+                {
+                    TempData["Message"] = "⚠ No images selected!";
+                    TempData["MessageType"] = "warning";
+                }
             }
-            else
+            catch (Exception ex)
             {
-                TempData["Message"] = "No images selected!";
+                TempData["Message"] = "❌ Upload failed: " + ex.Message;
+                TempData["MessageType"] = "error";
             }
 
+            // 上传后回到详情页
             return RedirectToAction("PropertyDetails", new { id = houseId });
         }
 

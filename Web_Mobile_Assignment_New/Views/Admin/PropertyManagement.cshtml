@@ -141,7 +141,20 @@
     @foreach (var house in Model)
     {
         <div class="property-card">
-            <img src="@house.ImageUrl" alt="House Image" class="property-image" />
+            @if (house.Images != null && house.Images.Any())
+            {
+                <img src="@house.Images.First().ImageUrl" alt="House Image" class="property-image" />
+            }
+            else if (!string.IsNullOrEmpty(house.ImageUrl))
+            {
+                <img src="@house.ImageUrl" alt="House Image" class="property-image" />
+            }
+            else
+            {
+                <div class="property-image no-image">
+                    <span>No Image</span>
+                </div>
+            }
             <div class="property-body">
                 <div class="property-title">@house.RoomName (@house.RoomType)</div>
                 <div class="property-price">$@house.Price</div>

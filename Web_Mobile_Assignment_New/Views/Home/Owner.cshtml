@@ -12,128 +12,150 @@
 }
 
 
-<style>
-    /* 页面整体 */
-    body {
-        font-family: "Segoe UI", Arial, sans-serif;
-        background-color: #f9fafb;
-        margin: 0;
-    }
-
-    /* 卡片容器 */
-    .card-container {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    /* 房源卡片：固定左右布局 */
-    .property-card {
-        display: flex;
-        flex-direction: row;
-        background: #fff;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        min-height: 180px;
-        text-decoration: none; /* 去掉整卡片的下划线 */
-        color: inherit; /* 继承文字颜色 */
-    }
-
-        .property-card * {
-            text-decoration: none; /* 去掉子元素的下划线 */
-            color: inherit; /* 确保颜色不被 <a> 默认蓝色覆盖 */
-        }
-
-    /* 左边图片 */
-    .property-image {
-        width: 400px;
-        height: 200px;
-        object-fit: cover;
-        flex-shrink: 0;
-    }
-
-    /* 右边文字 */
-    .property-body {
-        flex: 1;
-        padding: 15px 20px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-    }
-
-    /* 标题、价格、信息 */
-    .property-title {
-        font-size: 1.2rem;
-        font-weight: bold;
-        color: #333;
-        margin-bottom: 8px;
-    }
-
-    .property-price {
-        font-size: 1.1rem;
-        font-weight: bold;
-        color: #2c7a7b;
-        margin-bottom: 10px;
-    }
-
-    .property-info {
-        font-size: 0.9rem;
-        color: #555;
-        margin: 4px 0;
-    }
-
-    /* 状态颜色 */
-    .status-valid {
-        color: #16a34a;
-        font-weight: bold;
-    }
-
-    .status-restricted {
-        color: #dc2626;
-        font-weight: bold;
-    }
-
-    .status-other {
-        color: #6b7280;
-        font-weight: bold;
-    }
-
-    /* 按钮 */
-    .details-btn {
-        margin-top: 12px;
-        padding: 8px 15px;
-        background: #2563eb;
-        color: #fff;
-        text-decoration: none;
-        border-radius: 8px;
-        font-size: 0.9rem;
-        transition: background 0.2s ease;
-        display: inline-block;
-    }
-
-        .details-btn:hover {
-            background: #1d4ed8;
-        }
-
-</style>
-<div class="card-container">
+<div class="property-card-wrapper">
     @foreach (var house in Model)
     {
         <a asp-controller="Home" asp-action="OwnerDetails" asp-route-id="@house.Id" class="property-card">
-            <img src="@house.ImageUrl" alt="House Image" class="property-image" />
-            <div class="property-body">
-                <div class="property-title">@house.RoomName (@house.RoomType)</div>
-                <div class="property-price">RM @house.Price</div>
-                <div class="property-info">Rooms: @house.Rooms | Sqft: @house.Sqft</div>
-                <div class="property-info">Address: @house.Address</div>
-                <div class="property-info @(house.RoomStatus?.ToLower() == "valid" ? "status-valid" :
-                                                                                                  house.RoomStatus?.ToLower() == "restricted" ? "status-restricted" :
-                                                                                                  "status-other")">
-                Status: @house.RoomStatus
+            <div class="property-image-container">
+                @if (house.Images != null && house.Images.Any())
+                {
+                    <img src="@house.Images.First().ImageUrl" alt="House Image" />
+                }
+                else if (!string.IsNullOrEmpty(house.ImageUrl))
+                {
+                    <img src="@house.ImageUrl" alt="House Image" />
+                }
+                else
+                {
+                    <div class="d-flex align-items-center justify-content-center" style="width:100%; height:100%;">
+                        <span class="text-muted">No Image</span>
+                    </div>
+                }
             </div>
+
+            <div class="property-body">
+                <div>
+                    <div class="property-title">@house.RoomName (@house.RoomType)</div>
+                    <div class="property-price">RM @house.Price</div>
+                    <div class="property-info">Rooms: @house.Rooms | Sqft: @house.Sqft</div>
+                    <div class="property-info">Address: @house.Address</div>
+                    <div class="property-info property-status @(house.RoomStatus?.ToLower() == "valid" ? "status-valid" :
+                                                                                                          house.RoomStatus?.ToLower() == "restricted" ? "status-restricted" :
+                                                                                                          "status-other")">
+                    @house.RoomStatus
+                </div>
+            </div>
+            <a asp-controller="Home" asp-action="OwnerDetails" asp-route-id="@house.Id" class="details-btn">View Details</a>
         </div>
     </a>
         }
 </div>
+
+<style>
+
+    .property-card-wrapper {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        padding: 20px;
+    }
+
+    /* 卡片 */
+    .property-card {
+        display: flex;
+        flex-direction: column;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        text-decoration: none;
+        color: inherit;
+    }
+
+        .property-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+        }
+
+    /* 图片部分：高度固定，避免一大块白 */
+    .property-image-container {
+        width: 100%;
+        height: 200px; /* 固定高度 */
+        overflow: hidden;
+        background: #f5f5f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .property-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* 保证填满而不留白 */
+        }
+
+    /* 内容部分 */
+    .property-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 15px;
+    }
+
+    .property-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
+    }
+
+    .property-price {
+        font-size: 1rem;
+        font-weight: bold;
+        color: #2c7a7b;
+        margin-bottom: 8px;
+    }
+
+    .property-info {
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 4px;
+    }
+
+    /* 状态颜色 */
+    .property-status {
+        font-weight: bold;
+        margin-top: 4px;
+    }
+
+    .status-valid {
+        color: #2f855a;
+    }
+
+    .status-restricted {
+        color: #c53030;
+    }
+
+    .status-other {
+        color: #805ad5;
+    }
+
+    /* 详情按钮：永远在底部 */
+    .details-btn {
+        display: block;
+        text-align: center;
+        background: #2b6cb0;
+        color: #fff !important;
+        padding: 10px;
+        font-weight: 500;
+        transition: background 0.2s ease;
+        margin: 10px 15px 15px;
+        border-radius: 8px;
+    }
+
+        .details-btn:hover {
+            background: #2c5282;
+        }
+
+</style>

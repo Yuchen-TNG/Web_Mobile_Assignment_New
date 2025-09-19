@@ -89,7 +89,7 @@ namespace Web_Mobile_Assignment_New.Controllers
         {
 
             var UserEmail = User.Identity?.Name ?? "guest@example.com";
-                house.Email = UserEmail;
+            house.Email = UserEmail;
             // ✅ 自动设置状态为 "Available"
             house.RoomStatus = "Valid";
             house.Availability = "Available";
@@ -162,13 +162,13 @@ namespace Web_Mobile_Assignment_New.Controllers
             }
 
             // ✅ 🔥 在这里检查 Owner 是否存在
-var owner = await _context.Owners.FirstOrDefaultAsync(o => o.Email == house.Email);
-if (owner == null)
-{
-    ModelState.AddModelError("", "Owner not found. Please register as an Owner before adding a house.");
-    return View(house);
-}
-house.Owner = owner;
+            var owner = await _context.Owners.FirstOrDefaultAsync(o => o.Email == house.Email);
+            if (owner == null)
+            {
+                ModelState.AddModelError("", "Owner not found. Please register as an Owner before adding a house.");
+                return View(house);
+            }
+            house.Owner = owner;
 
             // ✅ 保存房源（先存 House 才能拿到 Id）
             _context.Houses.Add(house);
@@ -200,10 +200,10 @@ house.Owner = owner;
                 };
                 _context.HouseImages.Add(houseImage);
 
-                    // 如果只存一张图 → 也可以设置默认封面
-                    if (string.IsNullOrEmpty(house.ImageUrl))
-                        house.ImageUrl = "/images/" + fileName;
-                }
+                // 如果只存一张图 → 也可以设置默认封面
+                if (string.IsNullOrEmpty(house.ImageUrl))
+                    house.ImageUrl = "/images/" + fileName;
+            }
 
             await _context.SaveChangesAsync();
 
@@ -315,11 +315,17 @@ house.Owner = owner;
         [Authorize(Roles = "Owner")]
         public IActionResult Owner()
         {
-            var UserEmail = User.Identity?.Name ?? "guest@example.com";
-            var value = _context.Houses.Where(h => h.Email == UserEmail).ToList();
-            return View(value);
+            var userEmail = User.Identity?.Name ?? "guest@example.com";
+
+            // 🔑 这里 Include Images，确保房源的图片能拿到
+            var houses = _context.Houses
+                .Where(h => h.Email == userEmail)
+                .Include(h => h.Images)   // ✅ 拿 HouseImages
+                .ToList();
+
+            return View(houses);
         }
-        
+
         [Authorize(Roles = "Admin")]
         public IActionResult Admin() => View();
 
@@ -567,9 +573,14 @@ house.Owner = owner;
         }
         public IActionResult OwnerDetails(int id)
         {
-            var ID = _context.Houses.Where(h => h.Id == id).FirstOrDefault();
-            return View(ID);
+            var house = _context.Houses
+                .Include(h => h.Images) // 带出多图
+                .FirstOrDefault(h => h.Id == id);
 
+            if (house == null)
+                return NotFound();
+
+            return View(house);
         }
 
         [HttpPost]
@@ -861,7 +872,7 @@ house.Owner = owner;
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult ReportHouse(Report report,int propretyId,string ReportType,string Details)
+        public IActionResult ReportHouse(Report report, int propretyId, string ReportType, string Details)
         {
 
             // 填充必需字段
@@ -874,7 +885,8 @@ house.Owner = owner;
                 report.TargetEmail = null;       // 因为是举报房源
                 report.CreatedAt = DateTime.UtcNow;
                 report.Status = "Pending";
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 TempData["Message"] = "Report submitted failed!";
                 return RedirectToAction("Details", new { id = report.TargetProperty });
@@ -886,6 +898,100 @@ house.Owner = owner;
             return RedirectToAction("Details", new { id = report.TargetProperty });
         }
 
+
+        [HttpPost]
+        public async Task<IActionResult> UploadHouseImages(int houseId, List<IFormFile> photos)
+        {
+            var house = _context.Houses.Include(h => h.Images).FirstOrDefault(h => h.Id == houseId);
+            if (house == null) return NotFound();
+
+            if (photos != null && photos.Count > 0)
+            {
+                foreach (var photo in photos)
+                {
+                    var fileName = Guid.NewGuid() + Path.GetExtension(photo.FileName);
+                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await photo.CopyToAsync(stream);
+                    }
+
+                    // ✅ 存到数据库时带 /images/
+                    house.Images.Add(new HouseImage { ImageUrl = "/images/" + fileName });
+                }
+
+                await _context.SaveChangesAsync();
+                TempData["Message"] = "✅ Images uploaded successfully!";
+            }
+            else
+            {
+                TempData["Message"] = "⚠️ No images selected!";
+            }
+
+            return RedirectToAction("OwnerDetails", new { id = houseId });
+        }
+
+
+        [HttpPost]
+        public IActionResult DeleteHouseImage([FromBody] DeleteHouseImageRequest req)
+        {
+            var image = _context.HouseImages.FirstOrDefault(i => i.Id == req.ImageId);
+            if (image != null)
+            {
+                // ✅ 去掉数据库里的 /images/ 前缀，拼物理路径
+                var relativePath = image.ImageUrl.Replace("/images/", "");
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", relativePath);
+
+                if (System.IO.File.Exists(filePath))
+                    System.IO.File.Delete(filePath);
+
+                _context.HouseImages.Remove(image);
+                _context.SaveChanges();
+
+                TempData["Message"] = "✅ Image deleted successfully!";
+                return Ok(new { success = true });
+            }
+
+            return BadRequest(new { success = false });
+        }
+
+        public class DeleteHouseImageRequest
+        {
+            public int ImageId { get; set; }
+            public int HouseId { get; set; }
+        }
+
+        [HttpPost]
+        public IActionResult DeleteMainHouseImage([FromBody] DeleteMainHouseImageRequest req)
+        {
+            var house = _context.Houses.FirstOrDefault(h => h.Id == req.HouseId);
+            if (house == null) return NotFound();
+
+            if (!string.IsNullOrEmpty(house.ImageUrl))
+            {
+                // ✅ 去掉数据库里的 /images/ 前缀，拼物理路径
+                var relativePath = house.ImageUrl.Replace("/images/", "");
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", relativePath);
+
+                if (System.IO.File.Exists(filePath))
+                    System.IO.File.Delete(filePath);
+
+                house.ImageUrl = null;
+                _context.Houses.Update(house);
+                _context.SaveChanges();
+
+                TempData["Message"] = "✅ Main image deleted successfully!";
+                return Ok(new { success = true });
+            }
+
+            return BadRequest(new { success = false });
+        }
+
+        public class DeleteMainHouseImageRequest
+        {
+            public int HouseId { get; set; }
+        }
 
 
     }

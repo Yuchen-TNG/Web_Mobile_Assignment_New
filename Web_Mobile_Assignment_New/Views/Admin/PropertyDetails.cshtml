@@ -8,7 +8,7 @@
     </div>
 }
 
-<!-- 图片轮播 + 上传/删除 -->
+<!-- 图片轮播 -->
 <div class="house-card">
     <div id="carousel" style="position: relative; width: 100%; max-height: 450px; overflow: hidden; border-radius:8px;">
         @if (Model.Images != null && Model.Images.Any())
@@ -16,7 +16,7 @@
             int index = 0;
             foreach (var img in Model.Images)
             {
-                <img src="~/images/@img.ImageUrl"
+                <img src="@img.ImageUrl"
                      class="house-img carousel-img"
                      data-id="@img.Id"
                      data-index="@index"
@@ -26,7 +26,7 @@
         }
         else
         {
-            <img src="/images/@Model.ImageUrl"
+            <img src="@Model.ImageUrl"
                  class="house-img carousel-img"
                  data-url="@Model.ImageUrl"
                  data-index="0"
@@ -40,25 +40,18 @@
         }
     </div>
 
-    <!-- 上传图片 + 删除当前图片 -->
+    <!-- 上传/删除图片 -->
     <form asp-controller="Admin" method="post" enctype="multipart/form-data" style="display:flex; gap:12px; margin-top:15px;">
         <input type="hidden" name="houseId" value="@Model.Id" />
         <input type="hidden" name="imageId" id="currentImageId" value="" />
 
-        <!-- Upload -->
         <input type="file" name="photos" multiple />
-        <button type="submit" formaction="@Url.Action("UploadHouseImages", "Admin")" class="btn-submit btn-save">
-            💾 Upload
-        </button>
-
-        <!-- Delete -->
-        <button type="button" onclick="deleteCurrentImage()" class="btn-submit btn-delete">
-            🗑 Delete Photo
-        </button>
+        <button type="submit" formaction="@Url.Action("UploadHouseImages", "Admin")" class="btn-submit btn-save">💾 Upload</button>
+        <button type="button" onclick="deleteCurrentImage()" class="btn-submit btn-delete">🗑 Delete Photo</button>
     </form>
 </div>
 
-<!-- 房源信息表单 -->
+<!-- 房源信息更新 -->
 <form asp-action="UpdateProperty" asp-controller="Admin" method="post">
     <div class="house-card">
         <input asp-for="Id" type="hidden" />
@@ -91,25 +84,31 @@
             <a asp-action="PropertyDetails" asp-controller="Admin" asp-route-id="@Model.Id" class="btn-submit btn-reset">↩ Reset</a>
             <a asp-action="PropertyManagement" asp-controller="Admin" class="btn-submit btn-back">⬅ Back</a>
         </div>
+    </div>
+</form>
 
-        <!-- 状态 / 删除房源 -->
-        <div class="btn-group btn-group-status">
-            @if (Model.RoomStatus == "valid")
-            {
-                <a asp-controller="Admin" asp-action="RestrictedProperty" asp-route-id="@Model.Id" class="btn-submit btn-restricted">❌ Restricted</a>
-            }
-            else
-            {
-                <a asp-controller="Admin" asp-action="ValidProperty" asp-route-id="@Model.Id" class="btn-submit btn-valid">✅ Valid</a>
-            }
+<!-- 状态切换 + 删除房源 -->
+<div class="house-card">
+    <div class="btn-group btn-group-status">
+        @if (Model.RoomStatus == "valid")
+        {
+            <a asp-controller="Admin" asp-action="RestrictedProperty" asp-route-id="@Model.Id" class="btn-submit btn-restricted">❌ Restricted</a>
+        }
+        else
+        {
+            <a asp-controller="Admin" asp-action="ValidProperty" asp-route-id="@Model.Id" class="btn-submit btn-valid">✅ Valid</a>
+        }
 
-            <button formaction="@Url.Action("PropertyDelete", "Admin")" formmethod="post" name="id" value="@Model.Id" class="btn-submit btn-delete"
+        <form asp-controller="Admin" asp-action="PropertyDelete" method="post" style="margin:0;">
+            <input type="hidden" name="id" value="@Model.Id" />
+            <button type="submit" class="btn-submit btn-delete"
                     onclick="return confirm('Are you sure you want to delete this property?');">
                 🗑 Delete Property
             </button>
-        </div>
+        </form>
     </div>
-</form>
+</div>
+
 
 <!-- 脚本 -->
 <script>

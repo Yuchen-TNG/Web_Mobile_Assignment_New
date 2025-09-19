@@ -8,6 +8,189 @@
     </div>
 }
 
+<div class="house-card">
+    <!-- 图片轮播 -->
+    <div class="carousel">
+        <div class="carousel-track" id="carouselTrack">
+            @{
+                var allImages = new List<(string url, int? id)>();
+                if (!string.IsNullOrEmpty(Model.ImageUrl))
+                {
+                    allImages.Add((Model.ImageUrl, null)); // 主图
+                }
+                if (Model.Images != null && Model.Images.Any())
+                {
+                    foreach (var img in Model.Images)
+                    {
+                        allImages.Add((img.ImageUrl, img.Id));
+                    }
+                }
+            }
+
+            @foreach (var img in allImages)
+            {
+                <div class="carousel-slide">
+                    <img src="@img.url" data-id="@img.id" />
+                </div>
+            }
+        </div>
+
+        @if (allImages.Count > 1)
+        {
+            <button class="carousel-btn left-btn" onclick="prevImage()">⬅</button>
+            <button class="carousel-btn right-btn" onclick="nextImage()">➡</button>
+
+            <div class="carousel-dots" id="carouselDots">
+                @for (int i = 0; i < allImages.Count; i++)
+                {
+                    <span class="dot @(i == 0 ? "active" : "")" onclick="goToImage(@i)"></span>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- 上传/删除 -->
+    <form asp-controller="Home" method="post" enctype="multipart/form-data" style="margin-top:15px; display:flex; gap:10px;">
+        <input type="hidden" name="houseId" value="@Model.Id" />
+        <input type="hidden" name="imageId" id="currentImageId" value="" />
+
+        <input type="file" name="photos" multiple />
+        <button type="submit" formaction="@Url.Action("UploadHouseImages", "Home")" class="btn-submit btn-save">💾 Upload</button>
+        <button type="button" onclick="deleteCurrentImage()" class="btn-submit btn-delete">🗑 Delete</button>
+    </form>
+</div>
+
+<!-- 房源信息更新 -->
+<form asp-action="UpdateProperty" asp-controller="Home" method="post">
+    <div class="house-card">
+        <input asp-for="Id" type="hidden" />
+
+        <div class="field"><label>Room Name:</label><input asp-for="RoomName" /></div>
+        <div class="field"><label>Room Available:</label><input asp-for="Rooms" type="number" /></div>
+        <div class="field"><label>Bathrooms Available:</label><input asp-for="Bathrooms" type="number" /></div>
+        <div class="field"><label>Furnishing:</label><input asp-for="Furnishing" /></div>
+        <div class="field">
+            <label>Room Type:</label>
+            <select asp-for="RoomType">
+                <option value="Whole Unit">Whole Unit</option>
+                <option value="Single Room">Single Room</option>
+                <option value="Master Room">Master Room</option>
+                <option value="Medium Room">Medium Room</option>
+                <option value="Small Room">Small Room</option>
+            </select>
+        </div>
+        <div class="field"><label>Price:</label><input asp-for="Price" type="number" step="0.01" /></div>
+        <div class="field"><label>Date Start:</label><input asp-for="StartDate" type="date" /></div>
+        <div class="field"><label>Date End:</label><input asp-for="EndDate" type="date" /></div>
+        <div class="field"><label>Address:</label><input asp-for="Address" /></div>
+        <div class="field"><label>Sqft:</label><input asp-for="Sqft" type="number" /></div>
+
+        <div class="btn-group">
+            <button type="submit" class="btn-submit btn-save">💾 Save</button>
+            <a asp-action="OwnerDetails" asp-controller="Home" asp-route-id="@Model.Id" class="btn-submit btn-reset">↩ Reset</a>
+            <a asp-action="Owner" asp-controller="Home" class="btn-submit btn-back">⬅ Back</a>
+        </div>
+
+        <div class="btn-group btn-group-status">
+            <button type="submit"
+                    formaction="@Url.Action("PropertyDelete", "Home", new { id = Model.Id })"
+                    formmethod="post"
+                    class="btn-submit btn-delete"
+                    onclick="return confirm('Are you sure you want to delete this property?');">
+                🗑 Delete
+            </button>
+        </div>
+    </div>
+</form>
+
+<!-- 脚本 -->
+<script>
+    let currentIndex = 0;
+    const track = document.getElementById("carouselTrack");
+    const slides = document.querySelectorAll(".carousel-slide");
+    const currentImageIdInput = document.getElementById("currentImageId");
+    const dots = document.querySelectorAll(".dot");
+
+    function updateCarousel() {
+        track.style.transform = `translateX(-${currentIndex * 100}%)`;
+        const img = slides[currentIndex]?.querySelector("img");
+        currentImageIdInput.value = img?.dataset.id || "";
+
+        dots.forEach((d, i) => d.classList.toggle("active", i === currentIndex));
+    }
+
+    function prevImage() {
+        if (slides.length <= 1) return;
+        currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+        updateCarousel();
+    }
+
+    function nextImage() {
+        if (slides.length <= 1) return;
+        currentIndex = (currentIndex + 1) % slides.length;
+        updateCarousel();
+    }
+
+    function goToImage(index) {
+        currentIndex = index;
+        updateCarousel();
+    }
+
+    function deleteCurrentImage() {
+        const imageId = currentImageIdInput.value;
+        if (!imageId) {
+            alert("⚠ 主图不能删除，只能替换");
+            return;
+        }
+
+        if (!confirm("Are you sure you want to delete this image?")) return;
+
+        fetch('@Url.Action("DeleteHouseImage", "Home")', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageId: parseInt(imageId), houseId: @Model.Id })
+        }).then(res => {
+            if (res.ok) location.reload();
+            else alert("❌ Delete failed!");
+        });
+    }
+        function deleteCurrentImage() {
+        const imageId = currentImageIdInput.value;
+
+        if (!confirm("Are you sure you want to delete this image?")) return;
+
+        if (imageId) {
+            // 🖼️ 删除副图
+            fetch('@Url.Action("DeleteHouseImage", "Home")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ imageId: parseInt(imageId), houseId: @Model.Id })
+            }).then(res => {
+                if (res.ok) location.reload();
+                else alert("❌ Delete failed!");
+            });
+        } else {
+            // 🏠 删除主图
+            fetch('@Url.Action("DeleteMainHouseImage", "Home")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ houseId: @Model.Id })
+            }).then(res => {
+                if (res.ok) location.reload();
+                else alert("❌ Delete failed!");
+            });
+        }
+    }
+    // 初始化
+    updateCarousel();
+</script>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.13/jquery.validate.unobtrusive.min.js"></script>
+}
+
 <style>
     .house-card {
         max-width: 650px;
@@ -20,247 +203,124 @@
         line-height: 1.6;
     }
 
-        .house-card img.house-img {
+    .carousel {
+        position: relative;
+        overflow: hidden;
+        border-radius: 8px;
+        margin-bottom: 15px;
+    }
+
+    .carousel-track {
+        display: flex;
+        transition: transform 0.5s ease-in-out;
+    }
+
+    .carousel-slide {
+        min-width: 100%;
+        box-sizing: border-box;
+    }
+
+        .carousel-slide img {
             width: 100%;
             max-height: 450px;
             object-fit: cover;
             border-radius: 8px;
-            margin-bottom: 20px;
         }
 
-        .house-card .field {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
+    .carousel-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(0,0,0,0.5);
+        border: none;
+        color: #fff;
+        font-size: 20px;
+        padding: 8px 12px;
+        cursor: pointer;
+        border-radius: 50%;
+        z-index: 10;
+    }
+
+    .left-btn {
+        left: 10px;
+    }
+
+    .right-btn {
+        right: 10px;
+    }
+
+    .carousel-dots {
+        display: flex;
+        justify-content: center;
+        margin-top: 10px;
+    }
+
+    .dot {
+        height: 10px;
+        width: 10px;
+        margin: 0 4px;
+        background-color: #bbb;
+        border-radius: 50%;
+        display: inline-block;
+        cursor: pointer;
+    }
+
+        .dot.active {
+            background-color: #333;
         }
 
-            .house-card .field label {
-                width: 140px;
-                font-size: 16px;
-                font-weight: bold;
-                color: #333;
-            }
+    .field {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+    }
 
-        .house-card input[type="text"],
-        .house-card input[type="number"],
-        .house-card input[type="date"],
-        .house-card select {
-            flex: 1;
-            padding: 8px 10px;
-            font-size: 15px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
+        .field label {
+            width: 140px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
         }
 
-            .house-card input:focus,
-            .house-card select:focus {
-                border-color: #4a90e2;
-                box-shadow: 0 0 4px rgba(74,144,226,0.4);
-            }
-
-        .house-card hr {
-            margin: 20px 0;
-            border: none;
-            border-top: 1px solid #eee;
-        }
+    .house-card input, .house-card select {
+        flex: 1;
+        padding: 8px;
+        font-size: 15px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+    }
 
     .btn-submit {
         padding: 12px 0;
-        font-size: 15px;
         font-weight: bold;
         border: none;
         border-radius: 8px;
         cursor: pointer;
-        transition: background 0.3s, transform 0.2s;
-        text-align: center;
-        color: #fff;
-        text-decoration: none;
         flex: 1;
+        color: #fff;
+        text-align: center;
+        text-decoration: none;
     }
 
     .btn-save {
         background: #4a90e2;
     }
 
-        .btn-save:hover {
-            background: #357ab8;
-            transform: scale(1.03);
-        }
-
     .btn-reset {
         background: #9e9e9e;
     }
-
-        .btn-reset:hover {
-            background: #757575;
-            transform: scale(1.03);
-        }
 
     .btn-back {
         background: #607d8b;
     }
 
-        .btn-back:hover {
-            background: #455a64;
-            transform: scale(1.03);
-        }
-
     .btn-delete {
         background: #e53935;
     }
-
-        .btn-delete:hover {
-            background: #c62828;
-            transform: scale(1.03);
-        }
 
     .btn-group {
         display: flex;
         gap: 12px;
         margin-top: 20px;
     }
-
-    .btn-group-status .btn-submit {
-        flex: 1;
-    }
-
-    .text-danger {
-        color: red;
-        font-size: 13px;
-        margin-left: 5px;
-    }
 </style>
-
-@if (Model == null)
-{
-    <script>
-        // 如果房源不存在，自动跳回房源列表
-        window.location.href = '@Url.Action("Owner", "Home")';
-    </script>
-}
-else
-{
-    <form asp-action="UpdateProperty" asp-controller="Home" method="post">
-        <div class="house-card">
-            <img src="@Model.ImageUrl" alt="House Image" class="house-img" />
-            <hr />
-
-            <input asp-for="Id" type="hidden" />
-            <input asp-for="ImageUrl" type="hidden" />
-
-            <div class="field">
-                <label>Room Name:</label>
-                <input asp-for="RoomName" type="text" />
-                <span asp-validation-for="RoomName" class="text-danger"></span>
-            </div>
-
-            <div class="field">
-                <label>Room Available:</label>
-                <input asp-for="Rooms" type="number" />
-                <span asp-validation-for="Rooms" class="text-danger"></span>
-            </div>
-
-            <div class="field">
-                <label>Bathrooms Available:</label>
-                <input asp-for="Bathrooms" type="number" />
-                <span asp-validation-for="Bathrooms" class="text-danger"></span>
-            </div>
-
-            <div class="field">
-                <label>Furnishing:</label>
-                <select asp-for="Furnishing">
-                    <option value="">-- Select --</option>
-                    <option value="Fully">Fully</option>
-                    <option value="Semi">Semi</option>
-                    <option value="Unfurnished">Unfurnished</option>
-                </select>
-                <span asp-validation-for="Furnishing" class="text-danger"></span>
-            </div>
-
-            <div class="field">
-                <label>Room Type:</label>
-                <select asp-for="RoomType">
-                    <option value="">-- Select --</option>
-                    <option value="Whole Unit">Whole Unit</option>
-                    <option value="Single Room">Single Room</option>
-                    <option value="Master Room">Master Room</option>
-                    <option value="Medium Room">Medium Room</option>
-                    <option value="Small Room">Small Room</option>
-                </select>
-                <span asp-validation-for="RoomType" class="text-danger"></span>
-            </div>
-
-            <div class="field">
-                <label>Price:</label>
-                <input asp-for="Price" type="number" step="0.01" />
-                <span asp-validation-for="Price" class="text-danger"></span>
-            </div>
-
-            <div class="field">
-                <label>Date Start:</label>
-                <input asp-for="StartDate" type="date" />
-                <span asp-validation-for="StartDate" class="text-danger"></span>
-            </div>
-
-            <div class="field">
-                <label>Date End:</label>
-                <input asp-for="EndDate" type="date" />
-                <span asp-validation-for="EndDate" class="text-danger"></span>
-            </div>
-
-            <div class="field">
-                <label>Address:</label>
-                <input asp-for="Address" type="text" />
-                <span asp-validation-for="Address" class="text-danger"></span>
-            </div>
-
-            <div class="field">
-                <label>Sqft:</label>
-                <input asp-for="Sqft" type="number" />
-                <span asp-validation-for="Sqft" class="text-danger"></span>
-            </div>
-
-            <div class="btn-group">
-                <button type="submit" class="btn-submit btn-save">💾 Save</button>
-                <a asp-action="OwnerDetails" asp-controller="Home" asp-route-id="@Model.Id" class="btn-submit btn-reset">↩ Reset</a>
-                <a asp-action="Owner" asp-controller="Home" class="btn-submit btn-back">⬅ Back</a>
-            </div>
-
-            <div class="btn-group btn-group-status">
-                <button type="submit"
-                        formaction="@Url.Action("PropertyDelete", "Home", new { id = Model.Id })"
-                        formmethod="post"
-                        class="btn-submit btn-delete"
-                        onclick="return confirm('Are you sure you want to delete this property?');">
-                    🗑 Delete
-                </button>
-            </div>
-        </div>
-    </form>
-}
-
-@section Scripts {
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.13/jquery.validate.unobtrusive.min.js"></script>
-
-    <script>
-        function updateRoomFields() {
-            var roomType = $('#RoomType').val();
-            if (roomType === 'Whole Unit') {
-                $('#Rooms').prop('readonly', false);
-                $('#Bathrooms').prop('readonly', false);
-            } else {
-                $('#Rooms').val(1).prop('readonly', true);
-                $('#Bathrooms').val(1).prop('readonly', true);
-            }
-        }
-
-        $(document).ready(function () {
-            updateRoomFields();
-            $('#RoomType').change(updateRoomFields);
-        });
-    </script>
-}

@@ -177,12 +177,53 @@
 
             function updatePreview() {
                 preview.innerHTML = "";
-                allFiles.forEach(file => {
+                allFiles.forEach((file, index) => {
                     const reader = new FileReader();
                     reader.onload = e => {
+                        // 外层 wrapper
+                        const wrapper = document.createElement("div");
+                        wrapper.classList.add("position-relative", "d-inline-block");
+                        wrapper.style.margin = "5px";
+
+                        // 图片
                         const img = document.createElement("img");
                         img.src = e.target.result;
-                        preview.appendChild(img);
+
+                        // 红色 X 按钮
+                        const delBtn = document.createElement("button");
+                        delBtn.type = "button";
+                        delBtn.textContent = "✕";   // Unicode 的 X
+                        delBtn.style.position = "absolute";
+                        delBtn.style.top = "2px";
+                        delBtn.style.right = "2px";
+                        delBtn.style.background = "rgba(255,255,255,0.9)";
+                        delBtn.style.color = "red";
+                        delBtn.style.border = "1px solid red";
+                        delBtn.style.borderRadius = "50%";
+                        delBtn.style.width = "22px";
+                        delBtn.style.height = "22px";
+                        delBtn.style.cursor = "pointer";
+                        delBtn.style.fontSize = "14px";
+                        delBtn.style.lineHeight = "18px";
+                        delBtn.style.padding = "0";
+
+                        delBtn.addEventListener("mouseenter", () => {
+                            delBtn.style.background = "red";
+                            delBtn.style.color = "white";
+                        });
+                        delBtn.addEventListener("mouseleave", () => {
+                            delBtn.style.background = "rgba(255,255,255,0.9)";
+                            delBtn.style.color = "red";
+                        });
+
+                        delBtn.addEventListener("click", () => {
+                            allFiles.splice(index, 1);
+                            updatePreview();
+                        });
+
+                        wrapper.appendChild(img);
+                        wrapper.appendChild(delBtn);
+                        preview.appendChild(wrapper);
                     };
                     reader.readAsDataURL(file);
                 });
@@ -213,7 +254,7 @@
             fileInput.addEventListener("change", () => addFiles(fileInput.files));
 
             // 提交表单前，把所有文件写回 fileInput
-            document.querySelector("form").addEventListener("submit", function() {
+            document.querySelector("form").addEventListener("submit", function () {
                 const dataTransfer = new DataTransfer();
                 allFiles.forEach(f => dataTransfer.items.add(f));
                 fileInput.files = dataTransfer.files;
@@ -281,3 +322,5 @@
         });
     </script>
 }
+
+

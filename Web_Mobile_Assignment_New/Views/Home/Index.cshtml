@@ -69,13 +69,13 @@
                     {
                         <img src="@house.Images.First().ImageUrl"
                              alt="House Image"
-                             style="width: 100%; height: 180px; object-fit: cover;" />
+                             style="width: 100%; height: 180px; object-fit: contain;" />
                     }
                     else if (!string.IsNullOrEmpty(house.ImageUrl))
                     {
                         <img src="@house.ImageUrl"
                              alt="House Image"
-                             style="width: 100%; height: 180px; object-fit: cover;" />
+                             style="width: 100%; height: 180px; object-fit: contain;" />
                     }
                     else
                     {

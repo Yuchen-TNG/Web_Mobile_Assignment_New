@@ -99,14 +99,12 @@ public class BookingController : Controller
 
         // Update house availability
         var house = booking.House;
-        if (house != null)
+        if (booking.House != null)
         {
-            var freshHouse = _db.Houses.FirstOrDefault(h => h.Id == house.Id);
+            var freshHouse = _db.Houses.FirstOrDefault(h => h.Id == booking.House.Id);
             if (freshHouse != null)
             {
-                freshHouse.Availability = _db.Bookings.Any(b => b.HouseId == freshHouse.Id && b.EndDate >= DateTime.Today)
-                                         ? "Rented"
-                                         : "Available";
+                freshHouse.Availability = "Available";
                 _db.SaveChanges();
             }
         }

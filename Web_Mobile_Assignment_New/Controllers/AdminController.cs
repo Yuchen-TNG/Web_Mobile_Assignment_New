@@ -609,29 +609,36 @@ namespace Web_Mobile_Assignment_New.Controllers
                     {
                         if (photo.Length <= 0) continue;
 
-                        // 生成唯一文件名
                         var fileName = Guid.NewGuid() + Path.GetExtension(photo.FileName);
-
-                        // wwwroot/images 目录
                         var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
+
                         if (!Directory.Exists(uploadPath))
-                        {
                             Directory.CreateDirectory(uploadPath);
-                        }
 
                         var filePath = Path.Combine(uploadPath, fileName);
-
-                        // 写入物理文件
                         using (var stream = new FileStream(filePath, FileMode.Create))
                         {
                             await photo.CopyToAsync(stream);
                         }
 
-                        // 存数据库时带 /images/ 前缀，方便 <img src="...">
-                        house.Images.Add(new HouseImage
+                        var relativeUrl = "/images/" + fileName;
+
+                        if (string.IsNullOrEmpty(house.ImageUrl))
                         {
-                            ImageUrl = "/images/" + fileName
-                        });
+                            // ✅ 主图为空，更新主图
+                            house.ImageUrl = relativeUrl;
+                            Console.WriteLine($"[DEBUG] 主图更新为: {house.ImageUrl}");
+
+                        }
+                        else
+                        {
+                            // ✅ 主图已存在，加入附加图
+                            house.Images.Add(new HouseImage
+                            {
+                                ImageUrl = relativeUrl
+                            });
+                            Console.WriteLine($"[DEBUG] 附加图加入: {relativeUrl}");
+                        }
                     }
 
                     await _context.SaveChangesAsync();
@@ -650,17 +657,17 @@ namespace Web_Mobile_Assignment_New.Controllers
                 TempData["MessageType"] = "error";
             }
 
-            // 上传后回到详情页
             return RedirectToAction("PropertyDetails", new { id = houseId });
         }
 
         [HttpPost]
         public IActionResult DeleteHouseImage([FromBody] DeleteHouseImageRequest req)
         {
+            // 先尝试删除附属图片
             var image = _context.HouseImages.FirstOrDefault(i => i.Id == req.ImageId);
             if (image != null)
             {
-                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", image.ImageUrl);
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", image.ImageUrl.TrimStart('/'));
                 if (System.IO.File.Exists(filePath))
                     System.IO.File.Delete(filePath);
 
@@ -670,14 +677,29 @@ namespace Web_Mobile_Assignment_New.Controllers
                 return Ok(new { success = true });
             }
 
+            // 如果找不到附属图片，尝试删除主图
+            var house = _context.Houses.FirstOrDefault(h => h.Id == req.HouseId);
+            if (house != null && !string.IsNullOrEmpty(house.ImageUrl))
+            {
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", house.ImageUrl.TrimStart('/'));
+                if (System.IO.File.Exists(filePath))
+                    System.IO.File.Delete(filePath);
+
+                house.ImageUrl = null;
+                _context.SaveChanges();
+                TempData["Message"] = "Main image deleted successfully!";
+                return Ok(new { success = true });
+            }
+
             return BadRequest(new { success = false });
         }
 
         public class DeleteHouseImageRequest
         {
-            public int ImageId { get; set; }
+            public int ImageId { get; set; } // 0 表示主图
             public int HouseId { get; set; }
         }
+
 
 
     }

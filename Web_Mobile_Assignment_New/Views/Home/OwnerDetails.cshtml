@@ -113,15 +113,16 @@
 
         <div class="field">
             <label>Date Start:</label>
-            <input asp-for="StartDate" type="date" />
+            <input asp-for="StartDate" type="date" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
             <span asp-validation-for="StartDate" class="text-error"></span>
         </div>
 
         <div class="field">
             <label>Date End:</label>
-            <input asp-for="EndDate" type="date" />
+            <input asp-for="EndDate" type="date" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
             <span asp-validation-for="EndDate" class="text-error"></span>
         </div>
+
 
         <div class="field">
             <label>Address:</label>
@@ -230,6 +231,60 @@
             });
         }
     }
+    document.addEventListener("DOMContentLoaded", function () {
+        const roomTypeSelect = document.getElementById("RoomType"); // if your RoomType field also uses asp-for="RoomType"
+        const startDateInput = document.getElementById("StartDate");
+        const endDateInput = document.getElementById("EndDate");
+
+        // Add error container if not present
+        let dateError = document.getElementById("date-error");
+        if (!dateError) {
+            dateError = document.createElement("div");
+            dateError.id = "date-error";
+            dateError.classList.add("text-danger", "mt-1");
+            endDateInput.insertAdjacentElement("afterend", dateError);
+        }
+
+        function updateDateLimit() {
+            if (!startDateInput.value) {
+                endDateInput.removeAttribute("max");
+                dateError.textContent = "";
+                return;
+            }
+
+            const start = new Date(startDateInput.value);
+            let maxEnd = new Date(start);
+
+            if (roomTypeSelect && roomTypeSelect.value === "Whole Unit") {
+                maxEnd.setFullYear(maxEnd.getFullYear() + 2);
+            } else {
+                maxEnd.setFullYear(maxEnd.getFullYear() + 1);
+            }
+
+            const maxDateStr = maxEnd.toISOString().split("T")[0];
+            endDateInput.max = maxDateStr;
+
+            // Validate chosen EndDate
+            if (endDateInput.value && endDateInput.value > maxDateStr) {
+                dateError.textContent =
+                    (roomTypeSelect && roomTypeSelect.value === "Whole Unit")
+                        ? "❌ Whole Unit rental cannot exceed 2 years."
+                        : "❌ Rental cannot exceed 1 year.";
+                endDateInput.value = maxDateStr; // auto-fix
+            } else {
+                dateError.textContent = "";
+            }
+        }
+
+        if (roomTypeSelect) {
+            roomTypeSelect.addEventListener("change", updateDateLimit);
+        }
+        startDateInput.addEventListener("change", updateDateLimit);
+        endDateInput.addEventListener("change", updateDateLimit);
+
+        updateDateLimit(); // run once at load
+    });
+
     // 初始化
     updateCarousel();
 </script>

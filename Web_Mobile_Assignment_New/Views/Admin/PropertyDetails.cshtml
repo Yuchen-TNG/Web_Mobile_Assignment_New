@@ -56,11 +56,40 @@
     <div class="house-card">
         <input asp-for="Id" type="hidden" />
 
-        <div class="field"><label>ID:</label><input asp-for="Id" readonly /></div>
-        <div class="field"><label>Room Name:</label><input asp-for="RoomName" /></div>
-        <div class="field"><label>Rooms:</label><input asp-for="Rooms" type="number" /></div>
-        <div class="field"><label>Bathrooms:</label><input asp-for="Bathrooms" type="number" /></div>
-        <div class="field"><label>Furnishing:</label><input asp-for="Furnishing" /></div>
+        <div class="field">
+            <label>ID:</label>
+            <input asp-for="Id" readonly />
+            <span asp-validation-for="Id" class="text-error"></span>
+        </div>
+
+        <div class="field">
+            <label>Room Name:</label>
+            <input asp-for="RoomName" />
+            <span asp-validation-for="RoomName" class="text-error"></span>
+        </div>
+
+        <div class="field">
+            <label>Rooms:</label>
+            <input asp-for="Rooms" type="number" />
+            <span asp-validation-for="Rooms" class="text-error"></span>
+        </div>
+
+        <div class="field">
+            <label>Bathrooms:</label>
+            <input asp-for="Bathrooms" type="number" />
+            <span asp-validation-for="Bathrooms" class="text-error"></span>
+        </div>
+
+        <div class="field">
+            <label>Furnishing</label>
+            <select asp-for="Furnishing" class="form-select">
+                <option value="Fully">Fully Furnished</option>
+                <option value="Semi">Semi Furnished</option>
+                <option value="Unfurnished">Unfurnished</option>
+            </select>
+            <span asp-validation-for="Furnishing" class="text-danger"></span>
+        </div>
+
         <div class="field">
             <label>Room Type:</label>
             <select asp-for="RoomType">
@@ -70,13 +99,44 @@
                 <option value="Medium Room">Medium Room</option>
                 <option value="Small Room">Small Room</option>
             </select>
+            <span asp-validation-for="RoomType" class="text-error"></span>
         </div>
-        <div class="field"><label>Price:</label><input asp-for="Price" type="number" step="0.01" /></div>
-        <div class="field"><label>Start Date:</label><input asp-for="StartDate" type="date" /></div>
-        <div class="field"><label>End Date:</label><input asp-for="EndDate" type="date" /></div>
-        <div class="field"><label>Address:</label><input asp-for="Address" /></div>
-        <div class="field"><label>Sqft:</label><input asp-for="Sqft" type="number" /></div>
-        <div class="field"><label>Status:</label><input asp-for="RoomStatus" readonly /></div>
+
+        <div class="field">
+            <label>Price:</label>
+            <input asp-for="Price" type="number" step="0.01" />
+            <span asp-validation-for="Price" class="text-error"></span>
+        </div>
+
+        <div class="field">
+            <label>Start Date:</label>
+            <input asp-for="StartDate" type="date" />
+            <span asp-validation-for="StartDate" class="text-error"></span>
+        </div>
+
+        <div class="field">
+            <label>End Date:</label>
+            <input asp-for="EndDate" type="date" />
+            <span asp-validation-for="EndDate" class="text-error"></span>
+        </div>
+
+        <div class="field">
+            <label>Address:</label>
+            <input asp-for="Address" />
+            <span asp-validation-for="Address" class="text-error"></span>
+        </div>
+
+        <div class="field">
+            <label>Sqft:</label>
+            <input asp-for="Sqft" type="number" />
+            <span asp-validation-for="Sqft" class="text-error"></span>
+        </div>
+
+        <div class="field">
+            <label>Status:</label>
+            <input asp-for="RoomStatus" readonly />
+            <span asp-validation-for="RoomStatus" class="text-error"></span>
+        </div>
 
         <!-- 保存 / 重置 / 返回 -->
         <div class="btn-group">
@@ -86,7 +146,6 @@
         </div>
     </div>
 </form>
-
 <!-- 状态切换 + 删除房源 -->
 <div class="house-card">
     <div class="btn-group btn-group-status">

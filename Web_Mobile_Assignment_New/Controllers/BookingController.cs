@@ -28,6 +28,7 @@ public class BookingController : Controller
 
         var query = _db.Bookings
             .Include(b => b.House)
+            .ThenInclude(h => h.Images)
             .Include(b => b.Payment)
             .Where(b => b.UserEmail == email)
             .OrderByDescending(b => b.StartDate);

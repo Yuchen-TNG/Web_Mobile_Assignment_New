@@ -71,13 +71,13 @@
 
         <div class="field">
             <label>Rooms:</label>
-            <input asp-for="Rooms" type="number" />
+            <input asp-for="Rooms" type="number" id="Rooms" readonly/>
             <span asp-validation-for="Rooms" class="text-error"></span>
         </div>
 
         <div class="field">
             <label>Bathrooms:</label>
-            <input asp-for="Bathrooms" type="number" />
+            <input asp-for="Bathrooms" type="number" id="Bathrooms" readonly />
             <span asp-validation-for="Bathrooms" class="text-error"></span>
         </div>
 
@@ -93,14 +93,12 @@
 
         <div class="field">
             <label>Room Type:</label>
-            <select asp-for="RoomType">
+            <select asp-for="RoomType" id="RoomType">
                 <option value="Whole Unit">Whole Unit</option>
                 <option value="Single Room">Single Room</option>
                 <option value="Master Room">Master Room</option>
                 <option value="Medium Room">Medium Room</option>
-                <option value="
-
-">Big Medium Room</option>
+                <option value="Big Medium Room">Big Medium Room</option>
             </select>
             <span asp-validation-for="RoomType" class="text-error"></span>
         </div>
@@ -185,61 +183,80 @@
 <!-- 脚本 -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-    const roomTypeSelect = document.getElementById("RoomType");
-    const startDateInput = document.getElementById("StartDate");
-    const endDateInput = document.getElementById("EndDate");
-    const dateError = document.getElementById("date-error");
+        const roomTypeSelect = document.getElementById("RoomType");
+        const roomsInput = document.getElementById("Rooms");
+        const bathroomsInput = document.getElementById("Bathrooms");
+        const startDateInput = document.getElementById("StartDate");
+        const endDateInput = document.getElementById("EndDate");
+        const dateError = document.getElementById("date-error");
 
-    function updateDateLimit() {
-        if (!startDateInput.value) {
-            endDateInput.removeAttribute("min");
-            endDateInput.removeAttribute("max");
-            dateError.textContent = "";
-            return;
-        }
-
-        const start = new Date(startDateInput.value);
-
-        // ✅ End date must be at least +1 day after start date
-        let minEnd = new Date(start);
-        minEnd.setDate(minEnd.getDate() + 1);
-
-        // ✅ Rule: max = +2 years (Whole Unit) or +1 year (others)
-        let maxEnd = new Date(start);
-        if (roomTypeSelect && roomTypeSelect.value === "Whole Unit") {
-            maxEnd.setFullYear(maxEnd.getFullYear() + 2);
-        } else {
-            maxEnd.setFullYear(maxEnd.getFullYear() + 1);
-        }
-
-        const minDateStr = minEnd.toISOString().split("T")[0];
-        const maxDateStr = maxEnd.toISOString().split("T")[0];
-
-        endDateInput.min = minDateStr;
-        endDateInput.max = maxDateStr;
-
-        // ✅ Validate if user already entered an invalid date
-        if (endDateInput.value) {
-            if (endDateInput.value < minDateStr) {
-                dateError.textContent = "❌ End date must be after Start date.";
-                endDateInput.value = minDateStr;
-            } else if (endDateInput.value > maxDateStr) {
-                dateError.textContent =
-                    (roomTypeSelect && roomTypeSelect.value === "Whole Unit")
-                        ? "❌ Whole Unit rental cannot exceed 2 years."
-                        : "❌ Rental cannot exceed 1 year.";
-                endDateInput.value = maxDateStr;
+        // ========== 更新房间/浴室逻辑 ==========
+        function updateFields() {
+            if (roomTypeSelect.value === "Whole Unit") {
+                roomsInput.removeAttribute("readonly");
+                bathroomsInput.removeAttribute("readonly");
             } else {
-                dateError.textContent = "";
+                roomsInput.value = 1;
+                roomsInput.setAttribute("readonly", "readonly");
+                bathroomsInput.value = 1;
+                bathroomsInput.setAttribute("readonly", "readonly");
             }
         }
-    }
 
-    if (roomTypeSelect) roomTypeSelect.addEventListener("change", updateDateLimit);
-    startDateInput.addEventListener("change", updateDateLimit);
-    endDateInput.addEventListener("change", updateDateLimit);
+        // ========== 日期逻辑 ==========
+        function updateDateLimit() {
+            if (!startDateInput.value) {
+                endDateInput.removeAttribute("min");
+                endDateInput.removeAttribute("max");
+                dateError.textContent = "";
+                return;
+            }
 
-    updateDateLimit(); // Run once on load
+            const start = new Date(startDateInput.value);
+
+            let minEnd = new Date(start);
+            minEnd.setDate(minEnd.getDate() + 1);
+
+            let maxEnd = new Date(start);
+            if (roomTypeSelect.value === "Whole Unit") {
+                maxEnd.setFullYear(maxEnd.getFullYear() + 2);
+            } else {
+                maxEnd.setFullYear(maxEnd.getFullYear() + 1);
+            }
+
+            const minDateStr = minEnd.toISOString().split("T")[0];
+            const maxDateStr = maxEnd.toISOString().split("T")[0];
+
+            endDateInput.min = minDateStr;
+            endDateInput.max = maxDateStr;
+
+            if (endDateInput.value) {
+                if (endDateInput.value < minDateStr) {
+                    dateError.textContent = "❌ End date must be after Start date.";
+                    endDateInput.value = minDateStr;
+                } else if (endDateInput.value > maxDateStr) {
+                    dateError.textContent =
+                        (roomTypeSelect.value === "Whole Unit")
+                            ? "❌ Whole Unit rental cannot exceed 2 years."
+                            : "❌ Rental cannot exceed 1 year.";
+                    endDateInput.value = maxDateStr;
+                } else {
+                    dateError.textContent = "";
+                }
+            }
+        }
+
+        // ========== 事件绑定 ==========
+        roomTypeSelect.addEventListener("change", () => {
+            updateFields();
+            updateDateLimit();
+        });
+        startDateInput.addEventListener("change", updateDateLimit);
+        endDateInput.addEventListener("change", updateDateLimit);
+
+        // 初始化
+        updateFields();
+        updateDateLimit();
 
         // ---------- 图片轮播逻辑 ----------
         let currentIndex = 0;
@@ -263,22 +280,21 @@
         };
 
         // ---------- 删除图片逻辑 ----------
-    window.deleteCurrentImage = function() {
-        // 如果 carousel 显示的是主图，没有 data-id 就传0
-        const imageId = currentImageIdInput.value || 0;
-        const houseId = '@Model.Id';
+        window.deleteCurrentImage = function() {
+            const imageId = currentImageIdInput.value || 0;
+            const houseId = '@Model.Id';
 
-        if(!confirm("Are you sure you want to delete this image?")) return;
+            if(!confirm("Are you sure you want to delete this image?")) return;
 
-        fetch('@Url.Action("DeleteHouseImage", "Admin")', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ imageId: parseInt(imageId), houseId: parseInt(houseId) })
-        }).then(res => {
-            if(res.ok) location.reload();
-            else alert("Delete failed!");
-        });
-    };
+            fetch('@Url.Action("DeleteHouseImage", "Admin")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ imageId: parseInt(imageId), houseId: parseInt(houseId) })
+            }).then(res => {
+                if(res.ok) location.reload();
+                else alert("Delete failed!");
+            });
+        };
 
         showImage(0);
     });

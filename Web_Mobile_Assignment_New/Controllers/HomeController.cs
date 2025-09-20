@@ -610,7 +610,7 @@ namespace Web_Mobile_Assignment_New.Controllers
                 TempData["MessageType"] = "error";
             }
 
-            return RedirectToAction("Index"); // ✅ 强制回到列表
+            return RedirectToAction("Owner"); // ✅ 强制回到列表
         }
 
 

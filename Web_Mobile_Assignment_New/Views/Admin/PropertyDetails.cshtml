@@ -118,7 +118,7 @@
 
         <div class="field">
             <label>End Date:</label>
-            <input asp-for="EndDate" type="date" id="EndDate" />
+            <input asp-for="EndDate" type="date" id="EndDate" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
             <span asp-validation-for="EndDate" class="text-error"></span>
             <div id="date-error" class="text-danger mt-1"></div>
         </div>

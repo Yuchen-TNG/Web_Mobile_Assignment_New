@@ -70,7 +70,8 @@
             <input asp-for="RoomName" />
             <span asp-validation-for="RoomName" class="text-error"></span>
         </div>
-
+		<input asp-for="RoomStatus" type="hidden" value="valid" />
+		<input asp-for="Availability" type="hidden" value="Available" />
         <div class="field">
             <label>Rooms Available:</label>
             <input asp-for="Rooms" type="number" />

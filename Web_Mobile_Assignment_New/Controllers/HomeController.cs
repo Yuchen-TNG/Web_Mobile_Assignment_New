@@ -623,6 +623,7 @@ namespace Web_Mobile_Assignment_New.Controllers
 
             return View(house);
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult UpdateProperty(House model)
@@ -630,7 +631,7 @@ namespace Web_Mobile_Assignment_New.Controllers
             if (!ModelState.IsValid)
             {
                 // 返回原页面并保留用户输入
-                return View(model);
+                return RedirectToAction("OwnerDetails", new { id = model.Id });
             }
             var existing = _context.Houses.FirstOrDefault(h => h.Id == model.Id);
             if (existing == null)

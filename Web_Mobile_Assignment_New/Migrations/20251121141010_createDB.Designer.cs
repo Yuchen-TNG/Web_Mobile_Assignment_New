@@ -12,7 +12,7 @@ using Web_Mobile_Assignment_New.Models;
 namespace Web_Mobile_Assignment_New.Migrations
 {
     [DbContext(typeof(DB))]
-    [Migration("20250916165901_createDB")]
+    [Migration("20251121141010_createDB")]
     partial class createDB
     {
         /// <inheritdoc />

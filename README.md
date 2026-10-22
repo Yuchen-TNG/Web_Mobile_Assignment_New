@@ -1,9 +1,9 @@
 Apr 30 2026
 Hi guys, this programe is build to make house render website
 
-KZ build admin
-Leon build login and logout
-YC build hotel details
+KZ build admin，
+Leon build login and logout，
+YC build hotel details，
 CK build index
 
 just a remind. if run failure and show

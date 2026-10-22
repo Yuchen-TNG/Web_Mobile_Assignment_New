@@ -1,3 +1,4 @@
+Apr 30 2026
 Hi guys, this programe is build to make house render website
 
 KZ build admin
@@ -20,6 +21,15 @@ you can try this:
 uhmmmm i believe this provlem will happend is because you havent create database yet.
 Why i not write down the step of solve this provlem is because i lazy and this web not the web i want to open hahaha
 bye~
+
+Regards,
+Kai Zhen
+
+
+
+
+October 22 2026
+Hey guys, according the problem I have write down last time, I have resolved the problem already yeahhhhhh. Dont know which shit write the shit path, and system dieddied find the path. fck u, waste my time. So your guys just need to write down Update-Database in package manager consoler than should be fine. That all, good luck.(btw remember get the latest version yaaa)
 
 Regards,
 Kai Zhen
